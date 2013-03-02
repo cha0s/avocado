@@ -16,12 +16,9 @@ Window = class
 	@Flags_Default = 0
 	@Flags_Fullscreen = 1
 	
-	# Mouse button constants.
-	@LeftButton   = 1
-	@MiddleButton = 2
-	@RightButton  = 3
-	@WheelUp      = 4
-	@WheelDown    = 5
+	# Mouse and keycode constants.
+	@Mouse = Object.freeze NativeWindow.Mouse
+	@KeyCode = Object.freeze NativeWindow.KeyCode
 	
 	constructor: ->
 		
