@@ -3,8 +3,6 @@ Graphics = require 'Graphics'
 Timing = require 'Timing'
 Vector = require 'Extension/Vector'
 
-Window = Graphics.Window
-
 # We want to store how much a player is moving either with the
 # arrow keys or the joystick/gamepad.
 movement = {}
@@ -73,7 +71,7 @@ windows = []
 
 Graphics.GraphicsService::newWindow = (size, flags) ->
 	
-	window_ = new Window()
+	window_ = new Graphics.Window()
 	
 	windows.push window_
 	
@@ -128,14 +126,14 @@ Graphics.GraphicsService::newWindow = (size, flags) ->
 	# Start dragging when a button is clicked.
 	window_.on 'mouseButtonDown.Avocado', ({button}) ->
 		switch button
-			when Window.Mouse.ButtonLeft, Window.Mouse.ButtonMiddle, Window.Mouse.ButtonRight
+			when Graphics.Window.Mouse.ButtonLeft, Graphics.Window.Mouse.ButtonMiddle, Graphics.Window.Mouse.ButtonRight
 				dragStartLocation[button] = mouseLocation
 				buttons[button] = true
 			
 	# Stop dragging when a button is released.
 	window_.on 'mouseButtonUp.Avocado', ({button}) ->
 		switch button
-			when Window.Mouse.ButtonLeft, Window.Mouse.ButtonMiddle, Window.Mouse.ButtonRight
+			when Graphics.Window.Mouse.ButtonLeft, Graphics.Window.Mouse.ButtonMiddle, Graphics.Window.Mouse.ButtonRight
 				delete buttons[button]
 				delete dragStartLocation[button]
 	
