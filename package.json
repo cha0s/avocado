@@ -1,0 +1,29 @@
+{
+  "name": "avocado",
+  "version": "0.0.1",
+  "description": "Avocado game framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cha0s/avocado.git"
+  },
+  "keywords": [
+    "Avocado",
+    "game",
+    "framework",
+    "free",
+    "open"
+  ],
+  "author": "cha0s",
+  "license": "BSD",
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "grunt-contrib-uglify": "~0.1.2",
+    "grunt-contrib-coffee": "~0.5.0",
+    "grunt-wrap": "git://github.com/chrissrogers/grunt-wrap.git",
+    "grunt-contrib-copy": "~0.4.0"
+  }
+}
