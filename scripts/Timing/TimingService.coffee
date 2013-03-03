@@ -34,3 +34,30 @@ Timing.TimingService.setElapsed = (e) -> elapsed = e
 # Time elapsed per engine tick.
 Timing.TimingService.tickElapsed = -> tickElapsed
 Timing.TimingService.setTickElapsed = (e) -> tickElapsed = e
+
+lastTime = 0
+for vendor in ['ms', 'moz', 'webkit', 'o']
+	
+	@cancelAnimationFrame = @["#{vendor}CancelAnimationFrame"] ? @["#{vendor}CancelRequestAnimationFrame"]
+	break if @requestAnimationFrame = @["#{vendor}RequestAnimationFrame"]
+
+unless @requestAnimationFrame
+	
+	@requestAnimationFrame = (callback, element) ->
+		currTime = new Date().getTime()
+		
+		timeToCall = Math.max(
+			0
+			(1000 / Timing.rendersPerSecondTarget) - (currTime - lastTime)
+		)
+		
+		lastTime = currTime + timeToCall
+		
+		setTimeout(
+			-> callback lastTime
+			timeToCall
+		)
+
+unless @cancelAnimationFrame
+	
+	@cancelAnimationFrame = (handle) -> clearTimeout id
