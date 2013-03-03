@@ -60,4 +60,4 @@ unless @requestAnimationFrame
 
 unless @cancelAnimationFrame
 	
-	@cancelAnimationFrame = (handle) -> clearTimeout id
+	@cancelAnimationFrame = (handle) -> clearTimeout handle
