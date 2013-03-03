@@ -151,7 +151,7 @@ module.exports = Main = class
 		
 		@leaveState 'quit'
 		
-		# GC our tick and render loop handles.
+		# GC our tick loop handle.
 		clearInterval @tickInterval
 		
 		# Notify any listeners that it's time to quit.
