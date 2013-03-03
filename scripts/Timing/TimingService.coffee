@@ -38,12 +38,12 @@ Timing.TimingService.setTickElapsed = (e) -> tickElapsed = e
 lastTime = 0
 for vendor in ['ms', 'moz', 'webkit', 'o']
 	
-	@cancelAnimationFrame = @["#{vendor}CancelAnimationFrame"] ? @["#{vendor}CancelRequestAnimationFrame"]
-	break if @requestAnimationFrame = @["#{vendor}RequestAnimationFrame"]
+	Timing.cancelAnimationFrame = @["#{vendor}CancelAnimationFrame"] ? @["#{vendor}CancelRequestAnimationFrame"]
+	break if Timing.requestAnimationFrame = @["#{vendor}RequestAnimationFrame"]
 
-unless @requestAnimationFrame
+unless Timing.requestAnimationFrame
 	
-	@requestAnimationFrame = (callback, element) ->
+	Timing.requestAnimationFrame = (callback, element) ->
 		currTime = new Date().getTime()
 		
 		timeToCall = Math.max(
@@ -58,6 +58,6 @@ unless @requestAnimationFrame
 			timeToCall
 		)
 
-unless @cancelAnimationFrame
+unless Timing.cancelAnimationFrame
 	
-	@cancelAnimationFrame = (handle) -> clearTimeout handle
+	Timing.cancelAnimationFrame = (handle) -> clearTimeout handle
