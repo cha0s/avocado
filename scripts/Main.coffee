@@ -130,7 +130,7 @@ module.exports = Main = class
 		delta += @elapsedRemainder
 		
 		# Poll events.
-		Graphics.graphicsService.pollEvents()
+		Graphics.pollEvents()
 		
 		while delta > @tickTargetSeconds
 			delta -= @tickTargetSeconds

@@ -69,7 +69,7 @@ registerMovement = (player) ->
 
 windows = []
 
-Graphics.GraphicsService::newWindow = (size, flags) ->
+Graphics.newWindow = (size, flags) ->
 	
 	window_ = new Graphics.Window()
 	
@@ -159,4 +159,4 @@ Graphics.GraphicsService::newWindow = (size, flags) ->
 				
 	window_
 	
-Graphics.GraphicsService::pollEvents = -> window_.pollEvents() for window_ in windows
+Graphics.pollEvents = -> window_.pollEvents() for window_ in windows
