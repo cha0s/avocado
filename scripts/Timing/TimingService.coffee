@@ -58,6 +58,10 @@ unless Timing.requestAnimationFrame
 			timeToCall
 		)
 
+Timing.requestAnimationFrame = Timing.requestAnimationFrame.bind this
+
 unless Timing.cancelAnimationFrame
 	
 	Timing.cancelAnimationFrame = (handle) -> clearTimeout handle
+
+Timing.cancelAnimationFrame = Timing.cancelAnimationFrame.bind this
