@@ -30,7 +30,7 @@ module.exports = (grunt) ->
 				
 		wrap:
 			modules:
-				src: ['js/**/*.js']
+				src: ['js/scripts/**/*.js']
 				dest: 'js/wrapped/'
 				wrapper: (filepath) ->
 					
