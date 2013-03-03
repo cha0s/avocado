@@ -24,6 +24,7 @@
     "grunt-contrib-uglify": "~0.1.2",
     "grunt-contrib-coffee": "~0.5.0",
     "grunt-wrap": "git://github.com/chrissrogers/grunt-wrap.git",
-    "grunt-contrib-copy": "~0.4.0"
+    "grunt-contrib-copy": "~0.4.0",
+    "grunt-contrib-concat": "~0.1.3"
   }
 }
