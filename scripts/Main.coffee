@@ -45,8 +45,8 @@ module.exports = Main = class
 		# A cache of all instantiated State objects.
 		@states = {}
 		
-		# Keep count of tick and render frequencies in milliseconds.
-		@tickFrequency = 1000 / Timing.ticksPerSecondTarget
+		# Keep track of cycles-per-second.
+		@tickCps = new Cps()
 		
 		# Keep handles for out tick and render loops, so we can GC them on
 		# quit.
@@ -66,7 +66,7 @@ module.exports = Main = class
 					@tick()
 				catch error
 					@emit 'error', error
-			@tickFrequency
+			1000 / Timing.ticksPerSecondTarget
 		)
 		
 	# Change the State. This isn't immediate, but will be dispatched on the
@@ -142,6 +142,9 @@ module.exports = Main = class
 			
 			# Handle any State change.
 			@handleStateChange()
+			
+			# Track them cycles!
+			@tickCps.tick()
 		
 		@elapsedRemainder = delta
 		
