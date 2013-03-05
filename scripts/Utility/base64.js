@@ -20,14 +20,6 @@
 'use strict';
 // if node.js, we use Buffer
 var buffer;
-if (typeof module !== 'undefined' && module.exports) {
-    // make sure buffer ACTUALLY exists!
-	try {
-        buffer = require('buffer').Buffer;
-    }
-    catch (error) {
-    }
-}
 // constants
 var b64chars
     = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';

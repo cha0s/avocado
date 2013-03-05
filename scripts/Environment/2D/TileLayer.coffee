@@ -33,8 +33,17 @@ module.exports = TileLayer = class
 		
 		@size_ = Vector.copy @size_
 		
-		@tileIndices_ = (0 for i in [0...Vector.area @size_]) unless @tileIndices_?
+		if @tileIndices_?
 			
+			debased = base64.fromBase64 @tileIndices_.toString()
+			compressed = JSON.parse "[#{debased}]"
+			
+			decompressed = Lzw.decompress compressed
+			@tileIndices_ = JSON.parse "[#{decompressed}]"
+			
+		else
+			@tileIndices_ = (0 for i in [0...Vector.area @size_])
+		
 		defer.resolve()
 			
 		defer.promise
@@ -42,7 +51,8 @@ module.exports = TileLayer = class
 	toJSON: ->
 		
 		tileIndices = if 0 isnt Math.max.apply Math, @tileIndices_
-			base64.toBase64 Lzw.compress @tileIndices_.toString()
+			compressed = Lzw.compress @tileIndices_.toString()
+			base64.toBase64 compressed.toString()
 		else
 			null
 			
