@@ -12,6 +12,8 @@
  *  
  *  Modified the buffer logic, since nodeJS module structure is presented even
  *  in the absence of node's modules.
+ *  
+ *  Modified to be specific to nodeJS structure.
  */
 
 (function(global) {
@@ -119,7 +121,7 @@ var decode = function(a){
     );
 };
 // export Base64
-global.Base64 = {
+module.exports = {
     atob: atob,
     btoa: btoa,
     fromBase64: decode,
@@ -135,7 +137,7 @@ if (typeof Object.defineProperty === 'function') {
     var noEnum = function(v){
         return {value:v,enumerable:false,writable:true,configurable:true};
     };
-    global.Base64.extendString = function () {
+    exports.extendString = function () {
         Object.defineProperty(
             String.prototype, 'fromBase64', noEnum(function () {
             return decode(this)

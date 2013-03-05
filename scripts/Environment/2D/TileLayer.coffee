@@ -2,9 +2,11 @@
 # tile indices which index into a tileset.
 
 _ = require 'Utility/underscore'
+base64 = require 'Utility/base64'
 DisplayCommand = require 'Graphics/DisplayCommand'
 Graphics = require 'Graphics'
 Image = require('Graphics').Image
+Lzw = require 'Utility/Lzw'
 Rectangle = require 'Extension/Rectangle'
 upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
@@ -40,7 +42,7 @@ module.exports = TileLayer = class
 	toJSON: ->
 		
 		tileIndices = if 0 isnt Math.max.apply Math, @tileIndices_
-			@tileIndices_
+			base64.toBase64 Lzw.compress @tileIndices_.toString()
 		else
 			null
 			
