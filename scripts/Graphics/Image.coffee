@@ -47,10 +47,14 @@ Image.load = (uri) ->
 	
 	unless uri?
 		
-		defer.resolve()
+		defer.reject new Error 'Attempted to load Image with a null URI.'
 		return defer.promise
 	
-	Image['%load'] uri, defer.resolve
+	Image['%load'] uri, (error, image) ->
+		
+		return defer.reject error if error?
+		
+		defer.resolve image
 	
 	defer.promise
 

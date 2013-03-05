@@ -194,11 +194,11 @@ define(['module'], function(module) { "use strict";
 		var p = new Promise();
 
 		p.then = function(callback) {
-//			try {
+			try {
 				return resolve(callback ? callback(value) : value);
-//			} catch(e) {
-//				return rejected(e);
-//			}
+			} catch(e) {
+				return rejected(e);
+			}
 		};
 
 		return freeze(p);
@@ -217,11 +217,11 @@ define(['module'], function(module) { "use strict";
 		var p = new Promise();
 
 		p.then = function(callback, errback) {
-//			try {
+			try {
 				return errback ? resolve(errback(reason)) : rejected(reason);
-//			} catch(e) {
-//				return rejected(e);
-//			}
+			} catch(e) {
+				return rejected(e);
+			}
 		};
 
 		return freeze(p);

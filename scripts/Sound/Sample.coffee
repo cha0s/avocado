@@ -18,10 +18,14 @@ Sample.load = (uri) ->
 	
 	unless uri?
 		
-		defer.resolve()
+		defer.reject new Error 'Attempted to load Sample with a null URI.'
 		return defer.promise
 	
-	@['%load'] uri, defer.resolve
+	@['%load'] uri, (error, sample) ->
+		
+		return defer.reject error if error?
+		
+		defer.resolve sample
 	
 	defer.promise
 	

@@ -19,10 +19,14 @@ Music.load = (uri) ->
 	
 	unless uri?
 		
-		defer.resolve()
+		defer.reject new Error 'Attempted to load Music with a null URI.'
 		return defer.promise
 	
-	@['%load'] uri, defer.resolve
+	@['%load'] uri, (error, music) ->
+		
+		return defer.reject error if error?
+		
+		defer.resolve music
 	
 	defer.promise
 	

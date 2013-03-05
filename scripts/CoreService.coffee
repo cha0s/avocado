@@ -14,7 +14,11 @@ Core.CoreService.readResource = (uri) ->
 	
 	defer = upon.defer()
 	
-	Core.CoreService['%readResource'] uri, defer.resolve
+	Core.CoreService['%readResource'] uri, (error, resource) ->
+		
+		return defer.reject error if error?
+		
+		defer.resolve resource
 	
 	defer.promise
 
@@ -24,6 +28,9 @@ Core.CoreService.readJsonResource = (uri) ->
 	
 	defer = upon.defer()
 	
-	@readResource(uri).then (resource) -> defer.resolve JSON.parse resource
+	@readResource(uri).then(
+		(resource) -> defer.resolve JSON.parse resource
+		(error) -> defer.reject error
+	)
 	
 	defer.promise
