@@ -21,12 +21,12 @@ module.exports = Environment = class
 		if O.tilesetUri?
 			tilesetPromise = Tileset.load(O.tilesetUri).then (@tileset_) =>
 			
-		promiseRoom = (O, i) =>
-			room = new Room()
-			room.fromObject(O).then (room) => @rooms_[i] = room
+		roomPromises = for roomO, i in O.rooms
 		
-		roomPromises = for roomInfo, i in O.rooms
-			promiseRoom roomInfo, i
+			((roomO, i) =>
+				room = new Room()
+				room.fromObject(roomO).then (room) => @rooms_[i] = room
+			) roomO, i
 			
 		upon.all([
 			tilesetPromise
@@ -34,7 +34,7 @@ module.exports = Environment = class
 			roomPromises
 		)).then(
 			-> defer.resolve()
-			(error) -> defer.reject new Error "Couldn't instantiate Environment: #{error.toString()}"
+			(error) -> defer.reject error
 		)
 			
 		defer.promise
@@ -43,13 +43,19 @@ module.exports = Environment = class
 	
 		defer = upon.defer()
 		
-		CoreService.readJsonResource(uri).then (O) ->
-		
-			environment = new Environment()
+		CoreService.readJsonResource(uri).then(
+			(O) ->
 			
-			O.uri = uri
-			environment.fromObject(O).then ->
-				defer.resolve environment
+				environment = new Environment()
+				
+				O.uri = uri
+				environment.fromObject(O).then(
+					-> defer.resolve environment
+					(error) -> defer.reject new Error "Couldn't instantiate Environment: #{error.message}"
+				)
+				
+			(error) -> defer.reject new Error "Couldn't instantiate Environment: #{error.message}"
+		)
 		
 		defer.promise
 	

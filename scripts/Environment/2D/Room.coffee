@@ -39,32 +39,36 @@ module.exports = Room = class
 		
 		if O.entities?
 			
-			promiseEntity = (entityInfo, i) =>
+			entityPromises = for entityO, i in O.entities
 				
-				entityDefer = upon.defer()
-				
-				Entity.load(entityInfo.uri).then (entity) =>
-				
-					extensionDefer = upon.defer()
+				((entityO, i) =>
 					
-					if entityInfo.traits?
-						entity.extendTraits(entityInfo.traits).then ->
+					entityDefer = upon.defer()
+					
+					Entity.load(entityO.uri).then (entity) =>
+					
+						extensionDefer = upon.defer()
+						
+						if entityO.traits?
+							entity.extendTraits(entityO.traits).then ->
+								extensionDefer.resolve()
+						else
 							extensionDefer.resolve()
-					else
-						extensionDefer.resolve()
-						
-					extensionDefer.then =>
-						@addEntity entity
-						entityDefer.resolve()
-						
-				entityDefer.promise
+							
+						extensionDefer.then(
+							=>
+								@addEntity entity
+								entityDefer.resolve()
+							(error) -> defer.reject error
+						)
+							
+					entityDefer.promise
+					
+				) entityO, i
 			
-			entityPromises = for entityInfo, i in O.entities
-				promiseEntity entityInfo, i
-				
 		upon.all(entityPromises.concat(layerPromises)).then(
 			=> defer.resolve this
-			(error) -> defer.reject new Error "Couldn't instantiate Room: #{error.toString()}"
+			(error) -> defer.reject new Error "Couldn't instantiate Room: #{error.message}"
 		)
 		
 		defer.promise

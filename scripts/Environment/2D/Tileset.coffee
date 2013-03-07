@@ -38,7 +38,7 @@ module.exports = Tileset = class
 				@setTileSize @tileSize_
 				defer.resolve()
 				
-			(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{error.toString()}"
+			(error) -> defer.reject error
 		)
 		
 		defer.promise
@@ -47,14 +47,19 @@ module.exports = Tileset = class
 		
 		defer = upon.defer()
 		
-		CoreService.readJsonResource(uri).then (O) =>
-			
-			tileset = new Tileset()
-			
-			O.uri = uri
-			tileset.fromObject(O).then ->
+		CoreService.readJsonResource(uri).then(
+			(O) =>
 				
-				defer.resolve tileset
+				tileset = new Tileset()
+				
+				O.uri = uri
+				tileset.fromObject(O).then(
+					-> defer.resolve tileset
+					(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{error.message}"
+				)
+					
+			(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{error.message}"
+		)
 		
 		defer.promise
 	
