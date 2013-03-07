@@ -62,8 +62,10 @@ module.exports = Room = class
 			entityPromises = for entityInfo, i in O.entities
 				promiseEntity entityInfo, i
 				
-		upon.all(entityPromises.concat(layerPromises)).then =>
-			defer.resolve this
+		upon.all(entityPromises.concat(layerPromises)).then(
+			=> defer.resolve this
+			(error) -> defer.reject new Error "Couldn't instantiate Room: #{error.toString()}"
+		)
 		
 		defer.promise
 		

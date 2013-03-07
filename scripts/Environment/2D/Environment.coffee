@@ -32,8 +32,10 @@ module.exports = Environment = class
 			tilesetPromise
 		].concat(
 			roomPromises
-		)).then ->
-			defer.resolve()
+		)).then(
+			-> defer.resolve()
+			(error) -> defer.reject new Error "Couldn't instantiate Environment: #{error.toString()}"
+		)
 			
 		defer.promise
 	

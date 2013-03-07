@@ -58,13 +58,18 @@ module.exports = Entity = class
 		
 		defer = upon.defer()
 		
-		CoreService.readJsonResource(uri).then (O) ->
-			O.uri = uri
-			
-			entity = new Entity()
-			entity.fromObject(O, variables).then ->
+		CoreService.readJsonResource(uri).then(
+			(O) ->
+				O.uri = uri
 				
-				defer.resolve entity
+				entity = new Entity()
+				entity.fromObject(O, variables).then(
+					-> defer.resolve entity
+					(error) -> defer.reject "Entity instantiation failed: #{error.toString()}"
+				)
+			
+			(error) -> defer.reject "Entity instantiation failed: #{error.toString()}"
+		)
 		
 		defer.promise
 	

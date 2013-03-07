@@ -23,17 +23,25 @@ module.exports = Tileset = class
 		
 		if O.image?
 			
-			defer.resolve()
+			imagePromise = null
 		
 		else
 			uri = O.imageUri ? O.uri.replace '.tileset.json', '.png'
-			Image.load(uri).then (@image_) =>
-			
+			imagePromise = Image.load(uri).then(
+				(@image_) =>
+			)
+		
+		upon.all([
+			imagePromise
+		]).then(
+			=>
+				@setTileSize @tileSize_
 				defer.resolve()
-	
-		defer.promise.then =>
-	
-			@setTileSize @tileSize_
+				
+			(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{error.toString()}"
+		)
+		
+		defer.promise
 			
 	@load: (uri) ->
 		
