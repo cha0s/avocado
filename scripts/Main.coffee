@@ -53,6 +53,7 @@ module.exports = Main = class
 		@tickInterval = null
 		
 		# [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
+		@tickFrequency = 1000 / Timing.ticksPerSecondTarget
 		@tickTargetSeconds = 1 / Timing.ticksPerSecondTarget
 		@lastElapsed = 0
 		@elapsedRemainder = 0
@@ -66,7 +67,7 @@ module.exports = Main = class
 					@tick()
 				catch error
 					@emit 'error', error
-			1000 / Timing.ticksPerSecondTarget
+			@tickFrequency
 		)
 		
 	# Change the State. This isn't immediate, but will be dispatched on the
