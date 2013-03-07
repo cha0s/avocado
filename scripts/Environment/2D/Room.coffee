@@ -1,5 +1,6 @@
 
 _ = require 'Utility/underscore'
+Debug = require 'Debug'
 Entity = require 'Entity/Entity'
 Image = require('Graphics').Image
 TileLayer = require 'Environment/2D/TileLayer'
@@ -68,7 +69,7 @@ module.exports = Room = class
 			
 		upon.all(entityPromises.concat(layerPromises)).then(
 			=> defer.resolve this
-			(error) -> defer.reject new Error "Couldn't instantiate Room: #{error.message}"
+			(error) -> defer.reject new Error "Couldn't instantiate Room: #{Debug.errorMessage error}"
 		)
 		
 		defer.promise

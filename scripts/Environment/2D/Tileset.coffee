@@ -1,5 +1,6 @@
 
 CoreService = require('Core').CoreService
+Debug = require 'Debug'
 Image = require('Graphics').Image
 Rectangle = require 'Extension/Rectangle'
 upon = require 'Utility/upon'
@@ -55,10 +56,10 @@ module.exports = Tileset = class
 				O.uri = uri
 				tileset.fromObject(O).then(
 					-> defer.resolve tileset
-					(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{error.message}"
+					(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{Debug.errorMessage error}"
 				)
 					
-			(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{error.message}"
+			(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{Debug.errorMessage error}"
 		)
 		
 		defer.promise

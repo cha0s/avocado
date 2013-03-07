@@ -27,3 +27,12 @@
 				Timing.timingService.sleep 100
 				
 			undefined
+			
+		errorMessage: (error) ->
+			
+			return "Unknown error" unless error?
+			
+			if error.message?
+				error.message
+			else
+				error.toString()

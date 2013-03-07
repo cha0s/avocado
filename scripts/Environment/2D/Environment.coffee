@@ -1,4 +1,5 @@
 CoreService = require('Core').CoreService
+Debug = require 'Debug'
 Room = require 'Environment/2D/Room'
 Tileset = require 'Environment/2D/Tileset'
 upon = require 'Utility/upon'
@@ -51,10 +52,10 @@ module.exports = Environment = class
 				O.uri = uri
 				environment.fromObject(O).then(
 					-> defer.resolve environment
-					(error) -> defer.reject new Error "Couldn't instantiate Environment: #{error.message}"
+					(error) -> defer.reject new Error "Couldn't instantiate Environment: #{Debug.errorMessage error}"
 				)
 				
-			(error) -> defer.reject new Error "Couldn't instantiate Environment: #{error.message}"
+			(error) -> defer.reject new Error "Couldn't instantiate Environment: #{Debug.errorMessage error}"
 		)
 		
 		defer.promise
