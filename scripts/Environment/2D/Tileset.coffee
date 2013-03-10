@@ -80,10 +80,9 @@ module.exports = Tileset = class
 		 
 		tileset = new Tileset()
 		
-		tileset.tileSize_ = Vector.copy @tileSize_
-		tileset.tiles_ = Vector.copy @tiles_
-		
 		tileset.image_ = @image_
+		
+		tileset.setTileSize Vector.copy @tileSize_
 		
 		tileset
 	
@@ -104,11 +103,6 @@ module.exports = Tileset = class
 		
 		@setTileSize @tileSize_
 		
-		# Warm up the tile box cache.
-		@tileBoxCache_ = []
-		for i in [0...Vector.area @tiles_]
-			@tileBox i
-	
 	setTileSize: (w, h) ->
 		
 		@tileSize_ = if h? then [w, h] else w
@@ -116,6 +110,11 @@ module.exports = Tileset = class
 		return unless @image_?
 
 		@tiles_ = Vector.div @image_.size(), @tileSize_
+	
+		# Warm up the tile box cache.
+		@tileBoxCache_ = []
+		for i in [0...Vector.area @tiles_]
+			@tileBox i
 	
 	setTileWidth: (width) -> @setTileSize width, @tileHeight()
 	setTileHeight: (height) -> @setTileSize @tileWidth(), height

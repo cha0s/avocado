@@ -168,10 +168,12 @@ module.exports = Rectangle =
 	#     [3, 5, 5, 2]
 	round: (rectangle) ->
 		
-		Rectangle.compose(
-			Vector.round Rectangle.position rectangle
-			Vector.round Rectangle.size rectangle
-		)
+		[
+			Math.round rectangle[0]
+			Math.round rectangle[1]
+			Math.round rectangle[2]
+			Math.round rectangle[3]
+		]
 		
 	# Floor the position and size of a rectangle.
 	#
