@@ -12,6 +12,7 @@ module.exports = Tileset = class
 	
 		@image_ = null
 		@tileSize_ = [0, 0]
+		@tileBoxCache_ = []
 		@tiles_ = [0, 0]
 		@name_ = ''
 		@description_ = ''
@@ -102,6 +103,11 @@ module.exports = Tileset = class
 		@image_ = image
 		
 		@setTileSize @tileSize_
+		
+		# Warm up the tile box cache.
+		@tileBoxCache_ = []
+		for i in [0...Vector.area @tiles_]
+			@tileBox i
 	
 	setTileSize: (w, h) ->
 		
@@ -121,7 +127,7 @@ module.exports = Tileset = class
 		destination
 		index
 		mode
-		tileClip = Rectangle.compose [0, 0], @tileSize_
+		tileClip = [0, 0, @tileSize_[0], @tileSize_[1]]
 	) ->
 		
 		return unless @image_?
@@ -150,12 +156,14 @@ module.exports = Tileset = class
 	
 	tileBox: (index) ->
 		
-		Rectangle.compose(
+		@tileBoxCache_[index] = Rectangle.compose(
 			Vector.mul(
 				[index % @tiles_[0], Math.floor index / @tiles_[0]]
 				@tileSize_
 			)
 			@tileSize_
-		)
+		) unless @tileBoxCache_[index]?
+		
+		@tileBoxCache_[index]
 		
 	tileCount: -> @tiles[0] * @tiles[1]

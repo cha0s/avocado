@@ -281,7 +281,7 @@ module.exports = TileLayer = class
 		
 		image.unlockPixels()
 		destination.unlockPixels()
-			
+	
 	render: (
 		position
 		tileset
@@ -299,7 +299,45 @@ module.exports = TileLayer = class
 			clip[2] = destination.width()
 			clip[3] = destination.height()
 		
+		offset = Vector.scale(
+			Vector.mod clip, tileSize
+			-1
+		)
+		
+		start = Vector.floor Vector.div clip, tileSize
+		
+		area = Vector.floor Vector.div(
+			Rectangle.size clip
+			tileSize
+		)
+		
+		for i in [0..1]
+			area[i] += 2
+		
+		for y in [0...area[1]]
+			
+			for x in [0...area[0]]
+		
+				tileset.render(
+					offset
+					destination
+					index
+				) if index = @tileIndex start
+				
+				offset[0] += tileSize[0]
+				start[0] += 1
+				
+			offset[0] -= tileSize[0] * area[0]
+			offset[1] += tileSize[1]
+
+			start[0] -= area[0]
+			start[1] += 1
+			
+		###
+		
 		matrixRenderer clip, tileSize, (matrix) =>
+			
+			testing.push JSON.stringify arguments unless once
 			
 			index = @tileIndex matrix.start
 			tileset.render(
@@ -312,6 +350,8 @@ module.exports = TileLayer = class
 				mode
 				matrix.clip
 			) if index
+		
+		###
 				
 # Helper function - Ease a lot of the initial calculations involved with doing
 # partial tile matrix rendering. Returns an object with useful calculated
