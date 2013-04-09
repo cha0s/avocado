@@ -2,6 +2,7 @@
 Box2D = require 'Physics/Box2D'
 Entity = require 'Entity/Entity'
 Trait = require 'Entity/Traits/Trait'
+upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 module.exports = Physics = class extends Trait
@@ -161,6 +162,9 @@ module.exports = Physics = class extends Trait
 		@body = @createBody @state
 		
 		@resetTrait()
+		
+		upon.all([
+		])
 	
 	translatePhysicsPosition: (position) ->
 	

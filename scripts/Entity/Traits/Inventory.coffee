@@ -14,17 +14,14 @@ module.exports = class extends Trait
 		
 		@inventory = {}
 		
+		fulfillInventory = (key) => (entity) => @inventory[key] = entity
 		inventoryPromises = for key, uri of @state.inventory
-			
-			((key, uri) =>
-				Entity.load(uri).then (entity) =>
-					@inventory[key] = entity
-			) key, uri
+			Entity.load(uri).then fulfillInventory key
 		
+		fulfillWeapon = (key) => (entity) => @[key] = entity
 		weaponPromises = for key in ['rangeWeapon', 'meleeWeapon']
 			if @state[key] isnt ''
-				Entity.load(@state[key]).then (entity) =>
-					@[key] = entity
+				Entity.load(@state[key]).then fulfillWeapon key
 		
 		upon.all(
 			inventoryPromises.concat(weaponPromises)
