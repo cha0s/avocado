@@ -5,7 +5,7 @@ describe 'TileLayer', ->
 	
 	tileLayer = null
 	
-	it "can instantiate", ->
+	it "can instantiate", (done) ->
 	
 		tileLayer = new TileLayer [30, 20]
 		
@@ -13,6 +13,19 @@ describe 'TileLayer', ->
 		expect(tileLayer.height()).toBe 20
 		expect(tileLayer.width()).toBe 30
 		expect(tileLayer.area()).toBe 600
+		
+		# NULL tileIndices...
+		secondTileLayer = new TileLayer()
+		secondTileLayer.fromObject(tileLayer.toJSON()).then(->
+			expect(tileLayer).toEqual secondTileLayer
+			secondTileLayer.setTileIndex 1, [0, 0]
+		).then ->
+		
+			# Compressed tileIndices...
+			thirdTileLayer = new TileLayer()
+			thirdTileLayer.fromObject(secondTileLayer.toJSON()).then(->
+				expect(secondTileLayer).toEqual thirdTileLayer
+			).then -> done()
 		
 	it "can resize without scrambling the tile data", ->
 	
