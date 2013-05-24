@@ -3,8 +3,8 @@ _ = require 'Utility/underscore'
 Debug = require 'Debug'
 Entity = require 'Entity/Entity'
 Image = require('Graphics').Image
+Q = require 'Utility/Q'
 TileLayer = require 'Environment/2D/TileLayer'
-upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 module.exports = Room = class
@@ -23,78 +23,42 @@ module.exports = Room = class
 
 	fromObject: (O) ->
 	
-		defer = upon.defer()
-	
 		@["#{i}_"] = O[i] for i of O
-		
-		layerPromises = for layer, i in O.layers
-			
-			@layers_[i] = new TileLayer()
-			@layers_[i].fromObject layer
 		
 		@size_ = Vector.copy O.size
 		
-		entityPromises = []
-		
+		@layers_ = []
+		layerPromises = for layerO, i in O.layers
+			@layers_[i] = new TileLayer()
+			@layers_[i].fromObject layerO
+			
 		@entities_ = []
-		
-		if O.entities?
-			
-			entityPromises = for entityO, i in O.entities
-				
-				((entityO, i) =>
-					
-					entityDefer = upon.defer()
-					
-					Entity.load(entityO.uri).then (entity) =>
-					
-						extensionDefer = upon.defer()
-						
+		entityPromises = if O.entities?
+			for entityO in O.entities
+				((entityO) ->
+					Entity.load(entityO.uri).then (entity) ->
 						if entityO.traits?
-							entity.extendTraits(entityO.traits).then ->
-								extensionDefer.resolve()
+							entity.extendTraits entityO.traits
 						else
-							extensionDefer.resolve()
-							
-						extensionDefer.then(
-							=>
-								@addEntity entity
-								entityDefer.resolve()
-							(error) -> defer.reject error
-						)
-							
-					entityDefer.promise
-					
-				) entityO, i
-			
-		upon.all(entityPromises.concat(layerPromises)).then(
-			=> defer.resolve this
-			(error) -> defer.reject new Error "Couldn't instantiate Room: #{Debug.errorMessage error}"
-		)
+							Q.resolve()
+				) entityO
+		else
+			Q.resolve []
+		Q.all(entityPromises).then (entities) =>
+			@addEntity entity for entity in entities
 		
-		defer.promise
+		Q.all(_.flatten [
+			entityPromises
+			layerPromises
+		], true).then => Q.resolve this
 		
 	copy: ->
-		
 		room = new Room()
 		room.fromObject @toJSON()
-		
 		room
 	
-	reset: ->
+	reset: -> entity.reset() for entity in @entities_
 		
-		entity.reset() for entity in @entities_
-		
-		@startParallax()
-		
-	startParallax: ->
-		
-		layer.startParallax() for layer in @layers_
-		
-	stopParallax: ->
-		
-		layer.stopParallax() for layer in @layers_
-	
 	resize: (w, h) ->
 		
 		@size_ = if w instanceof Array then Vector.copy(w) else [w, h]
@@ -110,17 +74,15 @@ module.exports = Room = class
 	layer: (index) -> @layers_[index]
 	layerCount: -> @layers_.length
 	
-	tick: ->
-	
-		entity.tick() for entity in @entities_
+	tick: -> entity.tick() for entity in @entities_
 	
 	name: -> @name_
+	
+	entityCount: -> @entities_.length
 	
 	addEntity: (entity) ->
 		
 		@entities_.push entity
-		
-		entity.setRoom this
 		
 		entity
 	
@@ -130,11 +92,12 @@ module.exports = Room = class
 		
 		@entities_.splice index, 1
 	
-	entityList: (location, distance) ->
-		
+	entityList: (position, distance) ->
+		list = []
 		for entity in @entities_
-			if entity.location().cartesianDistance(location) < distance
-				entity
+			if distance >= Vector.cartesianDistance entity.position(), position
+				list.push entity
+		list
 	
 	toImage: (tileset) ->
 		
@@ -153,6 +116,6 @@ module.exports = Room = class
 		
 		name: @name_
 		size: @size_
-		layers: @layers_
+		layers: _.map @layers_, (layer) -> layer.toJSON()
 		collision: @collision_
 		entities: entities
