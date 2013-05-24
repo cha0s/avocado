@@ -13,6 +13,22 @@ Vector = require 'Extension/Vector'
 
 module.exports = Entity = class
 	
+	# Load an entity by URI.
+	@load: (uri, variables = {}) ->
+		CoreService.readJsonResource(uri).then (O) ->
+			O.uri = uri
+			entity = new Entity()
+			entity.fromObject(O, variables).then -> entity
+		
+	@traitModule: (traitName) ->
+		
+		Trait = require 'Entity/Traits/Trait'
+		
+		if Trait.moduleMap[traitName]
+			Trait.moduleMap[traitName]
+		else
+			traitName
+	
 	# Instantiation
 	constructor: ->
 		
@@ -41,31 +57,10 @@ module.exports = Entity = class
 		# Add traits asynchronously.
 		@extendTraits traits, variables
 			
-	# Load an entity by URI.
-	@load: (uri, variables = {}) ->
-		
-		CoreService.readJsonResource(uri).then((O) ->
-			O.uri = uri
-			
-			entity = new Entity()
-			entity.fromObject(O, variables).then -> entity
-		)
-		
-	@traitModule: (traitName) ->
-		
-		Trait = require 'Entity/Traits/Trait'
-		
-		if Trait.moduleMap[traitName]
-			Trait.moduleMap[traitName]
-		else
-			traitName
-	
 	# Deep copy.
 	copy: (variables = {}) ->
-		
 		entity = new Entity()
 		entity.fromObject @toJSON(), variables
-		
 		entity
 	
 	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this
