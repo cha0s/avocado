@@ -16,9 +16,9 @@
 # compatible.
 
 Mixin = require 'Utility/Mixin'
+Q = require 'Utility/Q'
 String = require 'Extension/String'
 TimingService = require('Timing').TimingService
-upon = require 'Utility/upon'
 
 module.exports = Transition = class
 
@@ -59,11 +59,11 @@ module.exports = Transition = class
 				method[i] = String.setterName i
 			
 			# Set up the transition object.
-			defer = upon.defer()
+			deferred = Q.defer()
 			transition = 
-				defer: defer
-				promise: defer.promise
-				then: defer.promise.then
+				deferred: deferred
+				promise: deferred.promise
+				then: deferred.promise.then
 				duration: speed / 1000
 				start: TimingService.elapsed()
 				elapsed: 0
@@ -96,7 +96,7 @@ module.exports = Transition = class
 				
 				# Let any listeners know where we're at in the transition
 				# cycle.
-				@defer.progress this
+				@deferred.progress this
 				
 				# Stop if we're done.
 				@stopTransition() if @elapsed is @duration
@@ -111,7 +111,7 @@ module.exports = Transition = class
 				delete @interval
 				
 				# Let any listeners know that the transition is complete.
-				@defer.resolve()
+				@deferred.resolve()
 				
 			# Immediately finish the transition. This will leave the object
 			# in the fully transitioned state.
@@ -123,15 +123,15 @@ module.exports = Transition = class
 				@tick()
 				
 			# The tick interval.
-			intervalDefer = upon.defer()
+			intervalDeferred = Q.defer()
 			
 			if @transition_?.interval?
 				@transition_.promise.then ->
-					intervalDefer.resolve()
+					intervalDeferred.resolve()
 			else
-				intervalDefer.resolve()
+				intervalDeferred.resolve()
 			
-			intervalDefer.then ->
+			intervalDeferred.then ->
 				
 				transition.interval = setInterval(
 					=>

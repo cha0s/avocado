@@ -4,17 +4,16 @@
 _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
-DisplayCommand = require 'Graphics/DisplayCommand'
 EventEmitter = require 'Utility/EventEmitter'
 Mixin = require 'Utility/Mixin'
+Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Transition = require 'Utility/Transition'
-upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 module.exports = Entity = class
 	
-	#### Instantiation
+	# Instantiation
 	constructor: ->
 		
 		# Mixins
@@ -37,37 +36,21 @@ module.exports = Entity = class
 	# Initialize an Entity from a POD object.
 	fromObject: (O, variables) ->
 		
-		defer = upon.defer()
-		
 		{@uri, traits} = O
 
 		# Add traits asynchronously.
-		@extendTraits(traits, variables).then ->
-			
-			defer.resolve()
-			
-		defer.promise
+		@extendTraits traits, variables
 			
 	# Load an entity by URI.
 	@load: (uri, variables = {}) ->
 		
-		defer = upon.defer()
-		
-		CoreService.readJsonResource(uri).then(
-			(O) ->
-				O.uri = uri
-				
-				entity = new Entity()
-				entity.fromObject(O, variables).then(
-					-> defer.resolve entity
-					(error) -> defer.reject "Entity instantiation failed: #{error.toString()}"
-				)
+		CoreService.readJsonResource(uri).then((O) ->
+			O.uri = uri
 			
-			(error) -> defer.reject "Entity instantiation failed: #{error.toString()}"
+			entity = new Entity()
+			entity.fromObject(O, variables).then -> entity
 		)
 		
-		defer.promise
-	
 	@traitModule: (traitName) ->
 		
 		Trait = require 'Entity/Traits/Trait'
@@ -90,7 +73,7 @@ module.exports = Entity = class
 	addTraits = (traits, variables) ->
 		
 		# nop.
-		return upon.resolve() if not traits?
+		return Q.resolve() if not traits?
 		
 		# Sort all the tickers and renderers by weight.
 		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
@@ -143,8 +126,7 @@ module.exports = Entity = class
 					# Add the handler.
 					@["#{handlerType}s"].push handler[handlerType]
 			
-			(trait.initializeTrait variables).then ->
-				trait.resetTrait variables
+			trait.initializeTrait variables
 		
 	# Extend this Entity's traits.
 	extendTraits: (traits, variables = {}) ->
@@ -158,24 +140,23 @@ module.exports = Entity = class
 				
 			catch error
 				
-				Debug.errorMessage error
+				console.log Debug.errorMessage error
 				console.log "Ignoring entity trait: #{trait.type}"
 				false
 			
 		# Wrap all the trait promises in a promise and return it.	
-		traitsPromise = for trait in traits
+		traitsPromises = for trait in traits
+			
+			{type, state} = trait
 			
 			# If the trait already exists,
-			if @traits[trait.type]?
-				
-				{type, state} = trait
+			promises = if @traits[trait.type]?
 				
 				# extend the state,
 				_.extend @traits[type].state, state
 				
 				# and fire Trait::initializeTrait().
-				(@traits[type].initializeTrait variables).then ->
-					@traits[type].resetTrait variables
+				@traits[type].initializeTrait variables
 			
 			# Otherwise, add the traits as new.
 			# TODO aggregate for efficiency.	
@@ -183,7 +164,9 @@ module.exports = Entity = class
 				
 				addTraits.call this, [trait], variables
 				
-		upon.all _.flatten traitsPromise, true
+			Q.all(promises).then => @traits[type].resetTrait variables
+				
+		Q.all traitsPromises
 			
 	# Remove a Trait from this Entity.
 	removeTrait: (type) ->
@@ -217,25 +200,18 @@ module.exports = Entity = class
 			continue if not trait['hooks']()[hook]?
 			trait['hooks']()[hook].apply trait, args
 
+	# Called every engine tick.
 	tick: (commandList) -> ticker.f() for ticker in @tickers
-		
-	render: (camera, destination) ->
-		
-		rect = Rectangle.translated(
-			@visibleRect()
-			Vector.sub @position(), camera
-		)
 	
+	# Called every engine render cycle.
+	render: (camera, destination) ->
 		for renderer in @renderers
-			
-			renderer.f.call(
-				this
-				destination
-				Rectangle.position rect
-			)
-			
+			renderer.f.call this, destination, camera
+
+	# Reset traits.			
 	reset: -> trait.resetTrait() for type, trait of @traits
 		
+	# Emit a JSON representation of the entity.
 	toJSON: ->
 		
 		traits = for type, trait of @traits

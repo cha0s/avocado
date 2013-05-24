@@ -4,7 +4,7 @@
 # platform).
 
 Core = require 'Core'
-upon = require 'Utility/upon'
+Q = require 'Utility/Q'
  
 Core.CoreService.writeStderr = Core.CoreService['%writeStderr']
 
@@ -12,25 +12,16 @@ Core.CoreService.writeStderr = Core.CoreService['%writeStderr']
 # resolved with the string containing the resource data. 
 Core.CoreService.readResource = (uri) ->
 	
-	defer = upon.defer()
+	deferred = Q.defer()
 	
-	Core.CoreService['%readResource'] uri, (error, resource) ->
-		
-		return defer.reject error if error?
-		
-		defer.resolve resource
+	Core.CoreService['%readResource'] uri, deferred.makeNodeResolver()
 	
-	defer.promise
+	deferred.promise
 
 # Low-level API; reads a JSON resource. Returns a promise to be resolved with
 # the parsed JSON object.
 Core.CoreService.readJsonResource = (uri) ->
 	
-	defer = upon.defer()
-	
 	@readResource(uri).then(
-		(resource) -> defer.resolve JSON.parse resource
-		(error) -> defer.reject error
+		(resource) -> JSON.parse resource
 	)
-	
-	defer.promise

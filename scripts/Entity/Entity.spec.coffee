@@ -3,10 +3,12 @@ Entity = require 'Entity/Entity'
 
 describe 'Entity', ->
 	
-	it "can instantiate without explicitly specifying traits, and all defaults will be provided", ->
+	it "can instantiate without explicitly specifying traits, and defaults will be provided", ->
 		
 		entity = new Entity()
 		
+		O = uri: undefined, traits: [ type: 'Existence' ]
+		expect(entity.toJSON()).toEqual O
 		expect(entity.hasTrait 'Existence').toBe true
 		expect(entity.position()).toEqual [-10000, -10000]
 

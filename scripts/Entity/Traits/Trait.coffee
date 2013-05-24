@@ -1,5 +1,5 @@
 _ = require 'Utility/underscore'
-upon = require 'Utility/upon'
+Q = require 'Utility/Q'
 
 module.exports = class
 
@@ -37,7 +37,7 @@ module.exports = class
 	
 	values: -> {}
 	
-	initializeTrait: -> upon.resolve()
+	initializeTrait: -> Q.resolve()
 	
 	resetTrait: ->
 	
