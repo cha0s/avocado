@@ -3,27 +3,26 @@ upon = require 'Utility/upon'
 
 module.exports = class
 
-	constructor: (@entity, state = {}) ->
-		
-		@state = _.defaults state, @defaults()
-	
+	# Currently unused: map Trait modules 
 	@moduleMap = {}
 	
-	defaults: -> {}
+	# Extend the state with defaults. Make sure you call from children!
+	constructor: (@entity, state = {}) ->
+		@state = _.defaults state, @stateDefaults()
 	
-	preToJSON: ->
+	# Extend with your state defaults.
+	stateDefaults: -> {}
 	
+	# Emit the trait as a JSON representation.
 	toJSON: ->
-		
-		@preToJSON()
 		
 		sgfy = JSON.stringify
 		
 		state = {}
-		defaults = @defaults()
+		stateDefaults = @stateDefaults()
 		
-		for k, v of _.defaults @state, JSON.parse sgfy defaults
-			state[k] = v if sgfy(v) isnt sgfy(defaults[k])
+		for k, v of _.defaults @state, JSON.parse sgfy stateDefaults
+			state[k] = v if sgfy(v) isnt sgfy(stateDefaults[k])
 			
 		O = {}
 		O.type = @type
@@ -38,13 +37,7 @@ module.exports = class
 	
 	values: -> {}
 	
-	initializeTrait: ->
-		
-		@resetTrait()
-		
-		defer = upon.defer()
-		defer.resolve()
-		defer.promise
+	initializeTrait: -> upon.resolve()
 	
 	resetTrait: ->
 	

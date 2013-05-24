@@ -1,0 +1,4 @@
+
+exports.Counter = class
+
+	'%current': ->

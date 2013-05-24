@@ -3,9 +3,9 @@
 
 _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
+Debug = require 'Debug'
 DisplayCommand = require 'Graphics/DisplayCommand'
 EventEmitter = require 'Utility/EventEmitter'
-Logger = require 'Utility/Logger'
 Mixin = require 'Utility/Mixin'
 Rectangle = require 'Extension/Rectangle'
 Transition = require 'Utility/Transition'
@@ -29,15 +29,10 @@ module.exports = Entity = class
 		@tickers = []
 		@renderers = []
 		
-		# Children entities.
-		@children = []
-		
 		# All entities require an Existence trait. Calling extendTraits() here 
-		# seems risky, but Existence::initializeTrait will always be synchronous
-		# (to keep entity instantiation sane).
-		@extendTraits [
-			type: 'Existence'
-		]
+		# seems risky, but Existence::resetTrait will always be synchronous (to
+		# keep entity instantiation sane).
+		@extendTraits [type: 'Existence']
 		
 	# Initialize an Entity from a POD object.
 	fromObject: (O, variables) ->
@@ -90,14 +85,12 @@ module.exports = Entity = class
 		
 		entity
 	
-	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this entity.
+	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this
+	# entity.
 	addTraits = (traits, variables) ->
 		
 		# nop.
-		if not traits?
-			defer = upon.defer()
-			defer.resolve()
-			return defer.promise
+		return upon.resolve() if not traits?
 		
 		# Sort all the tickers and renderers by weight.
 		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
@@ -150,7 +143,8 @@ module.exports = Entity = class
 					# Add the handler.
 					@["#{handlerType}s"].push handler[handlerType]
 			
-			trait.initializeTrait variables
+			(trait.initializeTrait variables).then ->
+				trait.resetTrait variables
 		
 	# Extend this Entity's traits.
 	extendTraits: (traits, variables = {}) ->
@@ -162,10 +156,10 @@ module.exports = Entity = class
 				require "Entity/Traits/#{Entity.traitModule trait.type}"
 				true
 				
-			catch e
+			catch error
 				
-				console.log e.stack
-				Logger.warn "Ignoring unknown entity trait: #{trait.type}"
+				Debug.errorMessage error
+				console.log "Ignoring entity trait: #{trait.type}"
 				false
 			
 		# Wrap all the trait promises in a promise and return it.	
@@ -180,7 +174,8 @@ module.exports = Entity = class
 				_.extend @traits[type].state, state
 				
 				# and fire Trait::initializeTrait().
-				@traits[type].initializeTrait variables
+				(@traits[type].initializeTrait variables).then ->
+					@traits[type].resetTrait variables
 			
 			# Otherwise, add the traits as new.
 			# TODO aggregate for efficiency.	
@@ -218,17 +213,11 @@ module.exports = Entity = class
 	# Invoke a hook with the specified arguments. Returns an array of responses
 	# from hook implementations.
 	invoke: (hook, args...) ->
-		
 		for type, trait of @traits
 			continue if not trait['hooks']()[hook]?
-			
 			trait['hooks']()[hook].apply trait, args
 
-	tick: (commandList) ->
-		
-		ticker.f() for ticker in @tickers
-		
-		child.tick() for child in @children
+	tick: (commandList) -> ticker.f() for ticker in @tickers
 		
 	render: (camera, destination) ->
 		
@@ -245,138 +234,13 @@ module.exports = Entity = class
 				Rectangle.position rect
 			)
 			
-		child.render position, destination for child in @children
-		
-	reset: -> 
-		
-		trait.resetTrait() for type, trait of @traits
-		
-		child.reset() for child in @children
+	reset: -> trait.resetTrait() for type, trait of @traits
 		
 	toJSON: ->
 		
-		uri: @uri
-		traits: for type, trait of @traits
-			continue if trait.transient
+		traits = for type, trait of @traits
+			continue if trait['transient']
 			trait.toJSON()
-
-module.exports.DisplayCommandList = class extends DisplayCommand
-	
-	constructor: (
-		list
-		rectangle = [0, 0, 0, 0]
-	) ->
 		
-		@entities = []
-		
-		super list, rectangle
-		
-	rectangleFromEntity: (entity) ->
-		
-		Rectangle.translated(
-			entity.visibleRect()
-			entity.position()
-		)
-		
-	rectangleFromEntities: ->
-		
-		rectangle = [0, 0, 0, 0]
-		
-		for entity in @entities
-			
-			continue unless entity.hasTrait 'Visibility'
-			
-			rectangle = Rectangle.united(
-				rectangle
-				@rectangleFromEntity entity
-			)
-		
-		rectangle
-		
-	addEntity: (entity) ->
-		
-		return if _.contains @entities, entity
-		
-		entity.on 'positionChanged.EntityDisplayCommand', =>
-			
-			@setRectangle @rectangleFromEntities()
-			
-		entity.on 'renderUpdate.EntityDisplayCommand', =>
-			
-			@markAsDirty()
-			
-		@entities.push entity
-		
-		@setRectangle @rectangleFromEntities()
-		
-		@addEntity child for child in entity.children
-		
-	removeEntity: (entity) ->
-		
-		entity.off '.EntityDisplayCommand'
-		
-		index = @entities.indexOf entity
-		
-		return if index is -1
-		
-		@entities.splice index, 1
-		
-		@setRectangle @rectangleFromEntities()
-		
-		@removeEntity child for child in entity.children
-		
-	render: (position, clip, destination) ->
-		
-		for entity in (
-			
-			(_.filter @entities, (entity) ->
-				entity.hasTrait 'Visibility'
-			).sort (l, r) =>
-				
-				l.y() - r.y()
-		)
-			
-			rectangle = @rectangleFromEntity entity
-			
-			entityClip = Rectangle.intersection(
-				rectangle
-				Rectangle.translated clip, @position()
-			)
-			
-			continue if Rectangle.isNull entityClip
-			
-			entityPosition = Vector.round Vector.sub(
-				Rectangle.position entityClip
-				@list_.position()
-			)
-			
-			entityClipPosition = Vector.sub(
-				Rectangle.position entityClip
-				Rectangle.position rectangle
-			)
-			
-			entityClip = Rectangle.round Rectangle.compose(
-				entityClipPosition
-				Vector.sub(
-					Rectangle.size rectangle
-					entityClipPosition
-				)
-			) 
-			
-			for renderer in entity.renderers
-				
-				renderer.f.call entity, destination, entityPosition, entityClip
-				
-			# TODO: debugging
-			
-			destination.drawCircle(
-				Vector.round Vector.sub(
-					entity.position()
-					@list_.position()
-				)
-				4
-				255, 255, 255, 180
-			)
-			
-			
-		undefined
+		uri: @uri
+		traits: traits

@@ -1,0 +1,4 @@
+
+exports.CoreService = class
+
+	'readJsonResource': ->

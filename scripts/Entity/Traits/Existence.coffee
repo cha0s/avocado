@@ -4,12 +4,11 @@ Vector = require 'Extension/Vector'
 
 module.exports = class extends Trait
 
-	defaults: ->
-		x: -10000
-		y: -10000
-	
-		width:  0
-		height: 0
+	stateDefaults: ->
+		
+		position: [-10000, -10000]
+		
+		size: [0, 0]
 		
 		directionCount: 1
 		direction: 0
@@ -23,33 +22,29 @@ module.exports = class extends Trait
 		@entity.emit 'directionChanged', @state.direction
 		
 	values: ->
-			
-		x: -> @state.x
 		
-		y: -> @state.y
-		
+		x: -> @state.position[0]
+		y: -> @state.position[1]
 		position:
 			result: 'Position'
-			f: -> [@state.x, @state.y]
+			f: -> @state.position
 		
-		width: -> @state.width
-		
-		height: -> @state.height
-		
-		size: -> [@state.width, @state.height]
+		width: -> @state.size[0]
+		height: -> @state.size[1]
+		size: -> @state.size
 		
 		rectangle:
 			result: 'Rectangle'
 			name: 'Rectangle'
-			renderer: (candidate, args) -> candidate + ' rectangle'
+			renderer: (candidate, args) -> "#{candidate} rectangle"
 			f: ->
 				
 				Array.composeRect(
 					Vector.scale(
-						Vector.sub @entity.position(), @size()
+						Vector.sub @state.position, @state.size
 						.5
 					)
-					@size()
+					@state.size
 				)
 		
 		direction:
@@ -67,9 +62,8 @@ module.exports = class extends Trait
 			name: 'Do nothing'
 			renderer: -> 'do nothing'
 			f: ->
-		
-		removeTraitType:
-			f: (type) -> @entity.removeTrait type
+				
+				increment: 1
 		
 		signal:
 			name: 'Emit signal'
@@ -78,44 +72,66 @@ module.exports = class extends Trait
 			renderer: (candidate, args) ->
 				'emit ' + candidate + ' signal ' + Rule.Render args[0]
 			f: ->
-				
-				@entity.emit.apply this, arguments
+				@entity.emit.apply @entity, arguments
 				
 				increment: 1
 	
-		setName: (name) -> @state.name = name
+		setName: (name) ->
+			@state.name = name
+			
+			increment: 1
 		
-		setX: (x) -> @setPosition x, @y()
-
-		setY: (y) -> @setPosition @x(), y
-		
+		setX: (x) ->
+			@entity.setPosition [x, @state.position[1]]
+			
+			increment: 1
+			
+		setY: (y) ->
+			@entity.setPosition [@state.position[0], y]
+			
+			increment: 1
+			
 		setPosition: (position) ->
+			return if Vector.equals @state.position, position
 			
-			[@state.x, @state.y] = position
+			oldPosition = Vector.copy @state.position
+			@state.position = position
+			@entity.emit 'positionChanged', oldPosition
 			
-			@entity.emit 'positionChanged'
+			increment: 1
 		
-		setWidth: (width) -> @state.width = width
-		
-		setHeight: (height) -> @state.height = height
-		
-		setSize: (size) -> [@state.width, @state.height] = size
+		setWidth: (width) ->
+			@entity.setSize [width, @state.size[1]]
+			
+			increment: 1
+			
+		setHeight: (height) ->
+			@entity.setSize [@state.size[0], height]
+			
+			increment: 1
+			
+		setSize: (size) ->
+			return if Vector.equals @state.size, size
+			
+			oldSize = Vector.copy @state.size
+			@state.size = size
+			@entity.emit 'sizeChanged', oldSize
+			
+			increment: 1
 		
 		setDirection:
 			argTypes: ['Number']
 			argNames: ['Direction']
 			renderer: (candidate, args) ->
-				'set ' + candidate + ' direction to ' + Rule.Render args[0]
+				"set #{candidate} direction to #{Rule.Render args[0]}"
 			name: 'Set direction'
 			f: (direction) ->
 				oldDirection = @state.direction
 				
 				@state.direction = if direction < 0
 					0
-					
 				else if direction > @entity.directionCount()
 					@entity.directionCount() - 1
-				
 				else
 					direction
 				
@@ -123,3 +139,7 @@ module.exports = class extends Trait
 					@entity.emit 'directionChanged', @state.direction
 				
 				increment: 1
+				
+		setDirectionCount: (directionCount) ->
+			
+			@state.directionCount = directionCount
