@@ -7,8 +7,8 @@ DisplayCommand = require 'Graphics/DisplayCommand'
 Graphics = require 'Graphics'
 Image = require('Graphics').Image
 Lzw = require 'Utility/Lzw'
+Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
-upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 module.exports = TileLayer = class
@@ -27,26 +27,19 @@ module.exports = TileLayer = class
 		
 	fromObject: (O) ->
 		
-		defer = upon.defer()
-		
 		@["#{i}_"] = O[i] for i of O
 		
 		@size_ = Vector.copy @size_
 		
 		if @tileIndices_?
-			
 			debased = base64.fromBase64 @tileIndices_.toString()
 			compressed = JSON.parse "[#{debased}]"
-			
 			decompressed = Lzw.decompress compressed
 			@tileIndices_ = JSON.parse "[#{decompressed}]"
-			
 		else
 			@tileIndices_ = (0 for i in [0...Vector.area @size_])
 		
-		defer.resolve()
-			
-		defer.promise
+		Q.resolve()
 	
 	toJSON: ->
 		
@@ -60,10 +53,8 @@ module.exports = TileLayer = class
 		size: @size_
 		
 	copy: ->
-		
 		layer = new TileLayer()
 		layer.fromObject @toJSON()
-		
 		layer 
 	
 	# Resize the layer, losing as little information as possible.
@@ -82,7 +73,6 @@ module.exports = TileLayer = class
 		this
 	
 	size: -> @size_
-	
 	height: -> @size_[1]
 	width: -> @size_[0]
 	
