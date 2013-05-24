@@ -50,7 +50,7 @@ module.exports = TileLayer = class
 			null
 			
 		tileIndices: tileIndices
-		size: @size_
+		size: Vector.copy @size_
 		
 	copy: ->
 		layer = new TileLayer()
