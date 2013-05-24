@@ -2,12 +2,18 @@
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
 Image = require('Graphics').Image
+Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
-upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 module.exports = Tileset = class
 
+	@load: (uri) ->
+		CoreService.readJsonResource(uri).then (O) ->
+			O.uri = uri
+			tileset = new Tileset()
+			tileset.fromObject(O).then -> tileset
+		
 	constructor: ->
 	
 		@image_ = null
@@ -19,52 +25,15 @@ module.exports = Tileset = class
 	
 	fromObject: (O) ->
 		
-		defer = upon.defer()
-		
 		@["#{i}_"] = O[i] for i of O
 		
-		if O.image?
-			
-			imagePromise = null
-		
+		imagePromise = if O.image?
+			Q.resolve O.image
 		else
-			uri = O.imageUri ? O.uri.replace '.tileset.json', '.png'
-			imagePromise = Image.load(uri).then(
-				(@image_) =>
-			)
+			Image.load O.imageUri ? O.uri.replace '.tileset.json', '.png'
+		imagePromise.then (@image_) => @setImage @image_
+		imagePromise
 		
-		upon.all([
-			imagePromise
-		]).then(
-			=>
-				@setTileSize @tileSize_
-				defer.resolve()
-				
-			(error) -> defer.reject error
-		)
-		
-		defer.promise
-			
-	@load: (uri) ->
-		
-		defer = upon.defer()
-		
-		CoreService.readJsonResource(uri).then(
-			(O) =>
-				
-				tileset = new Tileset()
-				
-				O.uri = uri
-				tileset.fromObject(O).then(
-					-> defer.resolve tileset
-					(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{Debug.errorMessage error}"
-				)
-					
-			(error) -> defer.reject new Error "Couldn't instantiate Tileset: #{Debug.errorMessage error}"
-		)
-		
-		defer.promise
-	
 	toJSON: ->
 		
 		tileSize: Vector.copy @tileSize_
@@ -72,18 +41,8 @@ module.exports = Tileset = class
 		description: @description_
 	
 	copy: ->
-		
 		tileset = new Tileset()
 		tileset.fromObject @toJSON()
-		
-		layer
-		 
-		tileset = new Tileset()
-		
-		tileset.image_ = @image_
-		
-		tileset.setTileSize Vector.copy @tileSize_
-		
 		tileset
 	
 	description: -> @description_
@@ -97,11 +56,7 @@ module.exports = Tileset = class
 	tileWidth: -> @tileSize_[0]
 	tileHeight: -> @tileSize_[1]
 	
-	setImage: (image) ->
-		
-		@image_ = image
-		
-		@setTileSize @tileSize_
+	setImage: (@image_) -> @setTileSize @tileSize_
 		
 	setTileSize: (w, h) ->
 		
@@ -115,9 +70,11 @@ module.exports = Tileset = class
 		@tileBoxCache_ = []
 		for i in [0...Vector.area @tiles_]
 			@tileBox i
+			
+		return
 	
-	setTileWidth: (width) -> @setTileSize width, @tileHeight()
-	setTileHeight: (height) -> @setTileSize @tileWidth(), height
+	setTileWidth: (width) -> @setTileSize width, @tileSize_[1]
+	setTileHeight: (height) -> @setTileSize @tileSize_[0], height
 	
 	tiles: -> @tiles_
 	
@@ -165,4 +122,4 @@ module.exports = Tileset = class
 		
 		@tileBoxCache_[index]
 		
-	tileCount: -> @tiles[0] * @tiles[1]
+	tileCount: -> Vector.area @tiles_
