@@ -1,6 +1,6 @@
 # Avocado: Free Open Portable Game Engine
 
-<img align="right" src="https://raw.github.com/cha0s/avocado/master/logo.jpg">
+<img align="right" src="https://raw.github.com/cha0s/avocado/master/logo.png">
 
 ### How it's going
 
