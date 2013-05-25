@@ -18,7 +18,7 @@ module.exports = Entity = class
 		CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			entity = new Entity()
-			entity.fromObject(O, variables).then -> entity
+			entity.fromObject O, variables
 		
 	@traitModule: (traitName) ->
 		

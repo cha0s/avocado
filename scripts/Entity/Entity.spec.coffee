@@ -1,6 +1,5 @@
 
 Entity = require 'Entity/Entity'
-Q = require 'Utility/Q'
 
 describe 'Entity', ->
 	
