@@ -45,8 +45,8 @@ module.exports = Vector =
 	
 	# Get the cartesian distance between two point vectors.
 	#
-	#     avocado> Vector.div [0, 0], [1, 0]
-	#     1
+	#     avocado> Vector.cartesianDistance [0, 0], [1, 1]
+	#     1.4142135623730951
 	cartesianDistance: (l, r) ->
 		
 		xd = l[0] - r[0]
@@ -131,7 +131,7 @@ module.exports = Vector =
 	# hypotenuse is derived from the distance to the origin.
 	#
 	#     avocado> Vector.hypotenuse [5, 5], [6, 7]
-	#     [0.4472135954999579, 0.8944271909999159]
+	#     [-0.4472135954999579, -0.8944271909999159]
 	#
 	#     avocado> Vector.hypotenuse [.5, .7]
 	#     [0.5812381937190965, 0.813733471206735]

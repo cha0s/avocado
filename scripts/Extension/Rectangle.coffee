@@ -25,12 +25,21 @@ module.exports = Rectangle =
 		
 		true
 		
+	# Check if a rectangle is touching a vector.
+	#
+	#     avocado> Rectangle.isTouching [0, 0, 16, 16], [0, 0]
+	#     true
+	#
+	#     avocado> Rectangle.intersects [0, 0, 16, 16], [16, 16]
+	#     false
 	isTouching: (rectangle, vector) ->
 		
-		Rectangle.intersects(
-			rectangle
-			Rectangle.compose vector, [1, 1]
-		)
+		return false if vector[0] < rectangle[0]
+		return false if vector[1] < rectangle[1]
+		return false if vector[0] >= rectangle[0] + rectangle[2]
+		return false if vector[1] >= rectangle[1] + rectangle[3]
+		
+		true
 
 	# Compose a rectangle from a position vector and a size vector.
 	#

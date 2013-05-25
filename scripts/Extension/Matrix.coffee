@@ -5,22 +5,11 @@
 # order.
 
 _ = require 'Utility/underscore'
-#Vector = require 'Extension/Vector'
 
 module.exports = Matrix =
 	
-	size: (matrix) ->
+	copy: (matrix) -> JSON.parse JSON.stringify matrix
 		
-		return 0 if 0 is matrix.length
-		
-		matrix.length * matrix[0].length
-
-	sizeVector: (matrix) ->
-		
-		return [0, 0] if 0 is matrix.length
-		
-		[matrix[0].length, matrix.length] 
-
 	equals: (l, r) ->
 		
 		return false unless l.length is r.length
@@ -35,4 +24,17 @@ module.exports = Matrix =
 				return false unless lindex is rrow[x]
 				
 		true
+		
+	size: (matrix) ->
+		
+		return 0 if 0 is matrix.length
+		
+		matrix.length * matrix[0].length
+
+	sizeVector: (matrix) ->
+		
+		return [0, 0] if 0 is matrix.length
+		
+		[matrix[0].length, matrix.length] 
+
 		
