@@ -1,2 +1,3 @@
+![avocado logo](https://raw.github.com/cha0s/avocado/master/logo.jpg)
 
-Coming soon! Currently under heavy development <3
+Working away on the fundamentals! Better docs will be coming, I promise!
