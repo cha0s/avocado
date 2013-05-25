@@ -248,7 +248,7 @@ module.exports = Visibility = class extends Trait
 			return unless @state.isVisible
 			
 			@renderCurrentAnimation(
-				Vector.scale camera, -1
+				Vector.sub @entity.position(), camera
 				null
 				destination
 				@state.alpha
