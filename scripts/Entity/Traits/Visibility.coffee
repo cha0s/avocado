@@ -1,6 +1,7 @@
 
 _ = require 'Utility/underscore'
 Animation = require 'Graphics/Animation'
+Debug = require 'Debug'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Trait = require 'Entity/Traits/Trait'
@@ -84,7 +85,7 @@ module.exports = Visibility = class extends Trait
 		delete @state.animations[index]
 		delete @animationObjects[index]
 	
-	renderCurrentAnimation: (position, clip, buffer, alpha = @state.alpha) ->
+	renderCurrentAnimation: (position, buffer, alpha = @state.alpha, clip) ->
 		return if alpha is 0
 		
 		@currentAnimation().render(
@@ -247,9 +248,19 @@ module.exports = Visibility = class extends Trait
 		renderer: (destination, camera) ->
 			return unless @state.isVisible
 			
+			position = Vector.sub @entity.position(), camera
+			
 			@renderCurrentAnimation(
-				Vector.sub @entity.position(), camera
-				null
+				Vector.add position, Rectangle.position @visibleRect()
 				destination
 				@state.alpha
 			)
+			
+			if Debug.isDebugging()
+				destination.drawFilledBox(
+					Rectangle.compose(
+						Vector.sub position, Vector.scale @entity.size(), .5
+						@entity.size()
+					)
+					255, 255, 255, 180
+				)
