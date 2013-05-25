@@ -161,7 +161,7 @@ module.exports = Entity = class
 				
 			Q.all(promises).then => @traits[type].resetTrait variables
 				
-		Q.all traitsPromises
+		Q.all(traitsPromises).then => this
 			
 	# Remove a Trait from this Entity.
 	removeTrait: (type) ->

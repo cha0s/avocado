@@ -33,24 +33,18 @@ module.exports = Room = class
 			@layers_[i].fromObject layerO
 			
 		@entities_ = []
-		entityPromises = if O.entities?
-			for entityO in O.entities
-				((entityO) ->
-					Entity.load(entityO.uri).then (entity) ->
-						if entityO.traits?
-							entity.extendTraits entityO.traits
-						else
-							Q.resolve()
-				) entityO
-		else
-			Q.resolve []
+		entityPromises =
+			((entityO) ->
+				Entity.load(entityO.uri).then (entity) ->
+					entity.extendTraits entityO.traits ? []
+			) entityO for entityO in O.entities ? []
 		Q.all(entityPromises).then (entities) =>
 			@addEntity entity for entity in entities
 		
 		Q.all(_.flatten [
 			entityPromises
 			layerPromises
-		], true).then => Q.resolve this
+		], true).then => this
 		
 	copy: ->
 		room = new Room()

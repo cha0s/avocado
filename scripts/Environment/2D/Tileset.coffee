@@ -12,7 +12,7 @@ module.exports = Tileset = class
 		CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			tileset = new Tileset()
-			tileset.fromObject(O).then -> tileset
+			tileset.fromObject O
 		
 	constructor: ->
 	
@@ -32,7 +32,8 @@ module.exports = Tileset = class
 		else
 			Image.load O.imageUri ? O.uri.replace '.tileset.json', '.png'
 		imagePromise.then (@image_) => @setImage @image_
-		imagePromise
+		
+		Q.when(imagePromise).then => this
 		
 	toJSON: ->
 		
