@@ -1,7 +1,7 @@
 
 DisplayCommand = require 'Graphics/DisplayCommand'
 Font = require('Graphics').Font
-upon = require 'Utility/upon'
+Q = require 'Utility/Q'
 
 Font.FontStyle_Regular   = 0
 Font.FontStyle_Bold      = 1
@@ -11,16 +11,12 @@ Font.FontStyle_Underline = 4
 # Load a font at the specified URI.
 Font.load = (uri) ->
 
-	defer = upon.defer()
-	
 	unless uri?
-		
-		defer.resolve()
-		return defer.promise
+		return Q.reject new Error 'Attempted to load Font with a null URI.'
 	
-	Font['%load'] uri, defer.resolve
-	
-	defer.promise
+	deferred = Q.defer()
+	Font['%load'] uri, deferred.makeNodeResolver()
+	deferred.promise
 
 Font::render = (position, destination, text, clip = [0, 0, 0, 0]) ->
 	return unless position? and destination? and text?

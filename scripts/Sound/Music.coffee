@@ -4,7 +4,7 @@
 # fading, and more.
 
 Music = require('Sound').Music
-upon = require 'Utility/upon'
+Q = require 'Utility/Q'
 
 # Music playing constants.
 # 
@@ -15,20 +15,12 @@ Music.LoopForever = -1
 # Load music at the specified URI.
 Music.load = (uri) ->
 
-	defer = upon.defer()
-	
 	unless uri?
-		
-		defer.reject new Error 'Attempted to load Music with a null URI.'
-		return defer.promise
+		return Q.reject new Error 'Attempted to load Music with a null URI.'
 	
-	@['%load'] uri, (error, music) ->
-		
-		return defer.reject error if error?
-		
-		defer.resolve music
-	
-	defer.promise
+	deferred = Q.defer()
+	@['%load'] uri, deferred.makeNodeResolver()
+	deferred.promise
 	
 # Fade in the music for the specified number of milliseconds, and loop for the
 # specified number of loops.

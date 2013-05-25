@@ -6,8 +6,8 @@
 
 DisplayCommand = require 'Graphics/DisplayCommand'
 Image = require('Graphics').Image
+Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
-upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 # Draw mode constants.
@@ -43,20 +43,12 @@ Image.blendPixel = (src, dst, alpha = 255) ->
 # Load an image at the specified URI.
 Image.load = (uri) ->
 
-	defer = upon.defer()
-	
 	unless uri?
-		
-		defer.reject new Error 'Attempted to load Image with a null URI.'
-		return defer.promise
+		return Q.reject new Error 'Attempted to load Image with a null URI.'
 	
-	Image['%load'] uri, (error, image) ->
-		
-		return defer.reject error if error?
-		
-		defer.resolve image
-	
-	defer.promise
+	deferred = Q.defer()
+	Image['%load'] uri, deferred.makeNodeResolver()
+	deferred.promise
 
 # Show the image.
 Image::display = Image::['%display']

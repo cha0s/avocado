@@ -2,8 +2,8 @@
 
 # **Sample** is the representation for a sound effect.
 
+Q = require 'Utility/Q'
 Sample = require('Sound').Sample
-upon = require 'Utility/upon'
 
 # Sample playing constants.
 # 
@@ -14,20 +14,12 @@ Sample.LoopForever = -1
 # Load a sample at the specified URI.
 Sample.load = (uri) ->
 
-	defer = upon.defer()
-	
 	unless uri?
-		
-		defer.reject new Error 'Attempted to load Sample with a null URI.'
-		return defer.promise
+		return Q.reject new Error 'Attempted to load Sample with a null URI.'
 	
-	@['%load'] uri, (error, sample) ->
-		
-		return defer.reject error if error?
-		
-		defer.resolve sample
-	
-	defer.promise
+	deferred = Q.defer()
+	@['%load'] uri, deferred.makeNodeResolver()
+	deferred.promise
 	
 # Play the sample for the specified number of loops.
 Sample::play = (loops = 0) ->

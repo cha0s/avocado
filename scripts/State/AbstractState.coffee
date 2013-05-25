@@ -8,7 +8,7 @@
 # this, as it means that no child objects will be garbage collected unless
 # you delete them!
 
-upon = require 'Utility/upon'
+Q = require 'Utility/Q'
 
 module.exports = class
 	
@@ -19,8 +19,7 @@ module.exports = class
 		
 		# By default, a State just immediately resolves its initialization
 		# promise.
-		upon.all([
-		])
+		Q.resolve()
 	
 	# When the State is entered by the engine, enter is called. You can use
 	# this to register input handlers and load resources that should be loaded
@@ -29,9 +28,7 @@ module.exports = class
 	enter: (args, previousStateName) ->
 		
 		# By default, a State just immediately resolves its enter promise.
-		defer = upon.defer()
-		defer.resolve()
-		defer.promise
+		Q.resolve()
 	
 	# Tick is called repeatedly by the engine while this State is the active
 	# State. This is where the game is updated. You might run your enemy

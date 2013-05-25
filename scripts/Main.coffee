@@ -99,9 +99,7 @@ module.exports = Main = class
 		# If the State is already loaded and cached, resolve the
 		# initialization promise immediately.
 		if @states[stateName]?
-			defer = upon.defer()
-			defer.resolve()
-			initializationPromise = defer.promise
+			initializationPromise = Q.resolve()
 			
 		# Otherwise, instantiate and cache the State, and the initialization
 		# promise is State::initialize's promise.
@@ -112,18 +110,21 @@ module.exports = Main = class
 			initializationPromise = @states[stateName].initialize()
 			
 		# When the State is finished initializing,
-		p = initializationPromise.then =>
+		initializationPromise.then(=>
 			
 			@emit 'stateInitialized', stateName
 			
 			# and finished being entered,
 			@states[stateName].enter(args, @stateName).then =>
-				
+					
 				@emit 'stateEntered', stateName
 				
-				# set the new State name, and the object for ticking/rendering.
+				# set the new State name, and the object for
+				# ticking/rendering.
 				@stateObject = @states[stateName]
 				@stateName = stateName
+			
+		).done()
 		
 	tick: ->
 		
