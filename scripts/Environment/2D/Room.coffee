@@ -108,8 +108,10 @@ module.exports = Room = class
 			uri: entity.uri
 			traits: entity.traitExtensions()
 		
+		layers = _.map @layers_, (layer) -> layer.toJSON()
+		
 		name: @name_
 		size: @size_
-		layers: _.map @layers_, (layer) -> layer.toJSON()
+		layers: layers
 		collision: @collision_
 		entities: entities
