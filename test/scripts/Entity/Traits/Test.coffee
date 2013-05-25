@@ -12,6 +12,10 @@ module.exports = class extends Trait
 		
 		@state.baz = 420
 		
+	setVariables: (variables) ->
+		
+		@state.blah = variables.blah if variables.blah?
+		
 	hooks: ->
 		
 		testHook: (thing) -> "HOOK: #{thing}"
@@ -25,6 +29,7 @@ module.exports = class extends Trait
 		foo: -> @state.foo
 		bar: -> @state.bar
 		baz: -> @state.baz
+		blah: -> @state.blah
 		
 	actions: ->
 		

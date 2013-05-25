@@ -14,11 +14,11 @@ Vector = require 'Extension/Vector'
 module.exports = Entity = class
 	
 	# Load an entity by URI.
-	@load: (uri, variables = {}) ->
+	@load: (uri) ->
 		CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			entity = new Entity()
-			entity.fromObject O, variables
+			entity.fromObject O
 		
 	@traitModule: (traitName) ->
 		
@@ -50,22 +50,22 @@ module.exports = Entity = class
 		@extendTraits [type: 'Existence']
 		
 	# Initialize an Entity from a POD object.
-	fromObject: (O, variables) ->
+	fromObject: (O) ->
 		
 		{@uri, traits} = O
 
 		# Add traits asynchronously.
-		@extendTraits traits, variables
+		@extendTraits traits
 			
 	# Deep copy.
-	copy: (variables = {}) ->
+	copy: ->
 		entity = new Entity()
-		entity.fromObject @toJSON(), variables
+		entity.fromObject @toJSON()
 		entity
 	
 	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this
 	# entity.
-	addTraits = (traits, variables) ->
+	addTraits = (traits) ->
 		
 		# nop.
 		return Q.resolve() if not traits?
@@ -121,10 +121,10 @@ module.exports = Entity = class
 					# Add the handler.
 					@["#{handlerType}s"].push handler[handlerType]
 			
-			trait.initializeTrait variables
+			trait.initializeTrait()
 		
 	# Extend this Entity's traits.
-	extendTraits: (traits, variables = {}) ->
+	extendTraits: (traits) ->
 		
 		traits = _.filter traits, (trait) ->
 			
@@ -151,15 +151,15 @@ module.exports = Entity = class
 				_.extend @traits[type].state, state
 				
 				# and fire Trait::initializeTrait().
-				[@traits[type].initializeTrait variables]
+				[@traits[type].initializeTrait()]
 			
 			# Otherwise, add the traits as new.
 			# TODO aggregate for efficiency.	
 			else
 				
-				addTraits.call this, [trait], variables
+				addTraits.call this, [trait]
 				
-			Q.all(promises).then => @traits[type].resetTrait variables
+			Q.all(promises).then => @traits[type].resetTrait()
 				
 		Q.all(traitsPromises).then => this
 			
@@ -204,8 +204,11 @@ module.exports = Entity = class
 			renderer.f.call this, destination, camera
 
 	# Reset traits.			
-	reset: (variables = {}) ->
-		trait.resetTrait variables for type, trait of @traits
+	reset: -> trait.resetTrait() for type, trait of @traits
+	
+	# Set trait variables.
+	setTraitVariables: (variables) ->
+		trait.setVariables variables for type, trait of @traits
 		
 	# Emit a JSON representation of the entity.
 	toJSON: ->

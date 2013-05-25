@@ -51,6 +51,16 @@ describe 'Entity', ->
 			entity.emit 'testSignal'
 			expect(entity.foo()).toBe 69
 
+		it "can set trait variables", ->
+			
+			expect(entity.blah()).not.toBeDefined()
+			
+			entity.setTraitVariables foo: 69
+			expect(entity.blah()).not.toBeDefined()
+			
+			entity.setTraitVariables blah: 69
+			expect(entity.blah()).toBe 69
+
 	describe 'regressions', ->
 	
 		it "doesn't crash when calling then().done() on the promise returned from fromObject()", ->

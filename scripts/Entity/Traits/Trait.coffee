@@ -43,4 +43,6 @@ module.exports = class
 	
 	removeTrait: ->
 	
+	setVariables: (variables) ->
+	
 	transient: false
