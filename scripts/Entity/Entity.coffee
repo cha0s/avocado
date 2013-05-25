@@ -151,7 +151,7 @@ module.exports = Entity = class
 				_.extend @traits[type].state, state
 				
 				# and fire Trait::initializeTrait().
-				@traits[type].initializeTrait variables
+				[@traits[type].initializeTrait variables]
 			
 			# Otherwise, add the traits as new.
 			# TODO aggregate for efficiency.	
