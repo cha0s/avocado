@@ -1,11 +1,21 @@
+
+_ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
+Q = require 'Utility/Q'
 Room = require 'Environment/2D/Room'
 Tileset = require 'Environment/2D/Tileset'
-upon = require 'Utility/upon'
 
 module.exports = Environment = class
 	
+	@load: (uri) ->
+	
+		CoreService.readJsonResource(uri).then (O) ->
+			O.uri = uri
+			
+			environment = new Environment()
+			environment.fromObject O
+		
 	constructor: ->
 		
 		@tileset_ = new Tileset()
@@ -15,51 +25,26 @@ module.exports = Environment = class
 		
 	fromObject: (O) ->
 		
-		defer = upon.defer()
-	
 		@["#{i}_"] = O[i] for i of O
 		
-		if O.tilesetUri?
-			tilesetPromise = Tileset.load(O.tilesetUri).then (@tileset_) =>
-			
-		roomPromises = for roomO, i in O.rooms
+		tilesetPromise =  if O.tilesetUri?
+			Tileset.load O.tilesetUri
+		else
+			@tileset_
+		Q.when(tilesetPromise).then (@tileset_) =>	
 		
-			((roomO, i) =>
-				room = new Room()
-				room.fromObject(roomO).then (room) => @rooms_[i] = room
-			) roomO, i
+		@rooms_ = []
+		roomPromises = for roomO in O.rooms
+			room = new Room()
+			room.fromObject roomO
+			@addRoom room
 			
-		upon.all([
-			tilesetPromise
-		].concat(
+		Q.all(_.flatten [
+			[tilesetPromise]
 			roomPromises
-		)).then(
-			-> defer.resolve()
-			(error) -> defer.reject error
-		)
+		], true).then => this
 			
-		defer.promise
-	
-	@load: (uri) ->
-	
-		defer = upon.defer()
-		
-		CoreService.readJsonResource(uri).then(
-			(O) ->
-			
-				environment = new Environment()
-				
-				O.uri = uri
-				environment.fromObject(O).then(
-					-> defer.resolve environment
-					(error) -> defer.reject new Error "Couldn't instantiate Environment: #{Debug.errorMessage error}"
-				)
-				
-			(error) -> defer.reject new Error "Couldn't instantiate Environment: #{Debug.errorMessage error}"
-		)
-		
-		defer.promise
-	
+	addRoom: (room) -> @rooms_.push room
 	room: (index) -> @rooms_[index]
 	roomCount: -> @rooms_.length
 	
@@ -76,10 +61,8 @@ module.exports = Environment = class
 	setUri: (@uri_) ->
 	
 	copy: ->
-		
 		environment = new Environment()
 		environment.fromObject @toJSON()
-		
 		environment
 	
 	toJSON: ->
