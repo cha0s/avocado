@@ -5,9 +5,9 @@ DisplayCommand = require 'Graphics/DisplayCommand'
 EventEmitter = require 'Utility/EventEmitter'
 Image = require('Graphics').Image
 Mixin = require 'Utility/Mixin'
+Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Ticker = require 'Timing/Ticker'
-upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 module.exports = Animation = class
@@ -51,8 +51,6 @@ module.exports = Animation = class
 		
 	fromObject: (O) ->
 		
-		defer = upon.defer()
-	
 		@["#{i}_"] = O[i] for i of O
 		
 		# Try using the animation's URI as the starting pattern for an image
@@ -66,23 +64,15 @@ module.exports = Animation = class
 			# Set and break up the image into frames.
 			@setImage image, O.frameSize
 			
-			defer.resolve()
-			
-		defer.promise
+			this
 		
 	@load: (uri) ->
-		
-		defer = upon.defer()
 		
 		CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			
 			animation = new Animation()
-			animation.fromObject(O).then ->
-				
-				defer.resolve animation
-			
-		defer.promise
+			animation.fromObject O
 	
 	# ***Internal***: Helper function to set the ticker frequency as the
 	# scaled frame rate.
