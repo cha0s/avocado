@@ -55,12 +55,14 @@ describe 'Entity', ->
 	
 		it "doesn't crash when calling then().done() on the promise returned from fromObject()", ->
 			
-			(new Entity()).fromObject(
-				traits: [
-					type: 'Existence'
-					state:
-						directionCount: 4
-						width: 8
-						height: 8				
-				]
-			).then().done()
+			expect(->
+				(new Entity()).fromObject(
+					traits: [
+						type: 'Existence'
+						state:
+							directionCount: 4
+							width: 8
+							height: 8				
+					]
+				).then().done()
+			).not.toThrow()
