@@ -27,10 +27,15 @@ module.exports = RasterFont = class
 		position
 		text
 		destination
-		clip = Rectangle.compose [0, 0], @textSize text
+		clip
 		alpha = 255
 		effect = null
 	) ->
+		
+		# TODO test for empty text
+		return unless text
+		
+		clip ?= Rectangle.compose [0, 0], @textSize text
 		
 		# Get the current area of the Image to render, based on the current
 		# character, as well as the frame size.
