@@ -61,8 +61,7 @@ describe 'Entity', ->
 						type: 'Existence'
 						state:
 							directionCount: 4
-							width: 8
-							height: 8				
+							size: [8, 8]				
 					]
 				).then().done()
 			).not.toThrow()
