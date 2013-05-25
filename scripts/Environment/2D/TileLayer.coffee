@@ -9,11 +9,14 @@ Image = require('Graphics').Image
 Lzw = require 'Utility/Lzw'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
+Tileset = require 'Environment/2D/Tileset'
 Vector = require 'Extension/Vector'
 
 module.exports = TileLayer = class
 	
 	constructor: (size = [0, 0]) ->
+		
+		@tileset_ = new Tileset()
 		
 		# The tile index data.
 		area = Vector.area size
@@ -76,6 +79,9 @@ module.exports = TileLayer = class
 	height: -> @size_[1]
 	width: -> @size_[0]
 	
+	tileset: -> @tileset_
+	setTileset: (@tileset_) ->
+	
 	# Calculate a tile index. You can call this function in 3 ways:
 	# 
 	# * With a vector:
@@ -105,6 +111,10 @@ module.exports = TileLayer = class
 		return 0 unless @tileIndices_?
 		
 		@tileIndices_[@calcTileIndex x, y] ? 0
+	
+	# Get a tile index by passing in a position vector.
+	tileIndexFromPosition: (position) ->
+		Vector.floor Vector.div position, @tileset_.tileSize()
 	
 	# Set a tile index. You can call this function in 3 ways:
 	# 
@@ -170,7 +180,6 @@ module.exports = TileLayer = class
 	
 	render: (
 		position
-		tileset
 		destination
 		clip = [0, 0, 0, 0]
 		mode = Image.DrawMode_Blend
@@ -178,7 +187,7 @@ module.exports = TileLayer = class
 		
 		return unless @tileIndices_?
 		
-		tileSize = tileset.tileSize()
+		tileSize = @tileset_.tileSize()
 		
 		if Vector.isZero Rectangle.size clip
 			
@@ -204,7 +213,7 @@ module.exports = TileLayer = class
 			
 			for x in [0...area[0]]
 		
-				tileset.render(
+				@tileset_.render(
 					offset
 					destination
 					index

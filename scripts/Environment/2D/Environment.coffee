@@ -42,7 +42,11 @@ module.exports = Environment = class
 		Q.all(_.flatten [
 			[tilesetPromise]
 			roomPromises
-		], true).then => this
+		], true).then =>
+			
+			room.setTileset @tileset_ for room in @rooms_
+			
+			this
 			
 	addRoom: (room) -> @rooms_.push room
 	room: (index) -> @rooms_[index]

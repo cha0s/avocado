@@ -5,6 +5,7 @@ Entity = require 'Entity/Entity'
 Image = require('Graphics').Image
 Q = require 'Utility/Q'
 TileLayer = require 'Environment/2D/TileLayer'
+Tileset = require 'Environment/2D/Tileset'
 Vector = require 'Extension/Vector'
 
 module.exports = Room = class
@@ -13,6 +14,7 @@ module.exports = Room = class
 		
 	constructor: (size = [0, 0]) ->
 	
+		@tileset_ = new Tileset()
 		@layers_ = []
 		@size_ = Vector.copy size
 		@name_ = ''
@@ -69,6 +71,15 @@ module.exports = Room = class
 	
 	layer: (index) -> @layers_[index]
 	layerCount: -> @layers_.length
+	
+	tileset: -> @tileset_
+	setTileset: (@tileset_) ->
+		
+		layer.setTileset @tileset_ for layer in @layers_
+
+	# Get a tile index by passing in a position vector.
+	tileIndexFromPosition: (position) ->
+		@layers_[0].tileIndexFromPosition position
 	
 	tick: -> entity.tick() for entity in @entities_
 	
