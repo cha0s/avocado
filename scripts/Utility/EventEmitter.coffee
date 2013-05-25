@@ -1,4 +1,4 @@
-# avo.**EventEmitter** is a mixin which lends the ability to emit events and
+# **EventEmitter** is a mixin which lends the ability to emit events and
 # manage the registration of listeners who listen for the emission of the
 # events.
 
