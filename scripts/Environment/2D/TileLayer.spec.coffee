@@ -1,5 +1,6 @@
 
 TileLayer = require 'Environment/2D/TileLayer'
+Tileset = require 'Environment/2D/Tileset'
 
 describe 'TileLayer', ->
 	
@@ -75,3 +76,13 @@ describe 'TileLayer', ->
 		
 		expect(tileLayer.tileMatrix [2, 2], [0, 0]).toEqual [[0, 420], [69, 0]]
 		
+	it "can positionally locate tiles", ->
+	
+		tileset = new Tileset()
+		tileset.setTileSize [16, 16]
+		
+		tileLayer = new TileLayer [5, 5]
+		tileLayer.setTileset tileset
+		
+		expect(tileLayer.tileIndexFromPosition [10, 18]).toEqual [0, 1]
+		expect(tileLayer.tileIndexFromPosition [31, 40]).toEqual [1, 2]
