@@ -1,4 +1,4 @@
-# Avocado: Free, open, run-everywhere game engine
+# Avocado: Free, open, portable game dev
 
 <img align="right" src="https://raw.github.com/cha0s/avocado/master/logo.jpg">
 
