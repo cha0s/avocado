@@ -154,7 +154,6 @@ module.exports = function(args) {
 	            		}
 	                	
 	                	if (immediateChildrenCount <= maxChildren) {
-	                		avo.Logger.info(immediateChildrenCount);
 	                		return false;
 	                	}
 	                	
