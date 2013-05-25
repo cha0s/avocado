@@ -1,23 +1,18 @@
 
 DisplayCommand = require 'Graphics/DisplayCommand'
 Image = require('Graphics').Image
+Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
-upon = require 'Utility/upon'
 Vector = require 'Extension/Vector'
 
 module.exports = RasterFont = class
 	
 	@load = (uri) ->
-		
-		defer = upon.defer()
-		
-		Image.load(uri).then (image) ->
+		Image.load(uri).then (image) =>
 			font = new RasterFont()
 			font.image_ = image
 			font.charSize_ = Vector.div font.image_.size(), [256, 1]
-			defer.resolve font
-			
-		defer.promise
+			font
 	
 	textWidth: (text) -> text.length * @charSize_[0]
 	
@@ -87,25 +82,3 @@ module.exports = RasterFont = class
 			)
 
 		undefined
-
-module.exports.DisplayCommand = class extends DisplayCommand
-	
-	constructor: (list, font, text, rectangle = [0, 0, 0, 0]) ->
-		super list, rectangle
-		
-		@font_ = font
-		@setText text
-		
-	setText: (text) ->
-		
-		oldText = @text_
-		@text_ = text
-		
-		if oldText isnt @text_
-			
-			@setSize @font_.textSize text
-			@markAsDirty()
-		
-	render: (position, clip, destination) ->
-		
-		@font_.render position, @text_, destination, clip
