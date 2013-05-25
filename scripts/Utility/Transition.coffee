@@ -5,17 +5,20 @@
 #
 #     Mixin yourObject, Transition
 #     
-#     yourObject.transition {x: 100}, 2000, 'easeOutQuad'
+#     yourObject.transition(
+#       x: 100
+#       2000
+#       'easeOutQuad'
+#     )
 #
 # The value of yourObject.x() will transition towards 100 over the course of
-# 2000 milliseconds. ***NOTE:*** yourObject must have the functions **x()** and
-# **setX()** defined.
+# 2000 milliseconds. ***NOTE:*** yourObject **must** have the functions **x()**
+# and **setX()** defined.
 # 
 # This function was heavily inspired by the existence of
 # [jQuery.animate](http://api.jquery.com/animate/), though the API is ***NOT***
 # compatible.
 
-Mixin = require 'Utility/Mixin'
 Q = require 'Utility/Q'
 String = require 'Extension/String'
 TimingService = require('Timing').TimingService
@@ -96,7 +99,7 @@ module.exports = Transition = class
 				
 				# Let any listeners know where we're at in the transition
 				# cycle.
-				@deferred.progress this
+				@deferred.notify this
 				
 				# Stop if we're done.
 				@stopTransition() if @elapsed is @duration
@@ -123,15 +126,12 @@ module.exports = Transition = class
 				@tick()
 				
 			# The tick interval.
-			intervalDeferred = Q.defer()
-			
-			if @transition_?.interval?
-				@transition_.promise.then ->
-					intervalDeferred.resolve()
+			intervalDeferred = if @transition_?.interval?
+				@transition_.promise
 			else
-				intervalDeferred.resolve()
+				Q.resolve()
 			
-			intervalDeferred.then ->
+			intervalDeferred.then(->
 				
 				transition.interval = setInterval(
 					=>
@@ -143,16 +143,10 @@ module.exports = Transition = class
 					10
 				)
 			
+			).done()
+			
 			@transition_ = transition
 		
-#		if @transition_?.interval?
-#			
-#			# If any transition is running, add this next one to the queue
-#			# after the current transition.
-#			registerTransition()
-#			@transition_
-#		else
-#			
 		# No other transition running? Start this one immediately.
 		registerTransition()
 
