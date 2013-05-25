@@ -51,7 +51,9 @@ module.exports = Room = class
 		room.fromObject @toJSON()
 		room
 	
-	reset: -> entity.reset() for entity in @entities_
+	reset: (variables = {}) ->
+		variables.room = this
+		entity.reset variables for entity in @entities_
 		
 	resize: (w, h) ->
 		

@@ -204,7 +204,8 @@ module.exports = Entity = class
 			renderer.f.call this, destination, camera
 
 	# Reset traits.			
-	reset: -> trait.resetTrait() for type, trait of @traits
+	reset: (variables = {}) ->
+		trait.resetTrait variables for type, trait of @traits
 		
 	# Emit a JSON representation of the entity.
 	toJSON: ->
