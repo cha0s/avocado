@@ -47,8 +47,8 @@ module.exports = class extends Trait
 			name: 'Move towards'
 			f: (
 				toPosition
-				elapsed = TimingService.tickElapsed()
 				relative = false
+				elapsed = TimingService.tickElapsed()
 			) ->
 				return increment: 1 if not @entity.mobile()
 				
