@@ -36,8 +36,8 @@ module.exports = Visibility = class extends Trait
 			uri = @entity.uri.replace '.entity.json', ''
 			
 			for index, animation of state.animations
-				if animation.uri is uri + '/' + index + '.animation.json'
-					delete animation.uri
+				if animation.animationUri is "#{uri}/#{index}.animation.json"
+					delete animation.animationUri
 			
 			if _.isEmpty state.animations
 				delete state.animations
@@ -47,7 +47,7 @@ module.exports = Visibility = class extends Trait
 	
 	resetTrait: ->
 		
-		@state.animationPlays = 0
+		@animationPlays = 0
 	
 		@entity.setCurrentAnimationIndex @entity.currentAnimationIndex()
 		
@@ -68,6 +68,7 @@ module.exports = Visibility = class extends Trait
 				Animation.load(animation.animationUri).then (animationObject) =>
 					animation.object = animationObject
 					@setAnimation index, animation
+					delete animation.object
 			) animation, index
 			
 		Q.all animationPromises
@@ -193,22 +194,22 @@ module.exports = Visibility = class extends Trait
 				
 				animation = @currentAnimation()
 				
-				if @state.animationPlays is 0
-					@state.animationPlays = plays + 1
+				if @animationPlays is 0
+					@animationPlays = plays + 1
 				
 					animation.off 'rolledOver.VisibilityTrait'
 					animation.on 'rolledOver.VisibilityTrait', =>
-						@state.animationPlays -= 1
+						@animationPlays -= 1
 						
-						if @state.animationPlays is 1
+						if @animationPlays is 1
 							animation.stop()
 							animation.setCurrentFrameIndex animation.frameCount - 1 unless reset
 						
 					animation.start()
 				
-				if @state.animationPlays is 1
+				if @animationPlays is 1
 					
-					@state.animationPlays = 0
+					@animationPlays = 0
 					animation.off 'rolledOver.VisibilityTrait'
 					
 					increment: 1
