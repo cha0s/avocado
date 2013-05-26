@@ -53,6 +53,8 @@ module.exports = Entity = class
 	fromObject: (O) ->
 		
 		{@uri, traits} = O
+		
+		@originalTraits = JSON.parse JSON.stringify traits
 
 		# Add traits asynchronously.
 		@extendTraits traits
