@@ -58,13 +58,6 @@ module.exports = class extends Trait
 		
 	actions: ->
 		
-		nop:
-			name: 'Do nothing'
-			renderer: -> 'do nothing'
-			f: ->
-				
-				increment: 1
-		
 		signal:
 			name: 'Emit signal'
 			argTypes: ['String']
