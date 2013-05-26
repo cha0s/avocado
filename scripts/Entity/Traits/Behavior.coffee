@@ -36,16 +36,24 @@ module.exports = Behavior = class extends Trait
 		return if @routinePromiseLock
 		@routinePromiseLock = true
 		
-		promiseOrResult = Method.Evaluate.apply(
-			Method.Evaluate
-			[@variables].concat @routine['actions'][@actionIndex].Method
-		)
-		Q.when(promiseOrResult).then (result) =>
+		fulfill = (result) =>
 			@routinePromiseLock = false	
 			
 			@actionIndex += result?.increment ? 1
 			if @actionIndex >= @routine['actions'].length
 				@actionIndex = 0
+		
+		promiseOrResult = Method.Evaluate.apply(
+			Method.Evaluate
+			[@variables].concat @routine['actions'][@actionIndex].Method
+		)
+		
+		# Promises will always wait a tick, so if it isn't a promise, fulfill
+		# immediately.
+		if Q.isPromise promiseOrResult
+			promiseOrResult.then fulfill
+		else
+			fulfill promiseOrResult
 		
 	initializeTrait: ->
 		
