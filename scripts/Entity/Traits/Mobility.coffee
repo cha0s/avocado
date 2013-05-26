@@ -16,7 +16,6 @@ module.exports = class extends Trait
 		super entity, state
 		
 		@isMoving = false
-		@movementExpectedTime = 0
 
 	values: ->
 
@@ -56,11 +55,10 @@ module.exports = class extends Trait
 				direction = @entity.direction()
 				position = @entity.position()
 				
-				if relative
-					hypotenuse = toPosition
+				hypotenuse = if relative
+					toPosition
 				else
-					
-					hypotenuse = Vector.hypotenuse(
+					Vector.hypotenuse(
 						toPosition
 						position
 					)
@@ -85,20 +83,21 @@ module.exports = class extends Trait
 						position[i] = toPosition[i]
 					
 					if toPosition[0] is position[0] and toPosition[1] is position[1]
-						
+						@hypotenuse = null
 						@entity.setPosition position
-						
+						@entity.emit 'stoppedMoving'
 						return increment: 1
 						
 				newDirection = Vector.toDirection hypotenuse, @entity.directionCount()
 				@entity.setDirection newDirection if direction isnt newDirection
 				
-				moveInvocations = @entity.invoke 'moveRequest', hypotenuse
-				
 				# If no one cared about movement, we'll just do naive movement.
+				moveInvocations = @entity.invoke 'moveRequest', hypotenuse
 				if moveInvocations.length is 0
 					@entity.emit 'moving', hypotenuse
-					@entity.setPosition Vector.add position, Vector.scale hypotenuse, magnitude
+					@entity.setPosition(
+						Vector.add position, Vector.scale hypotenuse, magnitude
+					)
 					
 				increment: 0
 
@@ -117,13 +116,7 @@ module.exports = class extends Trait
 				
 				if @isMoving
 					
-					finishedMoving = @entity.move(@destination).increment > 0 
-					finishedMoving = TimingService.elapsed() >= @movementExpectedTime unless finishedMoving
-					if finishedMoving
-						
-						@entity.emit 'stoppedMoving'
-						
-						return increment: 1
+					@entity.move @destination
 					
 				else 
 					
@@ -133,16 +126,12 @@ module.exports = class extends Trait
 					distance = min + Math.floor Math.random() * (max - min)
 					
 					switch @entity.direction()
-						
 						when 0
 							destination[1] -= distance
-							
 						when 1
 							destination[0] += distance
-							
 						when 2
 							destination[1] += distance
-							
 						when 3
 							destination[0] -= distance
 
@@ -152,7 +141,7 @@ module.exports = class extends Trait
 					
 					@entity.emit 'startedMoving'
 				
-				increment: 0
+					increment: 0
 
 		setMobile: (mobile) -> @state.mobile = mobile
 
