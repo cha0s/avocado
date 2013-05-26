@@ -85,6 +85,8 @@ module.exports = Room = class
 	
 	entityCount: -> @entities_.length
 	
+	entity: (index) -> @entities_[index]
+	
 	addEntity: (entity) ->
 		
 		entity.setTraitVariables room: this
