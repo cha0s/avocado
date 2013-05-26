@@ -116,10 +116,48 @@ module.exports = Room = class
 	
 	toJSON: ->
 		
+		traitArrayToObject = (traits) ->
+			object = {}
+			object[trait.type] = trait.state ? {} for trait in traits
+			object
+		
 		entities = _.map @entities_, (entity) ->
 			
-			uri: entity.uri
-			traits: entity.traitExtensions()
+			entityO = entity.toJSON()
+			
+			originalTraits = traitArrayToObject entity.originalTraits
+			currentTraits = traitArrayToObject entityO.traits
+			
+			entityO.traits = []
+			
+			sgfy = JSON.stringify
+			
+			for type, currentState of currentTraits
+			
+				unless originalTraits[type]?
+					entityO.traits.push
+						type: type
+						state: currentState
+					
+					continue
+					
+				state = {}
+				stateDefaults = originalTraits[type]
+				
+				for k, v of _.defaults currentState, JSON.parse sgfy stateDefaults
+					state[k] = v if sgfy(v) isnt sgfy(stateDefaults[k])
+					
+				O = {}
+				O.type = type
+				
+				if _.isEmpty state
+					continue if originalTraits[type]?
+				else
+					O.state = state
+				
+				entityO.traits.push O
+			
+			entityO
 		
 		layers = _.map @layers_, (layer) -> layer.toJSON()
 		
