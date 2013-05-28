@@ -137,7 +137,11 @@ module.exports = Rectangle =
 	#
 	#     avocado> Rectangle.isNull [0, 0, 1, 0]
 	#     true
-	isNull: (rectangle) -> Vector.isNull Rectangle.size rectangle
+	isNull: (rectangle) ->
+		return true unless rectangle?
+		return true unless rectangle.length is 4
+		
+		Vector.isNull Rectangle.size rectangle
 	
 	# Check whether a rectangle equals another rectangle.
 	#

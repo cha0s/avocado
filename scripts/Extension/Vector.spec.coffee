@@ -57,6 +57,10 @@ describe 'Vector', ->
 		
 		expect(Vector.isNull [0, 1]).toBe true
 		expect(Vector.isNull [1, 1]).toBe false
+		
+		expect(Vector.isNull null).toBe true
+		expect(Vector.isNull [1]).toBe true
+		expect(Vector.isNull [1, 1, 1]).toBe true
 
 	it "can convert to/from directions", ->
 		

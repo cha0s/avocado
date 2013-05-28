@@ -189,7 +189,11 @@ module.exports = Vector =
 	#
 	#     avocado> Vector.isNull [1, 1]
 	#     false
-	isNull: (vector) -> vector[0] is 0 or vector[1] is 0
+	isNull: (vector) ->
+		return true unless vector?
+		return true unless vector.length is 2
+		
+		vector[0] is 0 or vector[1] is 0
 	
 	# Convert a vector to a 4-direction. A 4-direction is:
 	# 

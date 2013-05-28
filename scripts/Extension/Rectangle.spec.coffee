@@ -53,6 +53,12 @@ describe 'Rectangle', ->
 		
 	it "can check for null", ->
 		
+		expect(Rectangle.isNull null).toBe true
+		expect(Rectangle.isNull 3).toBe true
+		expect(Rectangle.isNull [1]).toBe true
+		expect(Rectangle.isNull [1, 1]).toBe true
+		expect(Rectangle.isNull [1, 1, 1]).toBe true
+		expect(Rectangle.isNull [1, 1, 1, 1, 1]).toBe true
 		expect(Rectangle.isNull [0, 0, 1, 1]).toBe false
 		expect(Rectangle.isNull [0, 0, 1, 0]).toBe true
 				
