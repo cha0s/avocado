@@ -75,3 +75,34 @@ describe 'Entity', ->
 					]
 				).then().done()
 			).not.toThrow()
+
+		it "calls resetTrait() for all traits every time traits are extended", (done) ->
+			
+			Existence = require 'Entity/Traits/Existence'
+			Test = require 'Entity/Traits/Test'
+			Test2 = require 'Entity/Traits/Test2'
+			
+			originalExistenceReset = Existence::resetTrait
+			originalTestReset = Test::resetTrait
+			originalTest2Reset = Test2::resetTrait
+			
+			existenceReset = Existence::resetTrait = jasmine.createSpy()
+			testReset = Test::resetTrait = jasmine.createSpy()
+			test2Reset = Test2::resetTrait = jasmine.createSpy()
+			
+			entity = new Entity()
+			entity.extendTraits([
+				type: 'Test'
+			,
+				type: 'Test2'
+			]).then ->
+				
+				expect(existenceReset.calls.length).toEqual 2
+				expect(testReset.calls.length).toEqual 1
+				expect(test2Reset.calls.length).toEqual 1
+				
+				Existence::resetTrait = originalExistenceReset
+				Test::resetTrait = originalTestReset
+				Test2::resetTrait = originalTest2Reset
+				
+				done()

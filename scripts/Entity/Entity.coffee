@@ -29,6 +29,60 @@ module.exports = Entity = class
 		else
 			traitName
 	
+	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this
+	# entity.
+	addTrait = (traitInfo) ->
+		
+		# Sort all the tickers and renderers by weight.
+		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
+		@renderers = @renderers.sort (l, r) -> l.weight - r.weight
+		
+		# Instantiate and insert the Trait.
+		type = Entity.traitModule traitInfo.type
+		Trait = require "Entity/Traits/#{type}"
+		trait = new Trait this, traitInfo.state
+		trait.type = type
+		@traits[trait.type] = trait
+		
+		# Bind the actions and values associated with this trait.
+		for type in ['actions', 'values']
+			for index, meta of trait[type]()
+				@[index] = _.bind meta.f ? meta, trait
+		
+		# Refresh the signals associated with this trait.
+		for index, signal of trait['signals']()
+			name = "#{index}.#{trait.type}Trait"
+			@off name 
+			@on name, signal, trait
+		
+		# Refresh the handlers associated with this trait.
+		if handler = trait['handler']?()
+			
+			for handlerType in ['ticker', 'renderer']
+				continue unless handler[handlerType]?
+				
+				# Remove any existing handler.
+				@["#{handlerType}s"] = _.filter @["#{handlerType}s"], (e) ->
+					e.trait isnt trait.type
+			
+				# Normalize the handler object.
+				unless handler[handlerType].f
+					f = handler[handlerType]
+					handler[handlerType] = {}
+					handler[handlerType].f = f
+				
+				handler[handlerType].f = _.bind(
+					handler[handlerType].f
+					trait
+				)
+				handler[handlerType].weight ?= 0
+				handler[handlerType].trait = trait
+			
+				# Add the handler.
+				@["#{handlerType}s"].push handler[handlerType]
+		
+		trait.initializeTrait()
+		
 	# Instantiation
 	constructor: ->
 		
@@ -44,10 +98,10 @@ module.exports = Entity = class
 		@tickers = []
 		@renderers = []
 		
-		# All entities require an Existence trait. Calling extendTraits() here 
-		# seems risky, but Existence::resetTrait will always be synchronous (to
-		# keep entity instantiation sane).
-		@extendTraits [type: 'Existence']
+		# All entities require an Existence trait. It is hacky, but we have
+		# to work around that trait initialization is asynchronous (for now).
+		addTrait.call(this, type: 'Existence').done()
+		@traits['Existence'].resetTrait()
 		
 	# Initialize an Entity from a POD object.
 	fromObject: (O) ->
@@ -65,66 +119,6 @@ module.exports = Entity = class
 		entity.fromObject @toJSON()
 		entity
 	
-	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this
-	# entity.
-	addTraits = (traits) ->
-		
-		# nop.
-		return Q.resolve() if not traits?
-		
-		# Sort all the tickers and renderers by weight.
-		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
-		@renderers = @renderers.sort (l, r) -> l.weight - r.weight
-		
-		# Promise the traits:
-		for traitInfo in traits
-			
-			# Instantiate and insert the Trait.
-			type = Entity.traitModule traitInfo.type
-			Trait = require "Entity/Traits/#{type}"
-			trait = new Trait this, traitInfo.state
-			trait.type = type
-			@traits[trait.type] = trait
-			
-			# Bind the actions and values associated with this trait.
-			for type in ['actions', 'values']
-				for index, meta of trait[type]()
-					@[index] = _.bind meta.f ? meta, trait
-			
-			# Refresh the signals associated with this trait.
-			for index, signal of trait['signals']()
-				name = "#{index}.#{trait.type}Trait"
-				@off name 
-				@on name, signal, trait
-			
-			# Refresh the handlers associated with this trait.
-			if handler = trait['handler']?()
-				
-				for handlerType in ['ticker', 'renderer']
-					continue unless handler[handlerType]?
-					
-					# Remove any existing handler.
-					@["#{handlerType}s"] = _.filter @["#{handlerType}s"], (e) ->
-						e.trait isnt trait.type
-				
-					# Normalize the handler object.
-					unless handler[handlerType].f
-						f = handler[handlerType]
-						handler[handlerType] = {}
-						handler[handlerType].f = f
-					
-					handler[handlerType].f = _.bind(
-						handler[handlerType].f
-						trait
-					)
-					handler[handlerType].weight ?= 0
-					handler[handlerType].trait = trait
-				
-					# Add the handler.
-					@["#{handlerType}s"].push handler[handlerType]
-			
-			trait.initializeTrait()
-		
 	# Extend this Entity's traits.
 	extendTraits: (traits) ->
 		
@@ -147,22 +141,21 @@ module.exports = Entity = class
 			{type, state} = trait
 			
 			# If the trait already exists,
-			promises = if @traits[trait.type]?
+			promise = if @traits[type]?
 				
 				# extend the state,
 				_.extend @traits[type].state, state
 				
 				# and fire Trait::initializeTrait().
-				[@traits[type].initializeTrait()]
+				@traits[type].initializeTrait()
 			
-			# Otherwise, add the traits as new.
-			# TODO aggregate for efficiency.	
+			# Otherwise, add the trait.
 			else
 				
-				addTraits.call this, [trait]
-				
-			Q.all(promises).then => @traits[type].resetTrait()
-				
+				addTrait.call this, trait
+			
+			((trait) -> promise.then -> trait.resetTrait()) @traits[type]
+			
 		Q.all(traitsPromises).then => this
 			
 	# Remove a Trait from this Entity.
