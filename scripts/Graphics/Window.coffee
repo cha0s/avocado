@@ -40,10 +40,10 @@ Window = class
 	pollEvents: -> @window_['%pollEvents']()
 	
 	# Render an Image onto this window.
-	render: (image, rectangles = [[0, 0, 0, 0]]) ->
+	render: (image, rectangle = [0, 0, 0, 0]) ->
 		return unless image?
 		
-		@window_['%render'] image, rectangle for rectangle in rectangles
+		@window_['%render'] image, rectangle
 	
 	# Set the window parameters.
 	setFlags: (flags = Window.Flags_Default) ->
