@@ -10,18 +10,28 @@ Core.CoreService.writeStderr = Core.CoreService['%writeStderr']
 
 # Low-level API; reads a resource into a string. Returns a promise to be
 # resolved with the string containing the resource data. 
-Core.CoreService.readResource = (uri) ->
+resourceCache = {}
+Core.CoreService.readResource = (uri, useCache = true) ->
+	
+	return resourceCache[uri] if useCache and resourceCache[uri]?
 	
 	deferred = Q.defer()
 	
+	resourceCache[uri] = deferred.promise if useCache
+		
 	Core.CoreService['%readResource'] uri, deferred.makeNodeResolver()
 	
 	deferred.promise
 
 # Low-level API; reads a JSON resource. Returns a promise to be resolved with
 # the parsed JSON object.
-Core.CoreService.readJsonResource = (uri) ->
+jsonResourceCache = {}
+Core.CoreService.readJsonResource = (uri, useCache = true) ->
 	
-	@readResource(uri).then(
-		(resource) -> JSON.parse resource
+	return jsonResourceCache[uri] if useCache and jsonResourceCache[uri]?
+	
+	promise = @readResource(uri, useCache).then(
+		(O) -> JSON.parse O
 	)
+
+	jsonResourceCache[uri] = promise if useCache
