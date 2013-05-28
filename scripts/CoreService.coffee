@@ -35,3 +35,5 @@ Core.CoreService.readJsonResource = (uri, useCache = true) ->
 	)
 
 	jsonResourceCache[uri] = promise if useCache
+	
+	promise
