@@ -53,7 +53,7 @@ module.exports = Behavior = class extends Trait
 		# Promises will always wait a tick, so if it isn't a promise, fulfill
 		# immediately.
 		if Q.isPromise promiseOrResult
-			promiseOrResult.then fulfill
+			promiseOrResult.then(fulfill).done()
 		else
 			fulfill promiseOrResult
 		
