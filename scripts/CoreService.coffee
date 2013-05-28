@@ -26,7 +26,7 @@ Core.CoreService.readResource = (uri, useCache = true) ->
 # Low-level API; reads a JSON resource. Returns a promise to be resolved with
 # the parsed JSON object.
 jsonResourceCache = {}
-Core.CoreService.readJsonResource = (uri, useCache = true) ->
+Core.CoreService.readJsonResource = (uri, useCache = false) ->
 	
 	return jsonResourceCache[uri] if useCache and jsonResourceCache[uri]?
 	
