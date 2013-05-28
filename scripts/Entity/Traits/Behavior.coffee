@@ -42,6 +42,8 @@ module.exports = Behavior = class extends Trait
 			@actionIndex += result?.increment ? 1
 			if @actionIndex >= @routine['actions'].length
 				@actionIndex = 0
+				
+				@entity.emit 'finishedRoutine', @routine
 		
 		promiseOrResult = Method.Evaluate.apply(
 			Method.Evaluate
