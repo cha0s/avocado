@@ -160,41 +160,44 @@ module.exports = Animation = class
 	pause: -> @paused_ = true
 	unpause: -> @paused_ = false
 	
-	start: ->
+	tick: ->
+		
+		return if @paused_
+		
+		if @frameCount_ is 0
+			@emit 'rolledOver'
+			return
+			
+		# Get the number of ticks (if any)
+		ticks = 0
+		if ticks = @frameTicker_.ticks()
+			
+			# If we got some, increment the current frame pointer by how
+			# many we got, but clamp it to the number of frames.
+			c = @currentFrameIndex_ + ticks
+
+			# Clamped current index.
+			@currentFrameIndex_ = Math.floor c % @frameCount_
+
+			# If the animation rolled over, return TRUE.
+			@emit 'frameChanged'
+			@emit 'rolledOver' if c >= @frameCount_
+	
+	start: (asynchronous = true) ->
 		return if @interval_ isnt null
 		
 		@frameTicker_.reset()
 		
-		tick = =>
-			if @frameCount_ is 0
-				
-				@emit 'rolledOver'
-				return
-				
-			# Get the number of ticks (if any)
-			ticks = 0
-			if ticks = @frameTicker_.ticks()
-				
-				# If we got some, increment the current frame pointer by how
-				# many we got, but clamp it to the number of frames.
-				c = @currentFrameIndex_ + ticks
-	
-				# Clamped current index.
-				@currentFrameIndex_ = Math.floor c % @frameCount_
-	
-				# If the animation rolled over, return TRUE.
-				@emit 'frameChanged'
-				@emit 'rolledOver' if c >= @frameCount_
-		
-		@interval_ = setInterval (=> tick() if not @paused_), 10
+		if asynchronous
+			@interval_ = setInterval (=> @tick()), 10
+		else
+			@interval_ = true
 		
 	stop: ->
 		return if @interval_ is null
 		
-		clearInterval @interval_
+		clearInterval @interval_ unless @interval_ is true
 		@interval_ = null
-		
-		@emit 'stopped'
 		
 	render: (
 		position
