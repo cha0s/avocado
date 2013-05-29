@@ -36,8 +36,8 @@ module.exports = Environment = class
 		@rooms_ = []
 		roomPromises = for roomO in O.rooms
 			room = new Room()
-			room.fromObject roomO
 			@addRoom room
+			room.fromObject roomO
 			
 		Q.all(_.flatten [
 			[tilesetPromise]
