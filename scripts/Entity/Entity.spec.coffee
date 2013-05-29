@@ -106,3 +106,17 @@ describe 'Entity', ->
 				Test2::resetTrait = originalTest2Reset
 				
 				done()
+
+		it "undefined state defaults should throw an exception as early as possible", ->
+			
+			Existence = require 'Entity/Traits/Existence'
+			Test = require 'Entity/Traits/Test'
+			StateDefaults = require 'Entity/Traits/StateDefaults'
+			
+			expect(->
+				(new Entity()).fromObject(
+					traits: [
+						type: 'StateDefaults'
+					]
+				).then().done()
+			).toThrow()

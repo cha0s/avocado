@@ -8,7 +8,9 @@ module.exports = class
 	
 	# Extend the state with defaults. Make sure you call from children!
 	constructor: (@entity, state = {}) ->
-		@state = _.defaults state, @stateDefaults()
+		unless _.isObject defaults = @stateDefaults()
+			throw new Error "State defaults must be an object."
+		@state = _.defaults state, defaults
 	
 	# Extend with your state defaults.
 	stateDefaults: -> {}

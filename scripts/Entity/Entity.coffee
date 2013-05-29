@@ -40,7 +40,16 @@ module.exports = Entity = class
 		# Instantiate and insert the Trait.
 		type = Entity.traitModule traitInfo.type
 		Trait = require "Entity/Traits/#{type}"
-		trait = new Trait this, traitInfo.state
+		
+		try
+			trait = new Trait this, traitInfo.state
+		catch error
+			throw new Error "Can't instantiate #{
+				type
+			} trait: #{
+				Debug.errorMessage error
+			}"
+		
 		trait.type = type
 		@traits[trait.type] = trait
 		
