@@ -4,6 +4,7 @@
 # platform).
 
 Core = require 'Core'
+Debug = require 'Debug'
 Q = require 'Utility/Q'
  
 Core.CoreService.writeStderr = Core.CoreService['%writeStderr']
@@ -30,9 +31,17 @@ Core.CoreService.readJsonResource = (uri, useCache = false) ->
 	
 	return jsonResourceCache[uri] if useCache and jsonResourceCache[uri]?
 	
-	promise = @readResource(uri, useCache).then(
-		(O) -> JSON.parse O
-	)
+	promise = @readResource(uri, useCache).then (O) ->
+		
+		try
+			JSON.parse O
+		catch error
+			throw new Error "Error parsing #{
+				uri
+			}: #{
+				Debug.errorMessage error
+			}"
+		
 
 	jsonResourceCache[uri] = promise if useCache
 	
