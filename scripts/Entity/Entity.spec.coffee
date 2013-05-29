@@ -109,8 +109,6 @@ describe 'Entity', ->
 
 		it "undefined state defaults should throw an exception as early as possible", ->
 			
-			Existence = require 'Entity/Traits/Existence'
-			Test = require 'Entity/Traits/Test'
 			StateDefaults = require 'Entity/Traits/StateDefaults'
 			
 			expect(->
