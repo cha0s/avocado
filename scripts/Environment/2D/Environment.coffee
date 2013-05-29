@@ -72,5 +72,5 @@ module.exports = Environment = class
 	toJSON: ->
 		
 		name: @name_
-		tilesetUri: @tileset_?.image()?.uri()
+		tilesetUri: @tileset_?.uri()
 		rooms: @rooms_

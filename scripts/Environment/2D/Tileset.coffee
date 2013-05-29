@@ -105,6 +105,8 @@ module.exports = Tileset = class
 	
 	image: -> @image_
 	
+	uri: -> @uri_
+	
 	isValid: ->
 		
 		return false unless @image_?
