@@ -165,7 +165,7 @@ module.exports = Visibility = class extends Trait
 						
 						unless @currentAnimation()?.isRunning()
 						
-							@currentAnimation()?.start()
+							@currentAnimation()?.start false
 							
 				else 
 				
@@ -175,7 +175,7 @@ module.exports = Visibility = class extends Trait
 					
 					@currentAnimation()?.setCurrentFrameIndex 0 if reset
 					
-					@currentAnimation()?.start() if start
+					@currentAnimation()?.start false if start
 					
 				@entity.emit 'renderUpdate'
 		
@@ -205,7 +205,7 @@ module.exports = Visibility = class extends Trait
 							animation.stop()
 							animation.setCurrentFrameIndex animation.frameCount - 1 unless reset
 						
-					animation.start()
+					animation.start false
 				
 				if @animationPlays is 1
 					
@@ -220,7 +220,7 @@ module.exports = Visibility = class extends Trait
 		
 		stopCurrentAnimation: -> @currentAnimation().stop()
 		
-		startCurrentAnimation: -> @currentAnimation().start()
+		startCurrentAnimation: -> @currentAnimation().start false
 		
 	signals: ->
 		
@@ -245,6 +245,10 @@ module.exports = Visibility = class extends Trait
 				animation.setCurrentDirection direction
 
 	handler: ->
+		
+		ticker: ->
+			
+			@currentAnimation().tick()
 		
 		renderer: (destination, camera) ->
 			return unless @state.isVisible
