@@ -32,7 +32,9 @@
 			
 			return "Unknown error" unless error?
 			
-			if error.message?
+			if error.stack?
+				error.stack
+			else if error.message?
 				error.message
 			else
 				error.toString()
