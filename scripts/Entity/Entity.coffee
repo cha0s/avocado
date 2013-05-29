@@ -36,10 +36,6 @@ module.exports = Entity = class
 	# entity.
 	addTrait = (traitInfo) ->
 		
-		# Sort all the tickers and renderers by weight.
-		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
-		@renderers = @renderers.sort (l, r) -> l.weight - r.weight
-		
 		# Instantiate and insert the Trait.
 		type = Entity.traitModule traitInfo.type
 		Trait = require "Entity/Traits/#{type}"
@@ -92,6 +88,10 @@ module.exports = Entity = class
 			
 				# Add the handler.
 				@["#{handlerType}s"].push handler[handlerType]
+		
+		# Sort all the tickers and renderers by weight.
+		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
+		@renderers = @renderers.sort (l, r) -> l.weight - r.weight
 		
 		trait.initializeTrait()
 		
