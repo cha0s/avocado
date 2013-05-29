@@ -29,6 +29,9 @@ module.exports = Entity = class
 		else
 			traitName
 	
+	requireTrait = (type) ->
+		require "Entity/Traits/#{Entity.traitModule type}"
+	
 	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this
 	# entity.
 	addTrait = (traitInfo) ->
