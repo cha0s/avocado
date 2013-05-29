@@ -60,7 +60,18 @@ describe 'Entity', ->
 			
 			entity.setTraitVariables blah: 69
 			expect(entity.blah()).toBe 69
+			
+		it "can specify a trait dependency tree", (done) ->
 
+			entity = new Entity()
+			entity.extendTraits([
+				type: 'Dependency2'
+			]).then ->
+				
+				expect(entity.foo).toBeDefined()
+				
+				done()
+			
 	describe 'regressions', ->
 	
 		it "doesn't crash when calling then().done() on the promise returned from fromObject()", ->

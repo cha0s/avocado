@@ -38,8 +38,8 @@ module.exports = Entity = class
 		
 		# Instantiate and insert the Trait.
 		type = Entity.traitModule traitInfo.type
-		Trait = require "Entity/Traits/#{type}"
-		
+		Trait = requireTrait type
+			
 		try
 			trait = new Trait this, traitInfo.state
 		catch error
@@ -131,22 +131,48 @@ module.exports = Entity = class
 		entity.fromObject @toJSON()
 		entity
 	
+	traitDependencies = (traitMap, trait) ->
+		
+		try
+			Trait = requireTrait trait.type
+		catch error
+			console.log Debug.errorMessage error
+			console.log "Ignoring entity trait: #{trait.type}"
+			traitMap[trait.type] = false
+			return
+			
+		for dependency in Trait.dependencies ? []
+			continue if traitMap[dependency]?
+			
+			try
+				DependentTrait = requireTrait dependency
+			catch error
+				console.log Debug.errorMessage error
+				console.log "Ignoring entity trait: #{dependency}"
+				continue
+			
+			traitInfo = type: dependency
+			traitDependencies traitMap, traitMap[dependency] = traitInfo
+	
+	coalesceTraits = (allTraits) ->
+		
+		traitMap = {}
+		allTraits.forEach (trait) -> traitMap[trait.type] = trait
+		
+		for trait in allTraits
+			
+			traitDependencies traitMap, trait
+			
+		trait for type, trait of traitMap
+	
 	# Extend this Entity's traits.
 	extendTraits: (traits) ->
 		
-		traits = _.filter traits, (trait) ->
-			
-			try
-				
-				require "Entity/Traits/#{Entity.traitModule trait.type}"
-				true
-				
-			catch error
-				
-				console.log Debug.errorMessage error
-				console.log "Ignoring entity trait: #{trait.type}"
-				false
-			
+		traits = _.filter(
+			coalesceTraits traits
+			_.identity
+		)
+		
 		# Wrap all the trait promises in a promise and return it.	
 		traitsPromises = for trait in traits
 			
