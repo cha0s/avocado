@@ -125,6 +125,9 @@ module.exports = Room = class
 		
 		entities = _.map @entities_, (entity) ->
 			
+			if entity.hasTrait 'Inhabitant'
+				return unless entity.saveWithRoom()
+			
 			entityO = entity.toJSON()
 			
 			originalTraits = traitArrayToObject entity.originalTraits
@@ -161,6 +164,8 @@ module.exports = Room = class
 			
 			entityO
 		
+		entities = _.filter entities, _.identity
+		 
 		layers = _.map @layers_, (layer) -> layer.toJSON()
 		
 		name: @name_
