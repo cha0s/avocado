@@ -2,11 +2,10 @@
 # tile indices which index into a tileset.
 
 _ = require 'Utility/underscore'
-base64 = require 'Utility/base64'
 DisplayCommand = require 'Graphics/DisplayCommand'
 Graphics = require 'Graphics'
 Image = require('Graphics').Image
-Lzw = require 'Utility/Lzw'
+Packer = require 'Utility/Packer'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Tileset = require 'Environment/2D/Tileset'
@@ -34,21 +33,17 @@ module.exports = TileLayer = class
 		
 		@size_ = Vector.copy @size_
 		
-		if @tileIndices_?
-			debased = base64.fromBase64 @tileIndices_.toString()
-			compressed = JSON.parse "[#{debased}]"
-			decompressed = Lzw.decompress compressed
-			@tileIndices_ = JSON.parse "[#{decompressed}]"
+		@tileIndices_ = if @tileIndices_?
+			Packer.unpack @tileIndices_
 		else
-			@tileIndices_ = (0 for i in [0...Vector.area @size_])
+			(0 for i in [0...Vector.area @size_])
 		
 		Q.resolve()
 	
 	toJSON: ->
 		
 		tileIndices = if 0 isnt Math.max.apply Math, @tileIndices_
-			compressed = Lzw.compress @tileIndices_.toString()
-			base64.toBase64 compressed.toString()
+			Packer.pack @tileIndices_
 		else
 			null
 			
