@@ -4,15 +4,20 @@
 	Graphics = require 'Graphics'
 	Timing = require 'Timing'
 	
-	m_isDebugging = false
+	_isDebugging = false
+	_variables = {}
 	
 	module.exports =
 		
 # Provide a global mechanism for the parts in the engine to adapt their
 # behavior if we're debugging.
 		
-		isDebugging: -> m_isDebugging
-		setIsDebugging: (isDebugging) -> m_isDebugging = isDebugging
+		isDebugging: -> _isDebugging
+		setIsDebugging: (isDebugging) -> _isDebugging = isDebugging
+		
+		setVariable: (key, value) -> _variables[key] = value
+		unsetVariable: (key) -> delete _variables[key]
+		variables: -> _variables
 		
 # Halt execution until the callback returns true. Timeouts will still tick
 # (so you can setTimeout while execution is halted), and input is polled
