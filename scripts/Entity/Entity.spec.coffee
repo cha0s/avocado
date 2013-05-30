@@ -84,7 +84,7 @@ describe 'Entity', ->
 							directionCount: 4
 							size: [8, 8]				
 					]
-				).then().done()
+				).done()
 			).not.toThrow()
 
 		it "calls resetTrait() for all traits every time traits are extended", (done) ->
@@ -127,5 +127,5 @@ describe 'Entity', ->
 					traits: [
 						type: 'StateDefaults'
 					]
-				).then().done()
+				).done()
 			).toThrow()
