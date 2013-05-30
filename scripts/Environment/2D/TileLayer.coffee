@@ -189,7 +189,7 @@ module.exports = TileLayer = class
 			clip[2] = destination.width()
 			clip[3] = destination.height()
 		
-		offset = Vector.scale(
+		offset = Vector.add position, Vector.scale(
 			Vector.mod clip, tileSize
 			-1
 		)
