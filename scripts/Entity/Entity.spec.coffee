@@ -74,7 +74,7 @@ describe 'Entity', ->
 			
 	describe 'regressions', ->
 	
-		it "doesn't crash when calling then().done() on the promise returned from fromObject()", ->
+		it "doesn't crash when calling done() on the promise returned from fromObject()", ->
 			
 			expect(->
 				(new Entity()).fromObject(

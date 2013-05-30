@@ -114,7 +114,7 @@ module.exports = Main = class
 			promiseOrResult = @states[stateName].enter(args, @stateName)
 			
 			if Q.isPromise promiseOrResult
-				promiseOrResult.then(fulfillEnter).done()
+				promiseOrResult.done fulfillEnter
 			else
 				fulfillEnter()
 			
@@ -131,7 +131,7 @@ module.exports = Main = class
 			@states[stateName].initialize()
 			
 		if Q.isPromise promiseOrResult
-			promiseOrResult.then(fulfillInitialization).done()
+			promiseOrResult.done fulfillInitialization
 		else
 			fulfillInitialization()
 		
