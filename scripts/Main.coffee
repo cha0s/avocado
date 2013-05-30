@@ -17,6 +17,7 @@ Cps = require 'Timing/Cps'
 EventEmitter = require 'Utility/EventEmitter'
 Graphics = require 'Graphics'
 Mixin = require 'Utility/Mixin'
+Q = require 'Utility/Q'
 Timing = require 'Timing'
 
 module.exports = Main = class
@@ -96,27 +97,13 @@ module.exports = Main = class
 		
 		@leaveState stateName
 		
-		# If the State is already loaded and cached, resolve the
-		# initialization promise immediately.
-		if @states[stateName]?
-			initializationPromise = Q.resolve()
-			
-		# Otherwise, instantiate and cache the State, and the initialization
-		# promise is State::initialize's promise.
-		else
-			
-			@states[stateName] = new (require "State/#{stateName}")
-			@states[stateName].main = this
-			initializationPromise = @states[stateName].initialize()
-			
 		# When the State is finished initializing,
-		initializationPromise.then(=>
+		fulfillInitialization = =>
 			
 			@emit 'stateInitialized', stateName
 			
-			# and finished being entered,
-			@states[stateName].enter(args, @stateName).then =>
-					
+			fulfillEnter = =>
+			
 				@emit 'stateEntered', stateName
 				
 				# set the new State name, and the object for
@@ -124,7 +111,29 @@ module.exports = Main = class
 				@stateObject = @states[stateName]
 				@stateName = stateName
 			
-		).done()
+			promiseOrResult = @states[stateName].enter(args, @stateName)
+			
+			if Q.isPromise promiseOrResult
+				promiseOrResult.then(fulfillEnter).done()
+			else
+				fulfillEnter()
+			
+		# If the State is already loaded and cached, fulfill the
+		# initialization immediately.
+		promiseOrResult = if @states[stateName]?
+			true
+			
+		# Otherwise, instantiate and cache the State.
+		else
+			
+			@states[stateName] = new (require "State/#{stateName}")
+			@states[stateName].main = this
+			@states[stateName].initialize()
+			
+		if Q.isPromise promiseOrResult
+			promiseOrResult.then(fulfillInitialization).done()
+		else
+			fulfillInitialization()
 		
 	tick: ->
 		

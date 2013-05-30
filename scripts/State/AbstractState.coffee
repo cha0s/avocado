@@ -15,20 +15,13 @@ module.exports = class
 	# When the state is first loaded, initialize is called. This is used to
 	# initialize the State. You can load resources that are to remain as
 	# persistent for the life of the application.
-	initialize: (args) ->
-		
-		# By default, a State just immediately resolves its initialization
-		# promise.
-		Q.resolve()
+	initialize: (args) -> true
 	
 	# When the State is entered by the engine, enter is called. You can use
 	# this to register input handlers and load resources that should be loaded
 	# every time this State is entered by the engine. After this State is
 	# entered, it becomes the active State.
-	enter: (args, previousStateName) ->
-		
-		# By default, a State just immediately resolves its enter promise.
-		Q.resolve()
+	enter: (args, previousStateName) -> true
 	
 	# Tick is called repeatedly by the engine while this State is the active
 	# State. This is where the game is updated. You might run your enemy
