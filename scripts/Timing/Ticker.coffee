@@ -33,6 +33,7 @@ module.exports = Ticker = class
 	
 	# Count the number of ticks passed since the last invocation.
 	ticks: ->
+		return 0 if @frequency is 0
 		
 		# Get current ticks.
 		now = (TimingService.elapsed() - @last_) * 1000
