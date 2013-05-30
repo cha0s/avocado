@@ -11,7 +11,12 @@ module.exports = RasterFont = class
 		Image.load(uri).then (image) =>
 			font = new RasterFont()
 			font.image_ = image
-			font.charSize_ = Vector.div font.image_.size(), [256, 1]
+			font.charSize_ = Vector.div font.image_.size(), [16, 16]
+			font.charOffset_ = for i in [0...256]
+				[
+					font.charSize_[0] * Math.floor(i % 16)
+					font.charSize_[1] * Math.floor(i / 16)
+				]
 			font
 	
 	textWidth: (text) -> text.length * @charSize_[0]
@@ -39,10 +44,10 @@ module.exports = RasterFont = class
 		
 		# Get the current area of the Image to render, based on the current
 		# character, as well as the frame size.
-		rect = (character) => [
-			character * @charSize_[0], 0
-			@charSize_[0], @charSize_[1]
-		]
+		rect = (character) => Rectangle.compose(
+			@charOffset_[character]
+			[@charSize_[0], @charSize_[1]]
+		)
 		
 		position = Vector.sub position, Rectangle.position clip
 		clip = Rectangle.translated clip, position
