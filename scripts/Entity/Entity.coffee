@@ -29,6 +29,42 @@ module.exports = Entity = class
 		else
 			traitName
 	
+	# Instantiation
+	constructor: ->
+		
+		# Mixins
+		# 
+		# * **[EventEmitter](../Utility/EventEmitter.html)** for Existence::emit()
+		# * **[Transition](../Utility/Transition.html)** for transitioning any property.
+		Mixin this, EventEmitter, Transition
+		
+		# Initialize members.
+		@traits = {}
+
+		@tickers = []
+		@renderers = []
+		
+		# All entities require an Existence trait. It is hacky, but we have
+		# to work around that trait initialization is asynchronous (for now).
+		addTrait.call(this, type: 'Existence').done()
+		@traits['Existence'].resetTrait()
+		
+	# Initialize an Entity from a POD object.
+	fromObject: (O) ->
+		
+		{@uri, traits} = O
+		
+		@originalTraits = JSON.parse JSON.stringify traits
+
+		# Add traits asynchronously.
+		@extendTraits traits
+			
+	# Deep copy.
+	copy: ->
+		entity = new Entity()
+		entity.fromObject @toJSON()
+		entity
+	
 	requireTrait = (type) ->
 		require "Entity/Traits/#{Entity.traitModule type}"
 	
@@ -95,42 +131,6 @@ module.exports = Entity = class
 		
 		trait.initializeTrait()
 		
-	# Instantiation
-	constructor: ->
-		
-		# Mixins
-		# 
-		# * **[EventEmitter](../Utility/EventEmitter.html)** for Existence::emit()
-		# * **[Transition](../Utility/Transition.html)** for transitioning any property.
-		Mixin this, EventEmitter, Transition
-		
-		# Initialize members.
-		@traits = {}
-
-		@tickers = []
-		@renderers = []
-		
-		# All entities require an Existence trait. It is hacky, but we have
-		# to work around that trait initialization is asynchronous (for now).
-		addTrait.call(this, type: 'Existence').done()
-		@traits['Existence'].resetTrait()
-		
-	# Initialize an Entity from a POD object.
-	fromObject: (O) ->
-		
-		{@uri, traits} = O
-		
-		@originalTraits = JSON.parse JSON.stringify traits
-
-		# Add traits asynchronously.
-		@extendTraits traits
-			
-	# Deep copy.
-	copy: ->
-		entity = new Entity()
-		entity.fromObject @toJSON()
-		entity
-	
 	traitDependencies = (traitMap, trait) ->
 		
 		try
