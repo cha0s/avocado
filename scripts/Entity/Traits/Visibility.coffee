@@ -24,7 +24,6 @@ module.exports = Visibility = class extends Trait
 	toJSON: ->
 		
 		O = super
-		
 		return O unless O.state?
 		
 		state = O.state

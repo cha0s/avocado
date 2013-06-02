@@ -62,11 +62,14 @@ module.exports = Entity = class
 		
 		{@uri, traits} = O
 		
-		@originalTraits = JSON.parse JSON.stringify traits
-
 		# Add traits asynchronously.
-		@extendTraits traits
+		@extendTraits(traits).then (entity) =>
 			
+			traitArray = for key, value of entity.traits
+				value
+			@originalTraits = JSON.parse JSON.stringify traitArray
+			entity
+
 	# Deep copy.
 	copy: ->
 		entity = new Entity()
@@ -250,7 +253,7 @@ module.exports = Entity = class
 			unless originalTraits[type]?
 				O.traits.push
 					type: type
-					state: currentState
+					state: currentState unless _.isEmpty state
 				
 				continue
 				
