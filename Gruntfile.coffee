@@ -9,6 +9,11 @@ module.exports = (grunt) ->
 	sourceMapping = grunt.file.expandMapping sourceDirectories, 'js/',
 		rename: (destBase, destPath) ->
 			destBase + destPath.replace /\.coffee$/, ".js"
+			
+	# Don't include test suites
+	for source, index in sourceMapping
+		if source.src[0].match '\.spec\.coffee'
+			delete sourceMapping[index]
 	
 	grunt.initConfig
 		pkg: grunt.file.readJSON 'package.json'
@@ -39,28 +44,32 @@ module.exports = (grunt) ->
 					moduleName = path.join dirname, path.basename moduleName, extname 
 					
 					if moduleName?
-						["requires_['#{moduleName}'] = function(module, exports) {\n\n", '\n}\n']
+						["requires_['#{moduleName}'] = function(module, exports) {\n\n", '\n};\n']
 					else
 						['', '']
 		
 		concat:
 			self:
 				src: ['js/wrapped/**/*.js']
-				dest: 'js/avocado.js'
+				dest: 'avocado.js'
 		
 		uglify:
-			options:
-				banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
 			build:
-				src: [
-					'js/wrapped/**/*.js'
-				]
-				dest: 'build/<%= pkg.name %>.min.js'
+				options:
+					report: 'min'
+				files:
+					'avocado.min.js': ['avocado.js']
 				
+		clean:
+			output: ['js']
+				
+	grunt.loadNpmTasks 'grunt-contrib-clean'
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-concat'
 	grunt.loadNpmTasks 'grunt-contrib-copy'
 	grunt.loadNpmTasks 'grunt-contrib-uglify'
 	grunt.loadNpmTasks 'grunt-wrap'
+
+	grunt.registerTask 'default', ['coffee', 'copy', 'wrap', 'concat', 'clean']
+	grunt.registerTask 'production', ['coffee', 'copy', 'wrap', 'concat', 'uglify', 'clean']
 	
-	grunt.registerTask 'default', ['coffee', 'copy', 'wrap', 'concat']

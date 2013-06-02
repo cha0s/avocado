@@ -1,4 +1,5 @@
 .project
 .settings
-js
 node_modules
+avocado.js
+avocado.min.js
