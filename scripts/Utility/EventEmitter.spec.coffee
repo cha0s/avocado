@@ -10,6 +10,7 @@ describe 'EventEmitter', ->
 		namedEvents: ->
 		namespacedEvents: ->
 		onceEvent: ->
+		onceEventNamespace: ->
 		removeListenerNameFunction: ->
 		removeListenerNameAndNamespace: ->
 		removeListenerNamespace: ->
@@ -96,4 +97,21 @@ describe 'EventEmitter', ->
 		O.off 'removeListenerName'
 		O.emit 'removeListenerName'
 		expect(spy.removeListenerName.calls.length).toEqual 1
-		
+	
+	describe 'regressions', ->
+			
+		it "can listen to namespaced signals only once", ->
+			
+			expect(->
+			
+				spyOn spy, 'onceEventNamespace'
+				O.once 'onceEvent.Namespace', spy.onceEventNamespace
+				
+				O.emit 'onceEvent'
+				O.emit 'onceEvent'
+				O.emit 'onceEvent'
+				
+				expect(spy.onceEventNamespace.calls.length).toEqual 1
+			
+			).not.toThrow()
+				

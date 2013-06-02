@@ -121,7 +121,7 @@ module.exports = class
 			spec = @events_[eventName][callback]
 			
 			f = spec.f
-			@off eventName, f if spec.once
+			@off "#{eventName}.#{spec.namespace}", f if spec.once
 			f.apply spec.that, args
 
 		undefined
