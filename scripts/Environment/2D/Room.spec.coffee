@@ -66,3 +66,9 @@ describe 'Room', ->
 		expect(room.entityList([0, 10], 10).length).toBe 3
 		expect(room.entityList([30, 30], 15).length).toBe 0
 		
+	it "can chain calls from addEntity", ->
+	
+		room = new Room [30, 20]
+		entity = new Entity()
+		 
+		expect(room.addEntity entity).toBe entity
