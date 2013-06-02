@@ -183,12 +183,12 @@ module.exports = Animation = class
 			@emit 'frameChanged'
 			@emit 'rolledOver' if c >= @frameCount_
 	
-	start: (asynchronous = true) ->
+	start: (async = true) ->
 		return if @interval_ isnt null
 		
-		@frameTicker_.reset()
+		@frameTicker_ = new Ticker @frameRate_, async
 		
-		if asynchronous
+		if async
 			@interval_ = setInterval (=> @tick()), 10
 		else
 			@interval_ = true
