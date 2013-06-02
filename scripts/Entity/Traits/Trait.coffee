@@ -18,7 +18,7 @@ module.exports = class
 	# Emit the trait as a JSON representation.
 	toJSON: ->
 		
-		sgfy = JSON.stringify
+		sgfy = JSON.stringify.bind JSON
 		
 		state = {}
 		stateDefaults = @stateDefaults()

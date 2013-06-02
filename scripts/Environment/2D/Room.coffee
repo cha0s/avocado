@@ -121,45 +121,10 @@ module.exports = Room = class
 			object
 		
 		entities = _.map @entities_, (entity) ->
-			
 			if entity.hasTrait 'Inhabitant'
 				return unless entity.saveWithRoom()
 			
-			entityO = entity.toJSON()
-			
-			originalTraits = traitArrayToObject entity.originalTraits
-			currentTraits = traitArrayToObject entityO.traits
-			
-			entityO.traits = []
-			
-			sgfy = JSON.stringify
-			
-			for type, currentState of currentTraits
-			
-				unless originalTraits[type]?
-					entityO.traits.push
-						type: type
-						state: currentState
-					
-					continue
-					
-				state = {}
-				stateDefaults = originalTraits[type]
-				
-				for k, v of _.defaults currentState, JSON.parse sgfy stateDefaults
-					state[k] = v if sgfy(v) isnt sgfy(stateDefaults[k])
-					
-				O = {}
-				O.type = type
-				
-				if _.isEmpty state
-					continue if originalTraits[type]?
-				else
-					O.state = state
-				
-				entityO.traits.push O
-			
-			entityO
+			entity.traitExtensions()
 		
 		entities = _.filter entities, _.identity
 		 

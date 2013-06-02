@@ -229,6 +229,49 @@ module.exports = Entity = class
 	# Get a trait by name.
 	trait: (traitName) -> @traits[Entity.traitModule traitName]
 	
+	traitArrayToObject = (traits) ->
+		object = {}
+		object[trait.type] = trait.state ? {} for trait in traits
+		object
+	
+	traitExtensions: ->
+	
+		O = @toJSON()
+		
+		originalTraits = traitArrayToObject @originalTraits
+		currentTraits = traitArrayToObject O.traits
+		
+		O.traits = []
+		
+		sgfy = JSON.stringify.bind JSON
+		
+		for type, currentState of currentTraits
+		
+			unless originalTraits[type]?
+				O.traits.push
+					type: type
+					state: currentState
+				
+				continue
+				
+			state = {}
+			stateDefaults = originalTraits[type]
+			
+			for k, v of _.defaults currentState, JSON.parse sgfy stateDefaults
+				state[k] = v if sgfy(v) isnt sgfy(stateDefaults[k])
+				
+			traitO = {}
+			traitO.type = type
+			
+			if _.isEmpty state
+				continue if originalTraits[type]?
+			else
+				traitO.state = state
+			
+			O.traits.push traitO
+		
+		O
+	
 	# Invoke a hook with the specified arguments. Returns an array of responses
 	# from hook implementations.
 	invoke: (hook, args...) ->
