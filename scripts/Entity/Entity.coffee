@@ -14,11 +14,19 @@ Vector = require 'Extension/Vector'
 module.exports = Entity = class
 	
 	# Load an entity by URI.
-	@load: (uri) ->
+	@load: (uri, traitExtensions = []) ->
 		CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
+			
 			entity = new Entity()
-			entity.fromObject O
+			objectPromise = entity.fromObject O
+			
+			if traitExtensions.length
+				objectPromise.then (entity) ->
+					entity.extendTraits traitExtensions
+					entity
+			else
+				objectPromise
 		
 	@traitModule: (traitName) ->
 		

@@ -35,11 +35,8 @@ module.exports = Room = class
 			@layers_[i].fromObject layerO
 			
 		@entities_ = []
-		entityPromises =
-			((entityO) ->
-				Entity.load(entityO.uri).then (entity) ->
-					entity.extendTraits entityO.traits ? []
-			) entityO for entityO in O.entities ? []
+		entityPromises = for entityO in O.entities ? []
+			Entity.load entityO.uri, entityO.traits ? []
 		Q.all(entityPromises).then (entities) =>
 			@addEntity entity for entity in entities
 		
