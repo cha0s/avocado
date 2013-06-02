@@ -6,12 +6,13 @@ TimingService = require('Timing').TimingService
 module.exports = Ticker = class
 
 	# Initialize a ticker to count a tick every *frequency* milliseconds.
-	constructor: (frequency) ->
+	constructor: (@frequency, @async = true) ->
 		
 		# Keep the remainder counted towards the next tick.
 		@tickRemainder = 0
-		@frequency = frequency
-		@last_ = TimingService.elapsed()
+		
+		if @async
+			@last_ = TimingService.elapsed()
 		
 	# Deep copy a ticker.
 	deepCopy: ->
@@ -20,13 +21,17 @@ module.exports = Ticker = class
 		
 		ticker.tickRemainder = @tickRemainder
 		ticker.frequency = @frequency
-		ticker.last_ = @last_
+		
+		if ticker.async = @async
+			ticker.last_ = @last_
 	
 	# Reset a ticker, so it will be *@frequency* milliseconds until the next
 	# tick.
 	reset: ->
 		
-		@last_ = TimingService.elapsed()
+		if @async
+			@last_ = TimingService.elapsed()
+		
 		@tickRemainder = 0
 	
 	setFrequency: (@frequency) ->
@@ -36,8 +41,11 @@ module.exports = Ticker = class
 		return 0 if @frequency is 0
 		
 		# Get current ticks.
-		now = (TimingService.elapsed() - @last_) * 1000
-		@last_ = TimingService.elapsed()
+		if @async
+			now = (TimingService.elapsed() - @last_) * 1000
+			@last_ = TimingService.elapsed()
+		else
+			now = TimingService.tickElapsed() * 1000
 
 		# The number of milliseconds since last invocation.
 		since = 0
