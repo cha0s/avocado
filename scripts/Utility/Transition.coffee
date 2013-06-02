@@ -86,18 +86,26 @@ module.exports = Transition = class
 			# things never transition too far (through the end point).
 			if elapsed >= duration
 				elapsed = duration
-			
-			# Do easing for each property that actually changed.
-			for i of change
 				
-				if change[i]
+				for i of change
 					
-					self[method[i]] easing(
-						elapsed,
-						original[i],
-						change[i],
-						duration
-					)
+					if change[i]
+						
+						self[method[i]] props[i]
+						
+			else
+			
+				# Do easing for each property that actually changed.
+				for i of change
+					
+					if change[i]
+						
+						self[method[i]] easing(
+							elapsed,
+							original[i],
+							change[i],
+							duration
+						)
 			
 			# Stop if we're done.
 			if elapsed is duration
