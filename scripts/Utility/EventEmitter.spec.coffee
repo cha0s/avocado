@@ -9,6 +9,7 @@ describe 'EventEmitter', ->
 	spy =
 		namedEvents: ->
 		namespacedEvents: ->
+		onceEvent: ->
 		removeListenerNameFunction: ->
 		removeListenerNameAndNamespace: ->
 		removeListenerNamespace: ->
@@ -36,6 +37,17 @@ describe 'EventEmitter', ->
 		O.emit 'namespacedEvents'
 		
 		expect(spy.namespacedEvents.calls.length).toEqual 1
+
+	it "can listen to signals only once", ->
+		
+		spyOn spy, 'onceEvent'
+		O.once 'onceEvent', spy.onceEvent
+		
+		O.emit 'onceEvent'
+		O.emit 'onceEvent'
+		O.emit 'onceEvent'
+		
+		expect(spy.onceEvent.calls.length).toEqual 1
 
 	it "can remove signal listeners by name and function", ->
 		

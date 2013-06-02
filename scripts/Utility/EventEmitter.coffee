@@ -39,16 +39,22 @@ module.exports = class
 	on: (eventName, f, that = this) ->
 		info = parseEventName eventName
 		
-		@events_[info.event] = {} if not @events_[info.event]?
-		@namespaces_[info.namespace] = {} if not @namespaces_[info.namespace]?
-		
-		@events_[info.event][f] =
-			f: _.bind f, that
+		(@events_[info.event] ?= {})[f] =
+			f: f
+			that: that
 			namespace: info.namespace
 			
-		@namespaces_[info.namespace][f] =
+		(@namespaces_[info.namespace] ?= {})[f] =
 			event: info.event
 			
+		undefined
+		
+	once: (eventName, f, that = this) ->
+		@on eventName, f, that
+		
+		info = parseEventName eventName
+		@events_[info.event][f]['once'] = true
+		
 		undefined
 		
 	# Remove listeners from an object.
@@ -76,7 +82,7 @@ module.exports = class
 		info = parseEventName eventName
 		
 		# If we're given the function, our job is easy.
-		if 'function' == typeof f
+		if 'function' is typeof f
 			return if not @events_[info.event]?
 			
 			delete @events_[info.event][f]
@@ -85,7 +91,7 @@ module.exports = class
 			return
 		
 		# No namespace? Remove every matching event.
-		if '' == info.namespace
+		if '' is info.namespace
 			for f of @events_[info.event]
 				delete @namespaces_[@events_[info.event][f].namespace][f]
 				delete @events_[info.event][f]
@@ -112,8 +118,11 @@ module.exports = class
 		return if not @events_[eventName]?
 		
 		for callback of @events_[eventName]
-			f = @events_[eventName][callback].f
-			f.apply f, args
+			spec = @events_[eventName][callback]
+			
+			f = spec.f
+			@off eventName, f if spec.once
+			f.apply spec.that, args
 
 		undefined
 		
