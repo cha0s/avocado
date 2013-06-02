@@ -62,12 +62,18 @@ module.exports = (grunt) ->
 				
 		clean:
 			output: ['js']
+			
+		watch:
+			scripts:
+				files: ['scripts/**/*.coffee', 'scripts/**/*.js']
+				tasks: 'default'
 				
 	grunt.loadNpmTasks 'grunt-contrib-clean'
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-concat'
 	grunt.loadNpmTasks 'grunt-contrib-copy'
 	grunt.loadNpmTasks 'grunt-contrib-uglify'
+	grunt.loadNpmTasks 'grunt-contrib-watch'
 	grunt.loadNpmTasks 'grunt-wrap'
 
 	grunt.registerTask 'default', ['coffee', 'copy', 'wrap', 'concat', 'clean']
