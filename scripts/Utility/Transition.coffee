@@ -19,6 +19,7 @@
 # [jQuery.animate](http://api.jquery.com/animate/), though the API is ***NOT***
 # compatible.
 
+Mixin = require 'Utility/Mixin'
 Q = require 'Utility/Q'
 String = require 'Extension/String'
 TimingService = require('Timing').TimingService
@@ -32,124 +33,133 @@ module.exports = Transition = class
 	
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.
-	transition: (props, speed, easing) ->
+	transition: (
+		props
+		speed
+		easing
+		async = true
+	) ->
 		
-		# Register the transition. This isn't done inline because if a
-		# transition is already running against this object, we will add the
-		# next transition to the queue to run immediately after the currently
-		# running transition is finished.
-		registerTransition = =>
+		# Speed might not get passed. If it doesn't, default to 100
+		# milliseconds.
+		speed = if 'number' == typeof speed then speed else 100
 		
-			# Speed might not get passed. If it doesn't, default to 100
-			# milliseconds.
-			speed = if 'number' == typeof speed then speed else 100
+		# If easing isn't passed in as a function, attempt to look it up
+		# as a string key into Transition.easing. If that fails, then
+		# default to 'easeOutQuad'.
+		if 'function' isnt typeof easing
+			easing = Transition.easing[easing] ? Transition.easing['easeOutQuad']
+		
+		# Store the original values of the properties and calculate the
+		# difference between the original values and the requested values.
+		original = {}
+		change = {}
+		method = {}
+		for i, prop of props
+			value = this[i]()
+			original[i] = value
+			change[i] = prop - value
+			method[i] = String.setterName i
+		
+		# Set up the transition object.
+		deferred = Q.defer()
+		transition = promise: deferred.promise
 			
-			# If easing isn't passed in as a function, attempt to look it up
-			# as a string key into Transition.easing. If that fails, then
-			# default to 'easeOutQuad'.
-			if 'function' isnt typeof easing
-				easing = easing && Transition.easing[easing] || Transition.easing['easeOutQuad']
+		elapsed = 0
+		duration = speed / 1000
+		interval = null
+		start = TimingService.elapsed() if async
+		self = this
 			
-			# Store the original values of the properties and calculate the
-			# difference between the original values and the requested values.
-			original = {}
-			change = {}
-			method = {}
-			for i, prop of props
-				value = this[i]()
-				original[i] = value
-				change[i] = prop - value
-				method[i] = String.setterName i
+		# Tick callback. Called repeatedly while this transition is
+		# running.
+		transition.tick = ->
 			
-			# Set up the transition object.
-			deferred = Q.defer()
-			transition = 
-				deferred: deferred
-				promise: deferred.promise
-				then: deferred.promise.then
-				duration: speed / 1000
-				start: TimingService.elapsed()
-				elapsed: 0
-				original: original
-				change: change
-				method: method
-				easing: easing
-				O: this
-				
-			# Tick callback. Called repeatedly while this transition is
-			# running.
-			transition.tick = ->
-				
-				# If we've overshot the duration, we'll fix it up here, so
-				# things never transition too far (through the end point).
-				if @elapsed >= @duration
-					@elapsed = @duration
-				
-				# Do easing for each property that actually changed.
-				for i of @change
-					
-					if @change[i]
-						
-						@O[@method[i]] @easing(
-							@elapsed,
-							@original[i],
-							@change[i],
-							@duration
-						)
-				
-				# Let any listeners know where we're at in the transition
-				# cycle.
-				@deferred.notify this
-				
-				# Stop if we're done.
-				@stopTransition() if @elapsed is @duration
-
-			# Immediately stop the transition. This will leave the object in
-			# its current state; potentially partially transitioned.				
-			transition.stopTransition = ->
-				
-				# Stop the tick loop and clear out the handle so additional
-				# transitions attached to this object won't wait.
-				clearInterval @interval
-				delete @interval
-				
-				# Let any listeners know that the transition is complete.
-				@deferred.resolve()
-				
-			# Immediately finish the transition. This will leave the object
-			# in the fully transitioned state.
-			transition.skipTransition = ->
-				
-				# Just trick it into thinking the time passed and do one last
-				# tick.
-				@elapsed = @duration
-				@tick()
-				
-			# The tick interval.
-			intervalDeferred = if @transition_?.interval?
-				@transition_.promise
+			# Update the transition's elapsed time.
+			if async
+				elapsed += TimingService.elapsed() - start
+				start = TimingService.elapsed()
 			else
-				Q.resolve()
+				elapsed += TimingService.tickElapsed()
 			
-			intervalDeferred.then(->
+			# If we've overshot the duration, we'll fix it up here, so
+			# things never transition too far (through the end point).
+			if elapsed >= duration
+				elapsed = duration
+			
+			# Do easing for each property that actually changed.
+			for i of change
 				
-				transition.interval = setInterval(
-					=>
-						
-						# Update the transition's elapsed time and tick.
-						transition.elapsed += TimingService.elapsed() - transition.start
-						transition.start = TimingService.elapsed()
-						transition.tick()
-					10
-				)
+				if change[i]
+					
+					self[method[i]] easing(
+						elapsed,
+						original[i],
+						change[i],
+						duration
+					)
 			
-			).done()
-			
-			@transition_ = transition
-		
-		# No other transition running? Start this one immediately.
-		registerTransition()
+			# Stop if we're done.
+			if elapsed is duration
+				@stopTransition()
+			else
+				deferred.notify [elapsed, duration]
 
+		# Immediately stop the transition. This will leave the object in
+		# its current state; potentially partially transitioned.				
+		transition.stopTransition = ->
+			
+			# Stop the tick loop and clear out the handle so additional
+			# transitions attached to this object won't wait.
+			if interval?
+				clearInterval interval
+			
+			# Let any listeners know that the transition is complete.
+			deferred.notify [elapsed, duration]
+			deferred.resolve()
+			
+		# Immediately finish the transition. This will leave the object
+		# in the fully transitioned state.
+		transition.skipTransition = ->
+			
+			# Just trick it into thinking the time passed and do one last
+			# tick.
+			elapsed = duration
+			@tick()
+			
+		# The tick interval.
+		interval = setInterval(
+			=> transition.tick()
+			10
+		) if async
+		
+		transition
+
+Transition.Vector = class
+
+	constructor: (vector) ->
+		
+		@[0] = vector[0]
+		@[1] = vector[1]
+		
+		Mixin this, Transition
+		
+	x: -> @[0]
+	setX: (x) -> @[0] = x
+	y: -> @[1]
+	setY: (y) -> @[1] = y
+
+Transition.Value = class
+
+	constructor: (value, key = 'value') ->
+		
+		@["_#{key}"] = value
+		
+		@[key] = -> @["_#{key}"]
+		@[String.setterName key] = (value) -> @["_#{key}"] = value
+		
+		Mixin this, Transition
+		
 ###
  *
  * jQuery Easing v1.3 - http://gsgd.co.uk/sandbox/jquery/easing/
