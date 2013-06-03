@@ -18,6 +18,7 @@ module.exports = Room = class
 		@tileset_ = new Tileset()
 		@layers_ = []
 		@size_ = Vector.copy size
+		@sizeInPx_ = [0, 0]
 		@name_ = ''
 		@entities_ = []
 		@collision_ = []
@@ -63,11 +64,16 @@ module.exports = Room = class
 	width: -> @size_[0]
 	
 	size: -> @size_
+	_calculateSizeInPx: -> @sizeInPx_ = Vector.mul @size_, @tileset_.tileSize()
+	sizeInPx: -> @sizeInPx_
 	setSize: (size) ->
 		return if Vector.equals @size_, size
 		
 		@size_ = Vector.copy size
+		
+		@_calculateSizeInPx()
 		@setWalls()
+		
 		layer.setSize size for layer in @layers_
 	
 	layer: (index) -> @layers_[index]
@@ -78,9 +84,10 @@ module.exports = Room = class
 		
 		layer.setTileset @tileset_ for layer in @layers_
 		
+		@_calculateSizeInPx()
 		@setWalls()		
 	
-	setWalls: -> @_physics.setWalls Vector.mul @size_, @tileset_.tileSize()
+	setWalls: -> @_physics.setWalls @sizeInPx()
 	
 	# Get a tile index by passing in a position vector.
 	tileIndexFromPosition: (position) ->
