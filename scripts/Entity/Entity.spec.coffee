@@ -1,5 +1,6 @@
 
 Entity = require 'Entity/Entity'
+Trait = require 'Entity/Traits/Trait'
 
 describe 'Entity', ->
 	
@@ -66,6 +67,19 @@ describe 'Entity', ->
 			entity = new Entity()
 			entity.extendTraits([
 				type: 'Dependency2'
+			]).then ->
+				
+				expect(entity.foo).toBeDefined()
+				
+				done()
+			
+		it "can override trait loading", (done) ->
+		
+			Trait.moduleMap['Override'] = 'Test'
+
+			entity = new Entity()
+			entity.extendTraits([
+				type: 'Override'
 			]).then ->
 				
 				expect(entity.foo).toBeDefined()

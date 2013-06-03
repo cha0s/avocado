@@ -84,7 +84,7 @@ module.exports = Entity = class
 	addTrait = (traitInfo) ->
 		
 		# Instantiate and insert the Trait.
-		type = Entity.traitModule traitInfo.type
+		type = traitInfo.type
 		Trait = requireTrait type
 			
 		try
