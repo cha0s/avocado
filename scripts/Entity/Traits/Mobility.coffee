@@ -92,7 +92,7 @@ module.exports = class extends Trait
 				@entity.setDirection newDirection if direction isnt newDirection
 				
 				# If no one cared about movement, we'll just do naive movement.
-				moveInvocations = @entity.invoke 'moveRequest', hypotenuse
+				moveInvocations = @entity.invoke 'moveRequest', hypotenuse, magnitude
 				if moveInvocations.length is 0
 					@entity.emit 'moving', hypotenuse
 					@entity.setPosition(
