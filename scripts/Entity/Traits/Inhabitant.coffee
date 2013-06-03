@@ -20,7 +20,11 @@ module.exports = class extends Trait
 	
 	actions: ->
 		
-		setLayer: (layer) -> @state.layer = layer
+		setLayer: (layer) ->
+			oldLayer = @state.layer
+			
+			@state.layer = layer
+			@entity.emit 'layerChanged', oldLayer if oldLayer isnt @state.layer
 	
 	values: ->
 		
