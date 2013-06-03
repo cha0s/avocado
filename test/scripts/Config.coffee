@@ -1,0 +1,2 @@
+
+exports.ticksPerSecondTarget = 140
