@@ -261,10 +261,9 @@ module.exports = Visibility = class extends Trait
 			)
 			
 			if Debug.isDebugging()
-				destination.drawFilledBox(
-					Rectangle.compose(
-						Vector.sub position, Vector.scale @entity.size(), .5
-						@entity.size()
-					)
-					255, 255, 255, 180
+			
+				destination.drawCircle(
+					position
+					@entity.width() / 2
+					255, 255, 255, 128
 				)
