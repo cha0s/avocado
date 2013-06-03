@@ -17,7 +17,8 @@ describe 'Room', ->
 		# NULL tileIndices...
 		secondRoom = new Room()
 		secondRoom.fromObject(room.toJSON()).then(->
-			expect(room).toEqual secondRoom
+			for key in ['size', 'width', 'height']
+				expect(room[key]()).toEqual secondRoom[key]()
 		).then -> done()
 
 	it "can resize", ->
@@ -27,7 +28,7 @@ describe 'Room', ->
 		for i in [0...room.layerCount()]
 			expect(room.layer(i).size()).toEqual [30, 20]
 
-		room.resize [10, 20]
+		room.setSize [10, 20]
 		
 		for i in [0...room.layerCount()]
 			expect(room.layer(i).size()).toEqual [10, 20]

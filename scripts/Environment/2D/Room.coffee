@@ -3,6 +3,7 @@ _ = require 'Utility/underscore'
 Debug = require 'Debug'
 Entity = require 'Entity/Entity'
 Image = require('Graphics').Image
+Physics = require 'Physics/Physics'
 Q = require 'Utility/Q'
 TileLayer = require 'Environment/2D/TileLayer'
 Tileset = require 'Environment/2D/Tileset'
@@ -13,7 +14,7 @@ module.exports = Room = class
 	@layerCount: 5
 		
 	constructor: (size = [0, 0]) ->
-	
+		
 		@tileset_ = new Tileset()
 		@layers_ = []
 		@size_ = Vector.copy size
@@ -21,13 +22,17 @@ module.exports = Room = class
 		@entities_ = []
 		@collision_ = []
 		
+		@_physics = new Physics()
+		@_physics.addFloor()
+		@_physics.setWalls @size_
+	
 		@layers_[i] = new TileLayer size for i in [0...Room.layerCount]
 
 	fromObject: (O) ->
 	
 		@["#{i}_"] = O[i] for i of O
 		
-		@size_ = Vector.copy O.size
+		@setSize Vector.copy O.size
 		
 		@layers_ = []
 		layerPromises = for layerO, i in O.layers
@@ -50,19 +55,20 @@ module.exports = Room = class
 		room.fromObject @toJSON()
 		room
 	
+	physics: -> @_physics
+	
 	reset: -> entity.reset() for entity in @entities_
 		
-	resize: (w, h) ->
-		
-		@size_ = if w instanceof Array then Vector.copy(w) else [w, h]
-		
-		for layer in @layers_
-			layer.resize w, h
-	
 	height: -> @size_[1]
 	width: -> @size_[0]
 	
 	size: -> @size_
+	setSize: (size) ->
+		return if Vector.equals @size_, size
+		
+		@size_ = Vector.copy size
+		@setWalls()
+		layer.setSize size for layer in @layers_
 	
 	layer: (index) -> @layers_[index]
 	layerCount: -> @layers_.length
@@ -71,12 +77,20 @@ module.exports = Room = class
 	setTileset: (@tileset_) ->
 		
 		layer.setTileset @tileset_ for layer in @layers_
-
+		
+		@setWalls()		
+	
+	setWalls: -> @_physics.setWalls Vector.mul @size_, @tileset_.tileSize()
+	
 	# Get a tile index by passing in a position vector.
 	tileIndexFromPosition: (position) ->
 		@layers_[0].tileIndexFromPosition position
 	
-	tick: -> entity.tick() for entity in @entities_
+	tick: ->
+		
+		entity.tick() for entity in @entities_
+		
+		@_physics.tick()
 	
 	name: -> @name_
 	
