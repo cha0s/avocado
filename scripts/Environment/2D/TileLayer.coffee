@@ -55,10 +55,13 @@ module.exports = TileLayer = class
 		layer.fromObject @toJSON()
 		layer 
 	
+	size: -> @size_
+	height: -> @size_[1]
+	width: -> @size_[0]
+	
 	# Resize the layer, losing as little information as possible.
-	resize: (w, h) ->
-		
-		size = if w instanceof Array then w else [w, h]
+	setSize: (size) ->
+		return if Vector.equals @size_, size
 		
 		tileIndices = new Array size[0] * size[1]
 		for y in [0...size[1]]
@@ -69,10 +72,6 @@ module.exports = TileLayer = class
 		@tileIndices_ = tileIndices
 		
 		this
-	
-	size: -> @size_
-	height: -> @size_[1]
-	width: -> @size_[0]
 	
 	tileset: -> @tileset_
 	setTileset: (@tileset_) ->

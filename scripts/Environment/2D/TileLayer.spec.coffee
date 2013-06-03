@@ -43,7 +43,7 @@ describe 'TileLayer', ->
 				)
 		
 		# Make sure the checkerboard is intact...
-		tileLayer.resize [5, 5]
+		tileLayer.setSize [5, 5]
 		for y in [0...5]
 			for x in [0...5]
 				xm = x % 2
