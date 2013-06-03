@@ -28,49 +28,41 @@ module.exports = Physics = class
 		
 		return
 		
+	_addWall: ->
+		wall = new CANNON.RigidBody 0, new CANNON.Plane()
+		wall.collisionFilterGroup = 1
+		wall.collisionFilterMask = 63
+		@_world.add wall
+		@_walls.push wall
+		wall
+		
 	setWalls: (size) ->
 		
 		@removeBody wall for wall in @_walls
-	
-		leftWall = new CANNON.RigidBody 0, new CANNON.Plane()
-		leftWall.collisionFilterGroup = 1
-		leftWall.collisionFilterMask = 63
+
+		leftWall = @_addWall()
 		leftWall.quaternion.setFromAxisAngle(
 			new CANNON.Vec3(0, 1, 0), Math.PI / 2
 		)
 		leftWall.position.set 0, 0, 0
-		@_world.add leftWall
-		@_walls.push leftWall
 		
-		rightWall = new CANNON.RigidBody 0, new CANNON.Plane()
-		rightWall.collisionFilterGroup = 1
-		rightWall.collisionFilterMask = 63
+		rightWall = @_addWall()
 		rightWall.quaternion.setFromAxisAngle(
 			new CANNON.Vec3(0, 1, 0), -Math.PI / 2
 		)
 		rightWall.position.set (size[0] * Physics.PixelsToMetersScale), 0, 0
-		@_world.add rightWall
-		@_walls.push rightWall
 		
-		topWall = new CANNON.RigidBody 0, new CANNON.Plane()
-		topWall.collisionFilterGroup = 1
-		topWall.collisionFilterMask = 63
+		topWall = @_addWall()
 		topWall.quaternion.setFromAxisAngle(
 			new CANNON.Vec3(1, 0, 0), -Math.PI / 2
 		)
 		topWall.position.set 0, 0, 0
-		@_world.add topWall
-		@_walls.push topWall
 		
-		bottomWall = new CANNON.RigidBody 0, new CANNON.Plane()
-		bottomWall.collisionFilterGroup = 1
-		bottomWall.collisionFilterMask = 63
+		bottomWall = @_addWall()
 		bottomWall.quaternion.setFromAxisAngle(
 			new CANNON.Vec3(1, 0, 0), Math.PI / 2
 		)
 		bottomWall.position.set 0, (size[1] * Physics.PixelsToMetersScale), 0
-		@_world.add bottomWall
-		@_walls.push bottomWall
 
 		return
 		
