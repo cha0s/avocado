@@ -1,6 +1,7 @@
 
+Graphics = require 'Graphics'
+
 CoreService = require('Core').CoreService
-Image = require('Graphics').Image
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
@@ -24,7 +25,7 @@ module.exports = NinePatch = class
 		
 		O.imageUri = O.uri.replace '.ninePatch.json', '.png' if not O.imageUri?
 		
-		Image.load(O.imageUri).then (image) =>
+		Graphics.Image.load(O.imageUri).then (image) =>
 			
 			@setImage image
 			
@@ -85,6 +86,10 @@ module.exports = NinePatch = class
 		middleUnits = Vector.floor Vector.div middleSize, Rectangle.size @_middleRect
 		middleRemainder = Vector.mod middleSize, Rectangle.size @_middleRect
 		
+		sprite = new Graphics.Sprite()
+		sprite.setSource @_image
+		sprite.setAlpha alpha
+		
 		renderRemainder = (pieceRect, orientation, fn) ->
 		
 			return unless middleRemainder[orientation] > 0
@@ -101,26 +106,18 @@ module.exports = NinePatch = class
 			renderSide = (orientation, pieceRect, position, step) =>
 				
 				for [0...middleUnits[orientation]]
-				
-					@_image.render(
-						Vector.add position, Rectangle.position rect
-						destination
-						alpha
-						Image.DrawMode_Blend
-						pieceRect
-					)
+					
+					sprite.setPosition Vector.add position, Rectangle.position rect
+					sprite.setSourceRect pieceRect
+					sprite.renderTo destination
 					
 					position[orientation] += step
 				
 				renderRemainder pieceRect, orientation, (partialRect) =>
 				
-					@_image.render(
-						Vector.add position, Rectangle.position rect
-						destination
-						alpha
-						Image.DrawMode_Blend
-						partialRect
-					)
+					sprite.setPosition Vector.add position, Rectangle.position rect
+					sprite.setSourceRect partialRect
+					sprite.renderTo destination
 					
 				return
 				
@@ -162,25 +159,17 @@ module.exports = NinePatch = class
 			
 				for [0...middleUnits[0]]
 				
-					@_image.render(
-						Vector.add position, Rectangle.position rect
-						destination
-						alpha
-						Image.DrawMode_Blend
-						pieceRect
-					)
+					sprite.setPosition Vector.add position, Rectangle.position rect
+					sprite.setSourceRect pieceRect
+					sprite.renderTo destination
 					
 					position[0] += size[0]
 					
 				renderRemainder pieceRect, 0, (partialRect) =>
 					
-					@_image.render(
-						Vector.add position, Rectangle.position rect
-						destination
-						alpha
-						Image.DrawMode_Blend
-						partialRect
-					)
+					sprite.setPosition Vector.add position, Rectangle.position rect
+					sprite.setSourceRect partialRect
+					sprite.renderTo destination
 					
 			for [0...middleUnits[1]]
 				
@@ -201,13 +190,9 @@ module.exports = NinePatch = class
 			
 			renderCorner = (position, pieceRect) =>
 				
-				@_image.render(
-					position
-					destination
-					alpha
-					Image.DrawMode_Blend
-					pieceRect
-				)
+				sprite.setPosition position
+				sprite.setSourceRect pieceRect
+				sprite.renderTo destination
 			
 			renderCorner(
 				Rectangle.position rect

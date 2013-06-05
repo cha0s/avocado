@@ -1,7 +1,8 @@
 
-CoreService = require('Core').CoreService
+Core = require 'Core'
+Graphics = require 'Graphics'
+
 Debug = require 'Debug'
-Image = require('Graphics').Image
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
@@ -9,7 +10,7 @@ Vector = require 'Extension/Vector'
 module.exports = Tileset = class
 
 	@load: (uri) ->
-		CoreService.readJsonResource(uri).then (O) ->
+		Core.CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			tileset = new Tileset()
 			tileset.fromObject O
@@ -30,7 +31,7 @@ module.exports = Tileset = class
 		imagePromise = if O.image?
 			Q.resolve O.image
 		else
-			Image.load O.imageUri ? O.uri.replace '.tileset.json', '.png'
+			Graphics.Image.load O.imageUri ? O.uri.replace '.tileset.json', '.png'
 		imagePromise.then (@image_) => @setImage @image_
 		
 		Q.when(imagePromise).then => this
@@ -95,14 +96,12 @@ module.exports = Tileset = class
 			Rectangle.translated tileClip, Rectangle.position tileBox 
 		)
 		
-		@image_.render(
-			Vector.add location, Rectangle.position tileClip
-			destination
-			255
-			mode
-			tileBox
-		)
-	
+		sprite = new Graphics.Sprite()
+		sprite.setSource @image_
+		sprite.setPosition Vector.add location, Rectangle.position tileClip
+		sprite.setSourceRectangle tileBox
+		sprite.renderTo destination
+		
 	image: -> @image_
 	
 	uri: -> @uri_

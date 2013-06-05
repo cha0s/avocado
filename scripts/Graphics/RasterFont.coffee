@@ -1,6 +1,6 @@
 
-DisplayCommand = require 'Graphics/DisplayCommand'
-Image = require('Graphics').Image
+Graphics = require 'Graphics'
+
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
@@ -8,7 +8,7 @@ Vector = require 'Extension/Vector'
 module.exports = RasterFont = class
 	
 	@load = (uri) ->
-		Image.load(uri).then (image) =>
+		Graphics.Image.load(uri).then (image) =>
 			font = new RasterFont()
 			font.image_ = image
 			font.charSize_ = Vector.div font.image_.size(), [16, 16]
@@ -33,7 +33,7 @@ module.exports = RasterFont = class
 		text
 		destination
 		clip
-		alpha = 255
+		alpha = 1
 		effect = null
 	) ->
 		
@@ -77,18 +77,17 @@ module.exports = RasterFont = class
 			)
 			
 			# Render the character.
-			@image_.render(
-				Vector.add effectedLocation, offset
-				destination
-				alpha
-				Image.DrawMode_Blend
-				Rectangle.compose(
-					Vector.add(
-						offset
-						Rectangle.position rect text.charCodeAt i
-					)
-					Rectangle.size intersection
+			sprite = new Graphics.Sprite()
+			sprite.setSource @image_
+			sprite.setPosition Vector.add effectedLocation, offset
+			sprite.setAlpha alpha
+			sprite.setSourceRectangle Rectangle.compose(
+				Vector.add(
+					offset
+					Rectangle.position rect text.charCodeAt i
 				)
+				Rectangle.size intersection
 			)
+			sprite.renderTo destination
 
 		undefined

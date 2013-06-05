@@ -18,7 +18,7 @@ module.exports = Visibility = class extends Trait
 		animations: {}
 		isVisible: true
 		index: 'initial'
-		alpha: 255
+		alpha: 1
 		preserveFrameWhenMoving: false
 
 	toJSON: ->

@@ -2,9 +2,7 @@
 # tile indices which index into a tileset.
 
 _ = require 'Utility/underscore'
-DisplayCommand = require 'Graphics/DisplayCommand'
 Graphics = require 'Graphics'
-Image = require('Graphics').Image
 Packer = require 'Utility/Packer'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
@@ -176,7 +174,7 @@ module.exports = TileLayer = class
 		position
 		destination
 		clip = [0, 0, 0, 0]
-		mode = Image.DrawMode_Blend
+		mode = Graphics.GraphicsService.BlendMode_Blend
 	) ->
 		
 		return unless @tileIndices_?

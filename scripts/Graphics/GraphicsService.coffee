@@ -3,6 +3,15 @@ Graphics = require 'Graphics'
 Timing = require 'Timing'
 Vector = require 'Extension/Vector'
 
+# Blend mode constants.
+# 
+# * <code>GraphicsService.BlendMode_Replace</code>: Write over any graphics
+# under this image when rendering.
+# * <code>GraphicsService.BlendMode_Blend</code>: ***(default)*** Blend the
+# image with any graphics underneath using alpha pixel values.
+Graphics.GraphicsService.BlendMode_Replace = 0
+Graphics.GraphicsService.BlendMode_Blend   = 1
+
 # We want to store how much a player is moving either with the
 # arrow keys or the joystick/gamepad.
 movement = {}

@@ -36,6 +36,8 @@ Window = class
 	on: ->@window_.on.apply @window_, arguments
 	emit: -> @window_.emit.apply @window_, arguments
 	
+	renderTarget: -> @window_
+	
 	# Poll for events sent to this window.
 	pollEvents: -> @window_['%pollEvents']()
 	

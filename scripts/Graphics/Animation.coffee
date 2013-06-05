@@ -1,7 +1,8 @@
 # Animations control animating images.
 
-CoreService = require('Core').CoreService
-DisplayCommand = require 'Graphics/DisplayCommand'
+Core = require 'Core'
+Graphics = require 'Graphics'
+
 EventEmitter = require 'Utility/EventEmitter'
 Image = require('Graphics').Image
 Mixin = require 'Utility/Mixin'
@@ -68,7 +69,7 @@ module.exports = Animation = class
 		
 	@load: (uri) ->
 		
-		CoreService.readJsonResource(uri).then (O) ->
+		Core.CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			
 			animation = new Animation()
@@ -202,8 +203,8 @@ module.exports = Animation = class
 	render: (
 		position
 		destination
-		alpha
-		mode
+		alpha = 1
+		mode = Graphics.GraphicsService.BlendMode_Blend
 		clip = [0, 0, 0, 0]
 		index
 	) ->
@@ -213,21 +214,19 @@ module.exports = Animation = class
 			clip[2] = @frameSize_[0]
 			clip[3] = @frameSize_[1]
 		
-		rect = Rectangle.compose(
+		sprite = new Graphics.Sprite()
+		sprite.setSource @image_
+		sprite.setPosition position
+		sprite.setBlendMode mode
+		sprite.setAlpha alpha
+		sprite.setSourceRectangle Rectangle.compose(
 			Vector.add(
 				@framePosition index
 				Rectangle.position clip
 			)
 			Rectangle.size clip
 		)
-		
-		@image_.render(
-			position
-			destination
-			alpha
-			mode
-			rect
-		)
+		sprite.renderTo destination
 	
 	toJSON: ->
 		
@@ -238,31 +237,3 @@ module.exports = Animation = class
 		frameRate: @frameRate_
 		frameCount: @frameCount_
 		frameSize: @frameSize_
-
-module.exports.DisplayCommand = class extends DisplayCommand
-	
-	constructor: (
-		list
-		@animation_
-		rectangle = [0, 0, 0, 0]
-	) ->
-		
-		rectangle = Rectangle.compose(
-			Rectangle.position rectangle
-			@animation_.frameSize()
-		) unless rectangle[2] and rectangle[3]
-		
-		super list, rectangle
-		
-		@animation_.on 'frameChanged.AnimationDisplayCommand', => @markAsDirty()
-		
-	render: (position, clip, destination) ->
-		
-		@animation_.render(
-			position
-			destination
-			255
-			Image.DrawMode_Blend
-			clip
-		)
-

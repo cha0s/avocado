@@ -3,19 +3,10 @@
 # **Canvas** handles primitive operations such as filling, line, circle,
 # box drawing and rasterization. 
 
-Canvas = require('Graphics').Canvas
-Q = require 'Utility/Q'
-Rectangle = require 'Extension/Rectangle'
-Vector = require 'Extension/Vector'
+Graphics = require 'Graphics'
 
-# Draw mode constants.
-# 
-# * <code>Canvas.DrawMode_Replace</code>: Write over any graphics under this
-# image when rendering.
-# * <code>Canvas.DrawMode_Blend</code>: ***(default)*** Blend the image with
-# any graphics underneath using alpha pixel values.
-Canvas.DrawMode_Replace = 0
-Canvas.DrawMode_Blend   = 1
+Canvas = Graphics.Canvas
+Q = require 'Utility/Q'
 
 # Calculate the pixel value of two pixels blended together with alpha.
 Canvas.blendPixel = (src, dst, alpha = 255) ->
@@ -43,28 +34,28 @@ Canvas::display = Canvas::['%display']
 
 # Draw a circle at the given position with the given radius. Draw it with the given
 # RGBA color, and with the given draw mode.
-Canvas::drawCircle = (position, radius, r, g, b, a = 255, mode = Canvas.DrawMode_Blend) ->
+Canvas::drawCircle = (position, radius, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless position? and radius? and r? and g? and b?
 	
 	@['%drawCircle'] position, radius, r, g, b, a, mode
 
 # Draw a filled box at the given x, y with the given width, height dimensions.
 # Draw it with the given RGBA color, and with the given draw mode.	
-Canvas::drawFilledBox = (box, r, g, b, a = 255, mode = Canvas.DrawMode_Blend) ->
+Canvas::drawFilledBox = (box, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless box? and r? and g? and b?
 	
 	@['%drawFilledBox'] box, r, g, b, a, mode
 
 # Draw a line at the given x, y to the x2, y2. Draw it with the given RGBA
 # color, and with the given draw mode.
-Canvas::drawLine = (line, r, g, b, a = 255, mode = Canvas.DrawMode_Blend) ->
+Canvas::drawLine = (line, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless line? and r? and g? and b?
 	
 	@['%drawLine'] line, r, g, b, a, mode
 	
 # Draw a box at the given x, y with the given width, height dimensions. Draw it
 # with the given RGBA color, and with the given draw mode.
-Canvas::drawLineBox = (box, r, g, b, a = 255, mode = Canvas.DrawMode_Blend) ->
+Canvas::drawLineBox = (box, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless box? and r? and g? and b?
 	
 	@['%drawLineBox'] box, r, g, b, a, mode
@@ -88,7 +79,7 @@ Canvas::pixelAt = (x, y) ->
 	
 # Render this image at x, y onto another image with the given alpha blending
 # and draw mode, using the given sx, sy, sw, sh source rectangle to clip.
-Canvas::render = (position, destination, alpha = 255, mode = Canvas.DrawMode_Blend, sourceRect = [0, 0, 0, 0]) ->
+Canvas::render = (position, destination, alpha = 255, mode = Graphics.GraphicsService.BlendMode_Blend, sourceRect = [0, 0, 0, 0]) ->
 	return unless position? and destination?
 	
 	@['%render'] position, destination, alpha, mode, sourceRect
