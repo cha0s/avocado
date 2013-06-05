@@ -2,6 +2,17 @@
 CANNON = require 'Physics/cannon'
 Config = require 'Config'
 
+slippery = new CANNON.Material 'slippery'
+
+slipperyContact = new CANNON.ContactMaterial(
+	slippery, slippery, 0, 0.3
+)
+
+slipperyContact.contactEquationStiffness = 1e8
+slipperyContact.contactEquationRegularizationTime = 3
+slipperyContact.frictionEquationStiffness = 1e8
+slipperyContact.frictionEquationRegularizationTime = 3
+
 module.exports = Physics = class
 	
 	@PixelsToMetersScale: 1 / 64
@@ -15,11 +26,13 @@ module.exports = Physics = class
 		@_world = new CANNON.World()
 		gravity.copy @_world.gravity
 		@_world.broadphase = new CANNON.NaiveBroadphase()
+
+		@_world.addContactMaterial slipperyContact
 		
 	addFloor: ->
 	
 		groundShape = new CANNON.Plane()
-		groundBody = new CANNON.RigidBody 0, groundShape
+		groundBody = new CANNON.RigidBody 0, groundShape, slippery
 		
 		groundBody.collisionFilterGroup = 1
 		groundBody.collisionFilterMask = 63
@@ -69,7 +82,7 @@ module.exports = Physics = class
 	addSphere: (radius, mass = 1) ->
 	
 		sphereShape = new CANNON.Sphere radius
-		sphereBody = new CANNON.RigidBody mass, sphereShape
+		sphereBody = new CANNON.RigidBody mass, sphereShape, slippery
 		@_world.add sphereBody
 		
 		sphereBody
