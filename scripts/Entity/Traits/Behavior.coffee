@@ -45,9 +45,9 @@ module.exports = Behavior = class extends Trait
 				
 				@entity.emit 'finishedRoutine', @routine
 		
-		promiseOrResult = Method.Evaluate.apply(
-			Method.Evaluate
-			[@variables].concat @routine['actions'][@actionIndex].Method
+		promiseOrResult = Method.EvaluateManually(
+			@variables
+			@routine['actions'][@actionIndex].Method
 		)
 		
 		# Promises will always wait a tick, so if it isn't a promise, fulfill

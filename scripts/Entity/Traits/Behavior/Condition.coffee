@@ -1,3 +1,4 @@
+
 comparisons =
 
 	'is':
@@ -50,6 +51,7 @@ comparisons =
 				
 			result
 
+
 exports.Evaluate = (variables, op) -> 
 	
 	args = []
@@ -62,3 +64,20 @@ exports.Evaluate = (variables, op) ->
 	
 	c = comparisons[op].f
 	c.apply c, args
+
+exports.EvaluateManually = (variables, Condition) ->
+	exports.Evaluate.apply exports.Evaluate, [variables].concat Condition
+
+Evaluators = Condition: exports.Evaluate
+for elementName in ['Method', 'Value']
+	Element = require "Entity/Traits/Behavior/#{elementName}"
+	Evaluators[elementName] = Element.Evaluate
+
+Evaluate = (E, variables) ->
+	
+	[key] = Object.keys E
+	
+	args = [variables]
+	args.push.apply args, E[key]
+	
+	Evaluators[key].apply Evaluators[key], args

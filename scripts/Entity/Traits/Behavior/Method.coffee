@@ -22,6 +22,9 @@ exports.Evaluate = (variables, selector, argLists = []) ->
 		
 	invoke()
 
+exports.EvaluateManually = (variables, Method) ->
+	exports.Evaluate.apply exports.Evaluate, [variables].concat Method
+
 Evaluators = Method: exports.Evaluate
 for elementName in ['Value']
 	Element = require "Entity/Traits/Behavior/#{elementName}"
