@@ -19,9 +19,9 @@ Sprite::setPosition = (position) ->
 	return unless position?
 	@['%setPosition'] position
 
-Sprite::setRotation = (angle) ->
+Sprite::setRotation = (angle, orientation = [0, 0]) ->
 	return unless angle?
-	@['%setRotation'] angle
+	@['%setRotation'] angle, orientation
 
 Sprite::setScale = (factorX, factorY) ->
 	return unless factorX? and factorY?
