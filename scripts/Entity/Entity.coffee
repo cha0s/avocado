@@ -54,7 +54,8 @@ module.exports = Entity = class
 		
 		# All entities require an Existence trait. It is hacky, but we have
 		# to work around that trait initialization is asynchronous (for now).
-		addTrait.call(this, type: 'Existence').done()
+		addTrait.call this, type: 'Existence'
+		@traits['Existence'].initializeTrait().done()
 		@traits['Existence'].resetTrait()
 		
 	# Initialize an Entity from a POD object.
@@ -140,7 +141,7 @@ module.exports = Entity = class
 		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
 		@renderers = @renderers.sort (l, r) -> l.weight - r.weight
 		
-		trait.initializeTrait()
+		trait
 		
 	traitDependencies = (traitMap, trait) ->
 		
@@ -185,27 +186,29 @@ module.exports = Entity = class
 		)
 		
 		# Wrap all the trait promises in a promise and return it.	
-		traitsPromises = for trait in traits
+		traits = for trait in traits
 			
 			{type, state} = trait
 			
 			# If the trait already exists,
-			promise = if @traits[type]?
+			if @traits[type]?
 				
 				# extend the state,
 				_.extend @traits[type].state, state
 				
 				# and fire Trait::initializeTrait().
-				@traits[type].initializeTrait()
+				@traits[type]
 			
 			# Otherwise, add the trait.
 			else
 				
 				addTrait.call this, trait
 			
-			((trait) -> promise.then -> trait.resetTrait()) @traits[type]
-			
-		Q.all(traitsPromises).then => this
+		traitPromises = _.map traits, (trait) -> trait.initializeTrait()
+		
+		Q.all(traitPromises).then =>
+			trait.resetTrait() for trait in traits
+			this
 			
 	# Remove a Trait from this Entity.
 	removeTrait: (type) ->
