@@ -7,7 +7,7 @@ module.exports = (instance, Mixins...) ->
 		mixin = new Mixin()
 		
 		# Then mixed in to the object we're extending.
-		for own key, value of Mixin.prototype
+		for own key of Mixin.prototype
 			instance[key] = mixin[key]
 
 	instance
