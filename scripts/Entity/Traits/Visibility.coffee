@@ -265,5 +265,5 @@ module.exports = Visibility = class extends Trait
 				destination.drawCircle(
 					position
 					@entity.width() / 2
-					255, 255, 255, 128
+					255, 255, 255, .5
 				)
