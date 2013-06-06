@@ -9,7 +9,7 @@ Canvas = Graphics.Canvas
 Q = require 'Utility/Q'
 
 # Calculate the pixel value of two pixels blended together with alpha.
-Canvas.blendPixel = (src, dst, alpha = 255) ->
+Canvas.blendPixel = (src, dst, alpha = 1) ->
 	return unless src? and dst?
 	
 	# If source alpha is 0, then use the destination.
@@ -17,13 +17,13 @@ Canvas.blendPixel = (src, dst, alpha = 255) ->
 	return dst unless sa > 0
 	
 	# Calculate the source pixel alpha.
-	pAlpha = sa * (alpha / 255)
+	pAlpha = sa * alpha
 	
 	# Do the [alpha blending](http://en.wikipedia.org/wiki/Alpha_compositing#Alpha_blending).
 	{dr, dg, db, da} = Rgba dst
-	dr = (sr * pAlpha + dr * (255 - pAlpha)) / 255
-	dg = (sg * pAlpha + dg * (255 - pAlpha)) / 255
-	db = (sb * pAlpha + db * (255 - pAlpha)) / 255
+	dr = sr * pAlpha + dr * (1 - pAlpha)
+	dg = sg * pAlpha + dg * (1 - pAlpha)
+	db = sb * pAlpha + db * (1 - pAlpha)
 	da = pAlpha
 	
 	# Shift the pixel colors back into a single 32-bit integer.
@@ -34,34 +34,34 @@ Canvas::display = Canvas::['%display']
 
 # Draw a circle at the given position with the given radius. Draw it with the given
 # RGBA color, and with the given draw mode.
-Canvas::drawCircle = (position, radius, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
+Canvas::drawCircle = (position, radius, r, g, b, a = 1, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless position? and radius? and r? and g? and b?
 	
 	@['%drawCircle'] position, radius, r, g, b, a, mode
 
 # Draw a filled box at the given x, y with the given width, height dimensions.
 # Draw it with the given RGBA color, and with the given draw mode.	
-Canvas::drawFilledBox = (box, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
+Canvas::drawFilledBox = (box, r, g, b, a = 1, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless box? and r? and g? and b?
 	
 	@['%drawFilledBox'] box, r, g, b, a, mode
 
 # Draw a line at the given x, y to the x2, y2. Draw it with the given RGBA
 # color, and with the given draw mode.
-Canvas::drawLine = (line, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
+Canvas::drawLine = (line, r, g, b, a = 1, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless line? and r? and g? and b?
 	
 	@['%drawLine'] line, r, g, b, a, mode
 	
 # Draw a box at the given x, y with the given width, height dimensions. Draw it
 # with the given RGBA color, and with the given draw mode.
-Canvas::drawLineBox = (box, r, g, b, a = 255, mode = Graphics.GraphicsService.BlendMode_Blend) ->
+Canvas::drawLineBox = (box, r, g, b, a = 1, mode = Graphics.GraphicsService.BlendMode_Blend) ->
 	return unless box? and r? and g? and b?
 	
 	@['%drawLineBox'] box, r, g, b, a, mode
 	
 # Fill with a specified color.
-Canvas::fill = (r, g, b, a = 255) ->
+Canvas::fill = (r, g, b, a = 1) ->
 	return unless r? and g? and b?
 	
 	@['%fill'] r, g, b, a
@@ -79,7 +79,7 @@ Canvas::pixelAt = (x, y) ->
 	
 # Render this image at x, y onto another image with the given alpha blending
 # and draw mode, using the given sx, sy, sw, sh source rectangle to clip.
-Canvas::render = (position, destination, alpha = 255, mode = Graphics.GraphicsService.BlendMode_Blend, sourceRect = [0, 0, 0, 0]) ->
+Canvas::render = (position, destination, alpha = 1, mode = Graphics.GraphicsService.BlendMode_Blend, sourceRect = [0, 0, 0, 0]) ->
 	return unless position? and destination?
 	
 	@['%render'] position, destination, alpha, mode, sourceRect

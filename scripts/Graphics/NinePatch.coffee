@@ -61,7 +61,7 @@ module.exports = NinePatch = class
 	render: (
 		rect
 		destination
-		alpha = 255
+		alpha = 1
 	) ->
 		
 		rect = Rectangle.round rect

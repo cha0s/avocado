@@ -22,7 +22,7 @@ Font::render = (
 	position
 	text
 	destination
-	r, g, b, a = 255
+	r, g, b, a = 1
 	clip = Rectangle.compose(
 		[0, 0]
 		@textSize text
