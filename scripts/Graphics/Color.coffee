@@ -1,4 +1,20 @@
-exports.Rgba = Rgba = (r, g, b, a) ->
+
+Mixin = require 'Mixin/Mixin'
+Property = require 'Mixin/Property'
+
+module.exports = Color = class
+
+	constructor: (r = 255, g = 0, b = 255, a = 1) ->
+		
+		Mixin(
+			this
+			Property 'red', r
+			Property 'green', g
+			Property 'blue', b
+			Property 'alpha', a
+		)
+
+Color.Rgba = Rgba = (r, g, b, a) ->
 
 	# Passed in an integer, break it down into RGBA.
 	if not g?
@@ -14,4 +30,4 @@ exports.Rgba = Rgba = (r, g, b, a) ->
 		# to force JS to give us an unsigned number.
 		((a << 24) | (r << 16) | (g << 8) | b) >>> 0
 
-exports.Rgb = (r, g, b) -> Rgba r, g, b, 255
+Color.Rgb = (r, g, b) -> Rgba r, g, b, 255
