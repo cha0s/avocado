@@ -1,6 +1,6 @@
 
-EventEmitter = require 'Utility/EventEmitter'
-Mixin = require 'Utility/Mixin'
+EventEmitter = require 'Mixin/EventEmitter'
+Mixin = require 'Mixin/Mixin'
 
 module.exports = ->
 	

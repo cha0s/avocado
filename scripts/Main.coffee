@@ -14,9 +14,9 @@
 #
 
 Cps = require 'Timing/Cps' 
-EventEmitter = require 'Utility/EventEmitter'
+EventEmitter = require 'Mixin/EventEmitter'
 Graphics = require 'Graphics'
-Mixin = require 'Utility/Mixin'
+Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
 Timing = require 'Timing'
 

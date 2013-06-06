@@ -19,6 +19,7 @@ module.exports = Visibility = class extends Trait
 		isVisible: true
 		index: 'initial'
 		alpha: 1
+		scale: [1, 1]
 		preserveFrameWhenMoving: false
 
 	toJSON: ->
@@ -85,15 +86,14 @@ module.exports = Visibility = class extends Trait
 		delete @state.animations[index]
 		delete @animationObjects[index]
 	
-	renderCurrentAnimation: (position, buffer, alpha = @state.alpha, clip) ->
-		return if alpha is 0
+	renderCurrentAnimation: (position, buffer) ->
+		return if @state.alpha is 0
 		
 		@currentAnimation().render(
 			position
 			buffer
-			alpha
-			null
-			clip
+			@state.alpha
+			@state.scale
 		)
 
 	setAnimation: (index, animation) ->
@@ -255,9 +255,14 @@ module.exports = Visibility = class extends Trait
 			position = Vector.sub @entity.position(), camera
 			
 			@renderCurrentAnimation(
-				Vector.add position, Rectangle.position @visibleRect()
+				Vector.add(
+					position
+					Vector.mul(
+						Rectangle.position @visibleRect()
+						@state.scale
+					)
+				)
 				destination
-				@state.alpha
 			)
 			
 			if Debug.isDebugging()
@@ -267,3 +272,4 @@ module.exports = Visibility = class extends Trait
 					@entity.width() / 2
 					255, 255, 255, .5
 				)
+				

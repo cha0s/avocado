@@ -4,11 +4,11 @@
 _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
-EventEmitter = require 'Utility/EventEmitter'
-Mixin = require 'Utility/Mixin'
+EventEmitter = require 'Mixin/EventEmitter'
+Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
-Transition = require 'Utility/Transition'
+Transition = require 'Mixin/Transition'
 Vector = require 'Extension/Vector'
 
 module.exports = Entity = class

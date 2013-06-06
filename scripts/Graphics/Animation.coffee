@@ -3,9 +3,8 @@
 Core = require 'Core'
 Graphics = require 'Graphics'
 
-EventEmitter = require 'Utility/EventEmitter'
-Image = require('Graphics').Image
-Mixin = require 'Utility/Mixin'
+EventEmitter = require 'Mixin/EventEmitter'
+Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
 Ticker = require 'Timing/Ticker'
@@ -18,7 +17,7 @@ module.exports = Animation = class
 		Mixin this, EventEmitter
 		
 		# The image to animate.
-		@image_ = new Image()
+		@image_ = new Graphics.Image()
 		
 		# The current frame index.
 		@currentFrameIndex_ = 0
@@ -60,7 +59,7 @@ module.exports = Animation = class
 		
 		@frameTicker_ = new Ticker @frameRate_
 		
-		Image.load(O.imageUri).then (image) =>
+		Graphics.Image.load(O.imageUri).then (image) =>
 			
 			# Set and break up the image into frames.
 			@setImage image, O.frameSize
@@ -204,27 +203,21 @@ module.exports = Animation = class
 		position
 		destination
 		alpha = 1
+		scale = [1, 1]
 		mode = Graphics.GraphicsService.BlendMode_Blend
-		clip = [0, 0, 0, 0]
 		index
 	) ->
 		return if @frameCount_ is 0
-		
-		if Rectangle.isNull clip
-			clip[2] = @frameSize_[0]
-			clip[3] = @frameSize_[1]
 		
 		sprite = new Graphics.Sprite()
 		sprite.setSource @image_
 		sprite.setPosition position
 		sprite.setBlendMode mode
 		sprite.setAlpha alpha
+		sprite.setScale scale[0], scale[1]
 		sprite.setSourceRectangle Rectangle.compose(
-			Vector.add(
-				@framePosition index
-				Rectangle.position clip
-			)
-			Rectangle.size clip
+			@framePosition index
+			@frameSize_
 		)
 		sprite.renderTo destination
 	

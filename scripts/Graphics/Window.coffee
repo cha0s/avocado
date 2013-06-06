@@ -2,8 +2,8 @@
 
 # **Window** handles window creation and properties of the window. 
 
-EventEmitter = require 'Utility/EventEmitter'
-Mixin = require 'Utility/Mixin'
+EventEmitter = require 'Mixin/EventEmitter'
+Mixin = require 'Mixin/Mixin'
 
 NativeWindow = require('Graphics').Window
 Window = class

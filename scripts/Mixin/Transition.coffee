@@ -19,7 +19,7 @@
 # [jQuery.animate](http://api.jquery.com/animate/), though the API is ***NOT***
 # compatible.
 
-Mixin = require 'Utility/Mixin'
+Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
 String = require 'Extension/String'
 TimingService = require('Timing').TimingService
