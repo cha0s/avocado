@@ -86,12 +86,12 @@ module.exports = Visibility = class extends Trait
 		delete @state.animations[index]
 		delete @animationObjects[index]
 	
-	renderCurrentAnimation: (position, buffer) ->
+	renderCurrentAnimation: (position, destination) ->
 		return if @state.alpha is 0
 		
 		@currentAnimation().render(
 			position
-			buffer
+			destination
 			@state.alpha
 			@state.scale
 		)

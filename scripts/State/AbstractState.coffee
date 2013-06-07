@@ -29,9 +29,9 @@ module.exports = class
 	tick: ->
 	
 	# Render is called repeatedly by the engine while this State is the active
-	# State. This is where the game is displayed. Render graphics to the buffer
-	# so they will appear in the game window.
-	render: (buffer) -> [[0, 0, 0, 0]]
+	# State. This is where the game is displayed. Render graphics to the
+	# destination so they will appear in the game window.
+	render: (destination) ->
 
 	# Called when the engine loads another State. This gives the State an
 	# opportunity to clean up any resources loaded or input handlers loaded
