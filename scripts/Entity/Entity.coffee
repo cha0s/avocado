@@ -289,7 +289,7 @@ module.exports = Entity = class
 	tick: (commandList) -> ticker.f() for ticker in @tickers
 	
 	# Called every engine render cycle.
-	render: (camera, destination) ->
+	render: (destination, camera = [0, 0]) ->
 		for renderer in @renderers
 			renderer.f.call this, destination, camera
 		return
