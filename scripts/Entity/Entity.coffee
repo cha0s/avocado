@@ -50,7 +50,7 @@ module.exports = Entity = class
 		@traits = {}
 
 		@tickers = []
-		@renderers = []
+		@renderers = {}
 		
 		# All entities require an Existence trait. It is hacky, but we have
 		# to work around that trait initialization is asynchronous (for now).
@@ -111,38 +111,58 @@ module.exports = Entity = class
 			@off name 
 			@on name, signal, trait
 		
-		# Refresh the handlers associated with this trait.
+		addHandlerToList = (handler, list) =>
+		
+			# Normalize the handler object.
+			unless handler.f
+				f = handler
+				handler = {}
+				handler.f = f
+			
+			handler.f = _.bind(
+				handler.f
+				trait
+			)
+			handler.weight ?= 0
+			handler.trait = trait
+		
+			# Add the handler.
+			list.push handler
+				
+		# Add the handlers associated with this trait.
 		if handler = trait['handler']?()
 			
-			for handlerType in ['ticker', 'renderer']
-				continue unless handler[handlerType]?
-				
-				# Remove any existing handler.
-				@["#{handlerType}s"] = _.filter @["#{handlerType}s"], (e) ->
-					e.trait isnt trait.type
+			if handler['ticker']?
+				addHandlerToList handler['ticker'], @tickers
 			
-				# Normalize the handler object.
-				unless handler[handlerType].f
-					f = handler[handlerType]
-					handler[handlerType] = {}
-					handler[handlerType].f = f
+			if handler['renderer']?
 				
-				handler[handlerType].f = _.bind(
-					handler[handlerType].f
-					trait
-				)
-				handler[handlerType].weight ?= 0
-				handler[handlerType].trait = trait
+				if _.isFunction handler['renderer']
+					
+					addHandlerToList(
+						handler['renderer']
+						@renderers['inline'] ?= []
+					)
+					
+				else
+					
+					for key, spec of handler['renderer']
 			
-				# Add the handler.
-				@["#{handlerType}s"].push handler[handlerType]
-		
+						addHandlerToList(
+							spec
+							@renderers[key] ?= []
+						)
+						
 		# Cache hooks to make lookups more efficient.
 		trait['hookCache'] = trait['hooks']()
 		
 		# Sort all the tickers and renderers by weight.
 		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
-		@renderers = @renderers.sort (l, r) -> l.weight - r.weight
+		
+		for key, list of @renderers
+			@renderers[key] = @renderers[key].sort(
+				(l, r) -> l.weight - r.weight
+			)
 		
 		trait
 		
@@ -227,7 +247,12 @@ module.exports = Entity = class
 	
 		# Remove the handlers.
 		@tickers = _.filter @tickers, (e) -> e.trait.type isnt type
-		@renderers = _.filter @renderers, (e) -> e.trait.type isnt type
+
+		for key, list of @renderers
+			@renderers[key] = _.filter(
+				@renderers[key]
+				(e) -> e.trait.type isnt type
+			)
 		
 		# Remove the trait object.
 		delete @traits[type]
@@ -289,11 +314,13 @@ module.exports = Entity = class
 			trait['hookCache'][hook].apply trait, args
 
 	# Called every engine tick.
-	tick: (commandList) -> ticker.f() for ticker in @tickers
+	tick: ->
+		ticker.f() for ticker in @tickers
+		return
 	
 	# Called every engine render cycle.
-	render: (destination, camera = [0, 0]) ->
-		for renderer in @renderers
+	render: (destination, camera = [0, 0], type = 'inline') ->
+		for renderer in @renderers[type] ? []
 			renderer.f.call this, destination, camera
 		return
 
