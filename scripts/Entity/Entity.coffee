@@ -137,6 +137,9 @@ module.exports = Entity = class
 				# Add the handler.
 				@["#{handlerType}s"].push handler[handlerType]
 		
+		# Cache hooks to make lookups more efficient.
+		trait['hookCache'] = trait['hooks']()
+		
 		# Sort all the tickers and renderers by weight.
 		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
 		@renderers = @renderers.sort (l, r) -> l.weight - r.weight
@@ -282,8 +285,8 @@ module.exports = Entity = class
 	# from hook implementations.
 	invoke: (hook, args...) ->
 		for type, trait of @traits
-			continue if not trait['hooks']()[hook]?
-			trait['hooks']()[hook].apply trait, args
+			continue if not trait['hookCache'][hook]?
+			trait['hookCache'][hook].apply trait, args
 
 	# Called every engine tick.
 	tick: (commandList) -> ticker.f() for ticker in @tickers
