@@ -107,14 +107,6 @@ module.exports = Visibility = class extends Trait
 		@animationObjects[index] ?= {}
 		@animationObjects[index] = animation.object
 		
-	visibleRect: -> Rectangle.compose(
-		Vector.scale Vector.add(
-			Vector.scale @entity.size(), .5
-			@currentAnimationMetadata().offset
-		), -1
-		@currentAnimationFrameSize()
-	)
-	
 	values: ->
 	
 		alpha: -> @state.alpha
@@ -126,7 +118,18 @@ module.exports = Visibility = class extends Trait
 		currentAnimationIndex: -> @state.index
 		
 		isVisible: -> @state.isVisible
-	
+			
+		visibleRect: -> Rectangle.compose(
+			Vector.mul(
+				Vector.scale Vector.add(
+					Vector.scale @entity.size(), .5
+					@currentAnimationMetadata().offset
+				), -1
+				@state.scale
+			)
+			@currentAnimationFrameSize()
+		)
+		
 	actions: ->
 		
 		setAlpha: (alpha) -> @state.alpha = alpha
@@ -257,13 +260,7 @@ module.exports = Visibility = class extends Trait
 				position = Vector.sub @entity.position(), camera
 				
 				@renderCurrentAnimation(
-					Vector.add(
-						position
-						Vector.mul(
-							Rectangle.position @visibleRect()
-							@state.scale
-						)
-					)
+					Vector.add position, Rectangle.position @entity.visibleRect()
 					destination
 				)
 				
