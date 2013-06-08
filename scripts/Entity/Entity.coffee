@@ -258,10 +258,10 @@ module.exports = Entity = class
 		delete @traits[type]
 	
 	# Check whether this Entity has a trait.
-	hasTrait: (trait) -> @traits[Entity.traitModule trait]?
+	hasTrait: (traitName) -> @traits[traitName]?
 	
 	# Get a trait by name.
-	trait: (traitName) -> @traits[Entity.traitModule traitName]
+	trait: (traitName) -> @traits[traitName]
 	
 	traitArrayToObject = (traits) ->
 		object = {}
