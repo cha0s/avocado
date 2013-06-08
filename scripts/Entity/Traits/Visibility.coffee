@@ -249,27 +249,34 @@ module.exports = Visibility = class extends Trait
 			
 			@currentAnimation().tick()
 		
-		renderer: (destination, camera) ->
-			return unless @state.isVisible
+		renderer:
 			
-			position = Vector.sub @entity.position(), camera
-			
-			@renderCurrentAnimation(
-				Vector.add(
-					position
-					Vector.mul(
-						Rectangle.position @visibleRect()
-						@state.scale
+			inline: (destination, camera) ->
+				return unless @state.isVisible
+				
+				position = Vector.sub @entity.position(), camera
+				
+				@renderCurrentAnimation(
+					Vector.add(
+						position
+						Vector.mul(
+							Rectangle.position @visibleRect()
+							@state.scale
+						)
 					)
-				)
-				destination
-			)
-			
-			if Debug.isDebugging()
-			
-				destination.drawCircle(
-					position
-					@entity.width() / 2
-					255, 255, 255, .5
+					destination
 				)
 				
+			ui: (destination, camera) ->
+				return unless @state.isVisible
+				
+				position = Vector.sub @entity.position(), camera
+				
+				if Debug.isDebugging()
+				
+					destination.drawCircle(
+						position
+						@entity.width() / 2
+						255, 255, 255, .5
+					)
+					
