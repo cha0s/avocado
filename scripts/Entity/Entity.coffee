@@ -106,9 +106,9 @@ module.exports = Entity = class
 				@[index] = _.bind meta.f ? meta, trait
 		
 		# Refresh the signals associated with this trait.
+		@off ".#{trait.type}Trait"
 		for index, signal of trait['signals']()
 			name = "#{index}.#{trait.type}Trait"
-			@off name 
 			@on name, signal, trait
 		
 		addHandlerToList = (handler, list) =>
