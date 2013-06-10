@@ -3,8 +3,6 @@ _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
 Q = require 'Utility/Q'
-Room = require 'Environment/2D/Room'
-Tileset = require 'Environment/2D/Tileset'
 
 module.exports = Environment = class
 	
@@ -18,7 +16,6 @@ module.exports = Environment = class
 		
 	constructor: ->
 		
-		@tileset_ = new Tileset()
 		@rooms_ = []
 		@name_ = ''
 		@description_ = ''
@@ -27,33 +24,17 @@ module.exports = Environment = class
 		
 		@["#{i}_"] = O[i] for i of O
 		
-		tilesetPromise =  if O.tilesetUri?
-			Tileset.load O.tilesetUri
-		else
-			@tileset_
-		Q.when(tilesetPromise).then (@tileset_) =>	
-		
 		@rooms_ = []
 		roomPromises = for roomO in O.rooms
-			room = new Room()
+			room = new Environment.Room()
 			@addRoom room
 			room.fromObject roomO
 			
-		Q.all(_.flatten [
-			[tilesetPromise]
-			roomPromises
-		], true).then =>
-			
-			room.setTileset @tileset_ for room in @rooms_
-			
-			this
+		Q.all(roomPromises).then => this
 			
 	addRoom: (room) -> @rooms_.push room
 	room: (index) -> @rooms_[index]
 	roomCount: -> @rooms_.length
-	
-	tileset: -> @tileset_
-	setTileset: (@tileset_) ->
 	
 	name: -> if @name_ is '' then @uri_ else @name_
 	setName: (@name_) ->
@@ -72,5 +53,6 @@ module.exports = Environment = class
 	toJSON: ->
 		
 		name: @name_
-		tilesetUri: @tileset_?.uri()
 		rooms: @rooms_
+
+Environment.Room = require 'Environment/2D/Room'

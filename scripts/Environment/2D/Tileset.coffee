@@ -16,7 +16,7 @@ module.exports = Tileset = class
 			tileset.fromObject O
 		
 	constructor: ->
-	
+		
 		@image_ = null
 		@tileSize_ = [0, 0]
 		@tileBoxCache_ = []

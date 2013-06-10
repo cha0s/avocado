@@ -5,8 +5,6 @@ Entity = require 'Entity/Entity'
 Image = require('Graphics').Image
 Physics = require 'Physics/Physics'
 Q = require 'Utility/Q'
-TileLayer = require 'Environment/2D/TileLayer'
-Tileset = require 'Environment/2D/Tileset'
 Vector = require 'Extension/Vector'
 
 module.exports = Room = class
@@ -15,7 +13,7 @@ module.exports = Room = class
 		
 	constructor: (size = [0, 0]) ->
 		
-		@tileset_ = new Tileset()
+		@tileset_ = new Room.Tileset()
 		@layers_ = []
 		@size_ = Vector.copy size
 		@sizeInPx_ = [0, 0]
@@ -27,17 +25,23 @@ module.exports = Room = class
 		@_physics.addFloor()
 		@_physics.setWalls @size_
 	
-		@layers_[i] = new TileLayer size for i in [0...Room.layerCount]
+		@layers_[i] = new Room.TileLayer size for i in [0...Room.layerCount]
 
 	fromObject: (O) ->
 	
 		@["#{i}_"] = O[i] for i of O
 		
+		tilesetPromise =  if O.tilesetUri?
+			Room.Tileset.load O.tilesetUri
+		else
+			@tileset_
+		Q.when(tilesetPromise).then (@tileset_) =>
+		
 		@setSize Vector.copy O.size
 		
 		@layers_ = []
 		layerPromises = for layerO, i in O.layers
-			@layers_[i] = new TileLayer()
+			@layers_[i] = new Room.TileLayer()
 			@layers_[i].fromObject layerO
 			
 		@entities_ = []
@@ -49,7 +53,12 @@ module.exports = Room = class
 		Q.all(_.flatten [
 			entityPromises
 			layerPromises
-		], true).then => this
+			[tilesetPromise]
+		], true).then =>
+			
+			@setTileset @tileset_
+			
+			this
 		
 	copy: ->
 		room = new Room()
@@ -156,3 +165,8 @@ module.exports = Room = class
 		layers: layers
 		collision: @collision_
 		entities: entities
+		tilesetUri: @tileset_?.uri()
+		
+Room.TileLayer = require 'Environment/2D/TileLayer'
+Room.Tileset = require 'Environment/2D/Tileset'
+		
