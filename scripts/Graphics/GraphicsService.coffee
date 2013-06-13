@@ -76,13 +76,9 @@ registerMovement = (player) ->
 		Vector.hypotenuse Vector.abs m.tickUnit
 	)
 
-windows = []
-
 Graphics.newWindow = (size, flags) ->
 	
 	window_ = new Graphics.Window()
-	
-	windows.push window_
 	
 	window_.setSize size if size?
 	window_.setFlags flags if flags?
@@ -167,5 +163,3 @@ Graphics.newWindow = (size, flags) ->
 				)
 				
 	window_
-	
-Graphics.pollEvents = -> window_.pollEvents() for window_ in windows

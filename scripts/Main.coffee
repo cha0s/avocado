@@ -121,13 +121,13 @@ module.exports = Main = class
 			@elapsedPending += elapsed - @lastElapsed
 			@lastElapsed = elapsed
 			
+			_public = @public()
+			
 			while @elapsedPending > @tickTargetSeconds
 				@tickCps.tick()
-				
-				Graphics.pollEvents()
-				
 				@stateMachine.tick()
-			
+				_public.emit 'tick'
+				
 				@elapsedPending -= @tickTargetSeconds
 		
 		public: -> @getScope()
