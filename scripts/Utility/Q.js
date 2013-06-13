@@ -1637,6 +1637,16 @@ function nodeify(promise, nodeback) {
     }
 }
 
+Q.asap = asap;
+function asap(promiseOrValue, fulfilled, rejected, progressed) {
+    if (Q.isPromise(promiseOrValue)) {
+    	return when(promiseOrValue, fulfilled, rejected, progressed);
+    }
+    else {
+    	return Q.resolve(fulfilled(promiseOrValue));
+    }
+}
+
 // All code before this point will be filtered from stack traces.
 var qEndingLine = captureLine();
 

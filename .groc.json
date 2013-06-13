@@ -1,0 +1,5 @@
+{
+  "glob": ["scripts/**/*.coffee", "docu/**/*.md", "README.md"],
+  "strip": ["scripts/", "docu/"],
+  "except": ["scripts/**/*.spec.coffee"]
+}

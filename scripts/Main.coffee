@@ -1,172 +1,135 @@
-# **Main** implements the main engine loop. This class does everything
-# you'd expect in a game loop: user input polling, timing, updating the game
-# state (called *tick*ing) and rendering the game state.
-#
-# Also, States are managed here; instantiated as needed, and entered and left
-# as requested.
-#
-# Subclass this to implement platform-specific functionality.
-#
-# Emits:
+
+# # Main
 # 
-# * <pre>error: When an error was encountered.</pre>
-# * <pre>quit:  When the engine is shutting down.</pre>
-#
+# Abstract execution context. Stuff that happens regardless of the platform
+# we're running on.
+Graphics = require 'Graphics'
 
 Cps = require 'Timing/Cps' 
 EventEmitter = require 'Mixin/EventEmitter'
-Graphics = require 'Graphics'
 Mixin = require 'Mixin/Mixin'
+PrivateScope = require 'Utility/PrivateScope'
 Q = require 'Utility/Q'
+StateMachine = require 'State/StateMachine'
 Timing = require 'Timing'
 
+# #### Construction
+# Implements the main engine loop. Uses a [state machine](./State/StateMachine.html)
+# to handle engine states, and handles fixed-step tick timing.
+# 
+# Subclass this to implement platform-specific functionality.
+# 
 module.exports = Main = class
 	
 	constructor: ->
+		PrivateScope.call @, Private
 		
-		Mixin this, EventEmitter
+		stateMachine = @private().stateMachine
 		
-		# Holds the current State's name.
-		@stateName = ''
-		
-		# Contains an object such as:
+		# Emits:
 		# 
-		#     {
-		#         name: 'Initial',
-		#         args: {
-		#             ...
-		#         }
-		#     }
-		#
-		# or if no state change is being requested, undefined.
+		# * <code>error</code>: When an error was encountered.
+		# * <code>quit</code>: When the engine is shutting down.
+		# * <code>stateConstructed</code>: When constructing a state.
+		# * <code>stateLeft</code>: When leaving a state.
+		# * <code>stateInitialized</code>: When initializing a state.
+		# * <code>stateEntered</code>: When entering a state.
+		# 
+		Mixin this, EventEmitter
+		stateMachine.on 'stateLeft', (name) => @emit 'stateLeft', name
+		stateMachine.on 'stateConstructed', (state) => state.main = @
+		stateMachine.on 'stateInitialized', (name) => @emit 'stateInitialized', name
+		stateMachine.on 'stateEntered', (name) => @emit 'stateEntered', name
 		
-		# Hold the current State object.
-		@stateObject = null
+	# ##### begin
+	# Start asynchronous execution. Calling again before calling
+	# <code>quit()</code> is a no-op.
+	begin: -> @private().begin()
 		
-		# A cache of all instantiated State objects.
-		@states = {}
-		
-		# Keep track of cycles-per-second.
-		@tickCps = new Cps()
-		
-		# Keep handles for out tick and render loops, so we can GC them on
-		# quit.
-		@tickInterval = null
-		
-		# [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
-		@tickFrequency = 1000 / Timing.ticksPerSecondTarget
-		@tickTargetSeconds = 1 / Timing.ticksPerSecondTarget
-		@lastElapsed = 0
-		@elapsedRemainder = 0
-		
-	begin: ->
-		
-		# Tick loop.
-		@tickInterval = setInterval(
-			=>
-				try
-					@tick()
-				catch error
-					@emit 'error', error
-			@tickFrequency
-		)
-		
-	# Change the State. This isn't immediate, but will be dispatched on the
-	# next tick.
-	changeState: (name, args = {}) -> @stateChange = name: name, args: args
+	# ##### transitionToState
+	# Change state on the next tick.
+	transitionToState: (name, args = {}) -> 
+		@private().stateMachine.transitionToState name, args
 	
-	# Leave any State we're currently in and NULL the object so
-	# State::tick and State::render don't run until the next State is
-	# loaded.
-	leaveState: (stateName) ->
+	# ##### currentStateInstance
+	# Returns a reference to the current state instance.
+	currentStateInstance: -> @private().stateMachine.currentStateInstance()
 	
-		@stateObject?.leave stateName
-		@stateObject = null
+	# ##### tick
+	# Tick the engine, exposed so that subclasses can augment their ticks.
+	tick: -> @private().tick()
+	
+	# ##### tps
+	# Returns the ticks per second the engine is achieving.
+	tps: -> @private().tickCps.count()
+	
+	# ##### quit
+	# Stop execution: Clear intervals and emit the <code>quit</code> event.
+	quit: -> @private().quit()
+	
+	# #### Private
+	# Implementation details follow...
+	Private = class
 		
-	# Handle the last State change request.
-	handleStateChange: ->
-		return unless @stateChange?
-		
-		# Hold handles to some children in @stateChange since we're going to
-		# delete it to signal that we've handled the state change request.
-		args = @stateChange.args
-		stateName = @stateChange.name
+		constructor: ->
 
-		# We're handling the state change.
-		delete @stateChange
-		
-		@leaveState stateName
-		
-		# When the State is finished initializing,
-		fulfillInitialization = =>
+			@stateMachine = new StateMachine()
 			
-			@emit 'stateInitialized', stateName
+			# #### Timing
+			# 
+			# Timing within the engine is handled in fixed steps. If the engine
+			# falls behind the requested ticks per second, multiple fixed steps
+			# will occur every tick.
+			# 
+			# * Keep track of cycles per second.
+			# * Keep handles for our tick loop, so we can GC it on quit.
+			@tickCps = new Cps()
+			@tickInterval = null
 			
-			fulfillEnter = =>
-			
-				@emit 'stateEntered', stateName
-				
-				# set the new State name, and the object for
-				# ticking/rendering.
-				@stateObject = @states[stateName]
-				@stateName = stateName
-			
-			promiseOrResult = @states[stateName].enter(args, @stateName)
-			
-			if Q.isPromise promiseOrResult
-				promiseOrResult.done fulfillEnter
-			else
-				fulfillEnter()
-			
-		# If the State is already loaded and cached, fulfill the
-		# initialization immediately.
-		promiseOrResult = if @states[stateName]?
-			true
-			
-		# Otherwise, instantiate and cache the State.
-		else
-			
-			@states[stateName] = new (require "State/#{stateName}")
-			@states[stateName].main = this
-			@states[stateName].initialize()
-			
-		if Q.isPromise promiseOrResult
-			promiseOrResult.done fulfillInitialization
-		else
-			fulfillInitialization()
-		
-	tick: ->
-		
-		delta = Timing.TimingService.elapsed() - @lastElapsed
-		delta += @elapsedRemainder
-		
-		# Poll events.
-		Graphics.pollEvents()
-		
-		while delta > @tickTargetSeconds
-			delta -= @tickTargetSeconds
-			
+			# [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
+			@tickFrequency = 1000 / Timing.ticksPerSecondTarget
+			@tickTargetSeconds = 1 / Timing.ticksPerSecondTarget
+			@lastElapsed = 0
+			@elapsedPending = 0
 			Timing.TimingService.setTickElapsed @tickTargetSeconds
-			
-			# Let the State tick.
-			@stateObject?.tick()
-			
-			# Handle any State change.
-			@handleStateChange()
-			
-			# Track them cycles!
-			@tickCps.tick()
 		
-		@elapsedRemainder = delta
+		begin: ->
+			return if @tickInterval?
+			
+			_public = @public()
+			
+			@tickInterval = setInterval(
+				=>
+					try
+						_public.tick()
+					catch error
+						_public.emit 'error', error
+				@tickFrequency
+			)
+			
+		quit: ->
+			return unless @tickInterval?
+			
+			clearInterval @tickInterval
+			@tickInterval = null
+			
+			@public().emit 'quit'
+
+		tick: ->
 		
-		@lastElapsed = Timing.TimingService.elapsed()
+			elapsed = Timing.TimingService.elapsed()
+			@elapsedPending += elapsed - @lastElapsed
+			@lastElapsed = elapsed
+			
+			while @elapsedPending > @tickTargetSeconds
+				@tickCps.tick()
+				
+				Graphics.pollEvents()
+				
+				@stateMachine.tick()
+			
+				@elapsedPending -= @tickTargetSeconds
+		
+		public: -> @getScope()
 	
-	quit: ->
-		
-		@leaveState 'quit'
-		
-		# GC our tick loop handle.
-		clearInterval @tickInterval
-		
-		# Notify any listeners that it's time to quit.
-		@emit 'quit'
+	private: -> @getScope Private
