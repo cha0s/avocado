@@ -13,3 +13,5 @@ module.exports =
 			Vector.hypotenuse actual, lerping
 			distance / easing
 		)
+		
+	frac: (number) -> number % 1
