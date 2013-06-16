@@ -13,9 +13,43 @@ Vector = require 'Extension/Vector'
 
 module.exports = Entity = class
 	
+	@loadObject: (uri) ->
+
+		CoreService.readJsonResource(uri).then (O) ->
+			
+			{parent, traits} = O
+			
+			if parent?
+				
+				Entity.loadObject(parent).then (O) ->
+					
+					childTraits = traitArrayToObject traits
+					parentTraits = traitArrayToObject O.traits
+					
+					traitTypes = _.uniq _.flatten [
+						_.keys childTraits
+						_.keys parentTraits
+					]
+					
+					O.traits = for traitType in traitTypes
+						
+						state = _.extend(
+							parentTraits[traitType] ? {}
+							childTraits[traitType] ? {}
+						)
+						
+						type: traitType
+						state: state unless _.isEmpty state
+						
+					O
+			else
+				
+				O
+	
 	# Load an entity by URI.
 	@load: (uri, traitExtensions = []) ->
-		CoreService.readJsonResource(uri).then (O) ->
+		
+		Entity.loadObject(uri).then (O) ->
 			O.uri = uri
 			
 			entity = new Entity()
