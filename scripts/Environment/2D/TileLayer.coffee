@@ -170,6 +170,14 @@ module.exports = TileLayer = class
 				
 		matrix
 	
+	renderTile: (destination, tilePosition, renderPosition) ->
+	
+		@tileset_.render(
+			renderPosition
+			destination
+			index
+		) if index = @tileIndex tilePosition
+		
 	render: (
 		position
 		destination
@@ -204,12 +212,8 @@ module.exports = TileLayer = class
 		for y in [0...area[1]]
 			
 			for x in [0...area[0]]
-		
-				@tileset_.render(
-					offset
-					destination
-					index
-				) if index = @tileIndex start
+				
+				@renderTile destination, start, offset
 				
 				offset[0] += tileSize[0]
 				start[0] += 1
