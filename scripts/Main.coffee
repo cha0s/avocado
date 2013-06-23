@@ -129,6 +129,8 @@ module.exports = Main = class
 				_public.emit 'tick'
 				
 				@elapsedPending -= @tickTargetSeconds
+				
+			return
 		
 		public: -> @getScope()
 	
