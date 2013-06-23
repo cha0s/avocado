@@ -108,7 +108,7 @@ module.exports = NinePatch = class
 				for [0...middleUnits[orientation]]
 					
 					sprite.setPosition Vector.add position, Rectangle.position rect
-					sprite.setSourceRect pieceRect
+					sprite.setSourceRectangle pieceRect
 					sprite.renderTo destination
 					
 					position[orientation] += step
@@ -116,7 +116,7 @@ module.exports = NinePatch = class
 				renderRemainder pieceRect, orientation, (partialRect) =>
 				
 					sprite.setPosition Vector.add position, Rectangle.position rect
-					sprite.setSourceRect partialRect
+					sprite.setSourceRectangle partialRect
 					sprite.renderTo destination
 					
 				return
@@ -160,7 +160,7 @@ module.exports = NinePatch = class
 				for [0...middleUnits[0]]
 				
 					sprite.setPosition Vector.add position, Rectangle.position rect
-					sprite.setSourceRect pieceRect
+					sprite.setSourceRectangle pieceRect
 					sprite.renderTo destination
 					
 					position[0] += size[0]
@@ -168,7 +168,7 @@ module.exports = NinePatch = class
 				renderRemainder pieceRect, 0, (partialRect) =>
 					
 					sprite.setPosition Vector.add position, Rectangle.position rect
-					sprite.setSourceRect partialRect
+					sprite.setSourceRectangle partialRect
 					sprite.renderTo destination
 					
 			for [0...middleUnits[1]]
@@ -191,7 +191,7 @@ module.exports = NinePatch = class
 			renderCorner = (position, pieceRect) =>
 				
 				sprite.setPosition position
-				sprite.setSourceRect pieceRect
+				sprite.setSourceRectangle pieceRect
 				sprite.renderTo destination
 			
 			renderCorner(
