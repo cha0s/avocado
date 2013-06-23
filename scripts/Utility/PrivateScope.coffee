@@ -1,10 +1,10 @@
 
 _ = require 'Utility/underscore'
 
-module.exports = (Class) ->
+module.exports = (Class, method = 'getScope') ->
 	
 	oPrivate = new Class @
-	@getScope = oPrivate.getScope = _.bind(
+	@[method] = oPrivate['public'] = _.bind(
 		(owner, Class) -> if owner?.constructor is Class then owner else @
 		@, oPrivate
 	)
