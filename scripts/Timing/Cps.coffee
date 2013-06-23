@@ -19,15 +19,16 @@ module.exports = class
 		@ticker = new Ticker frequency
 		@fps = 0
 		@c = 0
+		
+		@ticker.on 'tick', =>
+			@fps = @c * (1000 / @ticker.frequency)
+			@c = 0
 
 	# Call every time the process you want to measure runs.
 	tick: ->
-	
-		if @ticker.ticks() > 0
-	
-			@fps = @c * (1000 / @ticker.frequency)
-			@c = 0
-	
+		
+		@ticker.tick()
+		
 		@c++
 	
 	# Call to retrieve how many cycles the process runs per second.

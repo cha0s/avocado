@@ -1,18 +1,20 @@
 # **Ticker** allows you to keep track of how many discrete ticks have
 # passed. Ticks are measured in milliseconds.
 
-TimingService = require('Timing').TimingService
+Timing = require 'Timing'
+
+EventEmitter = require 'Mixin/EventEmitter'
+Mixin = require 'Mixin/Mixin'
 
 module.exports = Ticker = class
 
 	# Initialize a ticker to count a tick every *frequency* milliseconds.
 	constructor: (@frequency, @async = true) ->
+		EventEmitter.call this
 		
-		# Keep the remainder counted towards the next tick.
-		@tickRemainder = 0
-		
-		if @async
-			@last_ = TimingService.elapsed()
+		@reset()
+	
+	Mixin @::, EventEmitter
 		
 	# Deep copy a ticker.
 	deepCopy: ->
@@ -22,30 +24,27 @@ module.exports = Ticker = class
 		ticker.tickRemainder = @tickRemainder
 		ticker.frequency = @frequency
 		
-		if ticker.async = @async
-			ticker.last_ = @last_
+		ticker.last_ = @last_ if ticker.async = @async
 	
 	# Reset a ticker, so it will be *@frequency* milliseconds until the next
 	# tick.
 	reset: ->
 		
-		if @async
-			@last_ = TimingService.elapsed()
-		
 		@tickRemainder = 0
+		@last_ = Timing.TimingService.elapsed() if @async
 	
 	setFrequency: (@frequency) ->
 	
 	# Count the number of ticks passed since the last invocation.
-	ticks: ->
-		return 0 if @frequency is 0
+	tick: ->
+		return if @frequency is 0
 		
 		# Get current ticks.
 		if @async
-			now = (TimingService.elapsed() - @last_) * 1000
-			@last_ = TimingService.elapsed()
+			now = (Timing.TimingService.elapsed() - @last_) * 1000
+			@last_ = Timing.TimingService.elapsed()
 		else
-			now = TimingService.tickElapsed() * 1000
+			now = Timing.TimingService.tickElapsed() * 1000
 
 		# The number of milliseconds since last invocation.
 		since = 0
@@ -63,5 +62,8 @@ module.exports = Ticker = class
 
 		# Keep the remainder of a tick that's passed.
 		@tickRemainder = since - ticks * @frequency
-
-		ticks
+		
+		for i in [0...ticks]
+			@emit 'tick'
+		
+		return

@@ -30,7 +30,8 @@ module.exports = Animation = class
 		
 		# The rate at which the frames increment. Default to 10 FPS.
 		@frameRate_ = 100
-		@frameTicker_ = new Ticker @frameRate_
+		
+		@setFrameTicker new Ticker @frameRate_
 		
 		# Total number of frames in this animation.
 		@frameCount_ = 1
@@ -57,7 +58,7 @@ module.exports = Animation = class
 		# if a URI wasn't given.
 		O.imageUri = O.uri.replace '.animation.json', '.png' if not O.imageUri?
 		
-		@frameTicker_ = new Ticker @frameRate_
+		@setFrameTicker new Ticker @frameRate_
 		
 		Graphics.Image.load(O.imageUri).then (image) =>
 			
@@ -79,6 +80,12 @@ module.exports = Animation = class
 	setTickerFrequency: ->
 		
 		@frameTicker_.setFrequency @frameRate_ / @frameRateScaling_
+	
+	setFrameTicker: (frameTicker) ->
+		
+		@frameTicker_?.off 'tick'
+		@frameTicker_ = frameTicker
+		@frameTicker_.on 'tick', @tickAnimation, @
 	
 	# Set the frame rate of the animation. 
 	setFrameRate: (@frameRate_) -> @setTickerFrequency()
@@ -160,6 +167,19 @@ module.exports = Animation = class
 	pause: -> @paused_ = true
 	unpause: -> @paused_ = false
 	
+	tickAnimation: ->
+	
+		# If we got some, increment the current frame pointer by how
+		# many we got, but clamp it to the number of frames.
+		c = @currentFrameIndex_ + 1
+
+		# Clamped current index.
+		@currentFrameIndex_ = Math.floor c % @frameCount_
+
+		# If the animation rolled over, return TRUE.
+		@emit 'frameChanged'
+		@emit 'rolledOver' if c >= @frameCount_
+		
 	tick: ->
 		
 		return if @paused_
@@ -168,25 +188,12 @@ module.exports = Animation = class
 			@emit 'rolledOver'
 			return
 			
-		# Get the number of ticks (if any)
-		ticks = 0
-		if ticks = @frameTicker_.ticks()
+		@frameTicker_.tick()
 			
-			# If we got some, increment the current frame pointer by how
-			# many we got, but clamp it to the number of frames.
-			c = @currentFrameIndex_ + ticks
-
-			# Clamped current index.
-			@currentFrameIndex_ = Math.floor c % @frameCount_
-
-			# If the animation rolled over, return TRUE.
-			@emit 'frameChanged'
-			@emit 'rolledOver' if c >= @frameCount_
-	
 	start: (async = true) ->
 		return if @interval_ isnt null
 		
-		@frameTicker_ = new Ticker @frameRate_, async
+		@setFrameTicker new Ticker @frameRate_, async
 		
 		if async
 			@interval_ = setInterval (=> @tick()), 10
