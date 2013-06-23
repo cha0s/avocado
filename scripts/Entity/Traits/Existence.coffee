@@ -1,4 +1,6 @@
 
+Timing = require 'Timing'
+
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
 
@@ -12,6 +14,8 @@ module.exports = class extends Trait
 		
 		directionCount: 1
 		direction: 0
+		
+		secondsSeen: 0
 		
 		name: 'Abstract'
 	
@@ -47,6 +51,8 @@ module.exports = class extends Trait
 					@state.size
 				)
 		
+		secondsSeen: -> @state.secondsSeen
+
 		direction:
 			
 			result: 'Number'
@@ -136,3 +142,9 @@ module.exports = class extends Trait
 		setDirectionCount: (directionCount) ->
 			
 			@state.directionCount = directionCount
+
+	handler: ->
+		
+		ticker: ->
+			
+			@state.secondsSeen += Timing.TimingService.tickElapsed()
