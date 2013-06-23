@@ -5,76 +5,66 @@
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
 
-NativeWindow = require('Graphics').Window
-Window = class
-	
-	# Window creation constants.
-	# 
-	# * <code>Window.Flags_Default</code>: ***(default)*** Nothing special.
-	# * <code>Window.Flags_Fullscreen</code>: Create a fullscreen window.
-	# ***NOTE:*** May not be supported on all platforms.
-	@Flags_Default = 0
-	@Flags_Fullscreen = 1
-	
-	# Mouse and keycode constants.
-	@Mouse = Object.freeze NativeWindow.Mouse
-	@KeyCode = Object.freeze NativeWindow.KeyCode
-	
-	constructor: ->
-		
-		@window_ = new NativeWindow()
-		
-		Mixin @window_, EventEmitter
+Window = require('Graphics').Window
 
-	# Show the window.
-	display: -> @window_['%display']()
+Mixin(
+	Window.prototype
+	EventEmitter
+)
+
+# Window creation constants.
+# 
+# * <code>Window.Flags_Default</code>: ***(default)*** Nothing special.
+# * <code>Window.Flags_Fullscreen</code>: Create a fullscreen window.
+# ***NOTE:*** May not be supported on all platforms.
+Window.Flags_Default = 0
+Window.Flags_Fullscreen = 1
+
+# Mouse and keycode constants.
+Window.Mouse = Object.freeze Window.Mouse
+Window.KeyCode = Object.freeze Window.KeyCode
+
+# Show the window.
+Window::display = -> @['%display']()
+
+# The height of the window.
+Window::height = -> @size()[1]
+
+# Poll for events sent to this window.
+Window::pollEvents = -> @['%pollEvents']()
+
+# Render an Image onto this window.
+Window::render = (image, rectangle = [0, 0, 0, 0]) ->
+	return unless image?
 	
-	# The height of the window.
-	height: -> @size()[1]
+	@['%render'] image, rectangle
+
+# Set the window parameters.
+Window::setFlags = (flags = Window.Flags_Default) ->
+	return unless flags?
 	
-	off: -> @window_.off.apply @window_, arguments
-	on: ->@window_.on.apply @window_, arguments
-	emit: -> @window_.emit.apply @window_, arguments
+	@['%setFlags'] flags
+
+# Set the window parameters.
+Window::setSize = (size) ->
+	return unless size?
 	
-	renderTarget: -> @window_
+	@['%setSize'] size
+
+# Set whether the mouse is visible while hovering over the window.
+Window::setMouseVisibility = (visibility) ->
+	return unless visibility?
 	
-	# Poll for events sent to this window.
-	pollEvents: -> @window_['%pollEvents']()
+	@['%setMouseVisibility'] visibility
+
+# Set the window title.
+Window::setWindowTitle = (window, iconified = window) ->
+	return unless window?
 	
-	# Render an Image onto this window.
-	render: (image, rectangle = [0, 0, 0, 0]) ->
-		return unless image?
-		
-		@window_['%render'] image, rectangle
-	
-	# Set the window parameters.
-	setFlags: (flags = Window.Flags_Default) ->
-		return unless flags?
-		
-		@window_['%setFlags'] flags
-	
-	# Set the window parameters.
-	setSize: (size) ->
-		return unless size?
-		
-		@window_['%setSize'] size
-	
-	# Set whether the mouse is visible while hovering over the window.
-	setMouseVisibility: (visibility) ->
-		return unless visibility?
-		
-		@window_['%setMouseVisibility'] visibility
-	
-	# Set the window title.
-	setWindowTitle: (window, iconified = window) ->
-		return unless window?
-		
-		@window_['%setWindowTitle'] window, iconified
-	
-	# The size of the window.
-	size: -> @window_['%size']()
-	
-	# The width of the window.
-	width = -> @size()[0]
-	
-require('Graphics').Window = Window
+	@['%setWindowTitle'] window, iconified
+
+# The size of the window.
+Window::size = -> @['%size']()
+
+# The width of the window.
+Window::width = -> @size()[0]
