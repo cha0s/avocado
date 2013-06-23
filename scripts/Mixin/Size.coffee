@@ -1,18 +1,24 @@
 
-module.exports = class
+String = require 'Extension/String'
 
-	@::_size = []
+module.exports = (
+	size = 'size'
+	width = 'width'
+	height = 'height'
+) -> class
 	
-	constructor: ->
-		
-		@_size = [0, 0]
-		
-	size: -> @_size
-	setSize: (position) -> @_size = position
+	_size = "_#{size}"
 	
-	width: -> @_size[0]
-	setWidth: (width) -> @_size[0] = width
+	@::[_size] = [0, 0]
+	
+	constructor: -> @[_size] = [0, 0]
+		
+	@::[size] = -> @[_size]
+	@::[String.setterName size] = (position) -> @[_size] = position
+	
+	@::[width] = -> @[_size][0]
+	@::[String.setterName width] = (width) -> @[_size][0] = width
 
-	height: -> @_size[1]
-	setHeight: (height) -> @_size[1] = height
+	@::[height] = -> @[_size][1]
+	@::[String.setterName height] = (height) -> @[_size][1] = height
 	
