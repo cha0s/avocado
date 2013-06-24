@@ -32,11 +32,7 @@ module.exports = EventEmitter = class
 		namespace: namespace
 		event: name
 
-	# Add listeners to an object. *eventName* is a (possibly) namespaced event
-	# to listen for. *f* is a function to be called when the event fires, and
-	# *that*, if specified, is the 'this' variable in the callback. 'this'
-	# defaults to the object upon which the event listener is registered.
-	on: (eventName, f, that = this) ->
+	_on: (eventName, f, that = this) ->
 		info = parseEventName eventName
 		
 		(@events_[info.event] ?= {})[f] =
@@ -48,6 +44,17 @@ module.exports = EventEmitter = class
 			event: info.event
 			
 		undefined
+		
+	# Add listeners to an object. *eventName* is a (possibly) namespaced event
+	# to listen for. *f* is a function to be called when the event fires, and
+	# *that*, if specified, is the 'this' variable in the callback. 'this'
+	# defaults to the object upon which the event listener is registered.
+	on: (eventNamesOrEventName, f, that = this) ->
+		eventNames = if _.isArray eventNamesOrEventName
+			eventNamesOrEventName
+		else
+			[eventNamesOrEventName]
+		@_on eventName, f, that for eventName in eventNames
 		
 	once: (eventName, f, that = this) ->
 		@on eventName, f, that

@@ -99,15 +99,6 @@ module.exports = Animation = class
 			@sprite = new Graphics.Sprite()
 			@ticker = null
 			
-			setSourceRectangle = =>
-				@sprite.setSourceRectangle @sourceRectangle()
-				
-			_public.on 'directionChanged', setSourceRectangle
-			_public.on 'frameSizeChanged', setSourceRectangle
-			_public.on 'frameSizeChanged', setSourceRectangle
-			_public.on 'imageChanged', => setSourceRectangle
-			_public.on 'indexChanged', setSourceRectangle
-
 			_public.on 'imageChanged', => @sprite.setSource @image()
 			
 			_public.on 'positionChanged', => @sprite.setPosition @position()
@@ -117,6 +108,16 @@ module.exports = Animation = class
 			_public.on 'blendModeChanged', => @sprite.setBlendMode @blendMode()
 			
 			_public.on 'scaleChanged', => @sprite.setScale @scale()
+			
+			_public.on(
+				[
+					'directionChanged'
+					'frameSizeChanged'
+					'imageChanged'
+					'indexChanged'
+				]
+				=> @sprite.setSourceRectangle @sourceRectangle()
+			)
 			
 		Mixin.apply null, [@::].concat Properties
 			
@@ -177,10 +178,6 @@ module.exports = Animation = class
 			frameSize
 		) ->
 			ImageProperty::setImage.call this, image
-			
-			_public = @public()
-			
-			_public.emit 'imageChanged'
 			
 			# If the frame size isn't explicitly given, then calculate the
 			# size of one frame using the total number of frames and the total
