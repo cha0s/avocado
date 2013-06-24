@@ -21,7 +21,7 @@ module.exports = class
 		@c = 0
 		
 		@ticker.on 'tick', =>
-			@fps = @c * (1000 / @ticker.frequency)
+			@fps = @c * (1000 / frequency)
 			@c = 0
 
 	# Call every time the process you want to measure runs.
