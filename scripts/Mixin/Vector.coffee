@@ -10,21 +10,20 @@ module.exports = Vector = (
 	y = 'y'
 ) -> class
 	
+	constructor: ->
+		Property.call this for Property in Properties
+		@[_setVector] defaultValue
+		
 	Properties = [
 		XProperty = Property x, 0
 		YProperty = Property y, 0
 	]
 	
-	_vector = "_#{vector}"
+	Mixin.apply null, [@::].concat Properties
+	
 	_setVector = String.setterName vector
 	_setX = String.setterName x
 	_setY = String.setterName y
-	
-	constructor: ->
-		Property.call this for Property in Properties
-		@[_setVector] defaultValue
-		
-	Mixin.apply null, [@::].concat Properties
 	
 	@::[vector] = -> [@[x](), @[y]()]
 	@::[_setVector] = (_vector) ->

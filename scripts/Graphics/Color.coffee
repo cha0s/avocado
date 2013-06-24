@@ -1,18 +1,27 @@
 
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
+String = require 'Extension/String'
 
 module.exports = Color = class
 
 	constructor: (r = 255, g = 0, b = 255, a = 1) ->
 		
-		Mixin(
-			this
-			Property 'red', r
-			Property 'green', g
-			Property 'blue', b
-			Property 'alpha', a
-		)
+		Property.call this for Property, i in Properties
+		
+		@setRed r
+		@setGreen g
+		@setBlue b
+		@setAlpha a
+			
+	Properties = [
+		Property 'red', 0
+		Property 'green', 0
+		Property 'blue', 0
+		Property 'alpha', 1
+	]
+	
+	Mixin.apply null, [@::].concat Properties
 
 Color.Rgba = Rgba = (r, g, b, a) ->
 

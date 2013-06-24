@@ -1,19 +1,32 @@
 
+PrivateScope = require 'Utility/PrivateScope'
 String = require 'Extension/String'
 
 module.exports = Property = (key, defaultValue) ->
 	
-	_key = "_#{key}"
+	_scope = "#{key}Scope"
 	
 	class
-			
-		@::[_key] = null
 		
-		constructor: -> @[_key] = defaultValue
+		constructor: ->
+			PrivateScope.call @, Private, _scope
 			
-		@::[key] = -> @[_key]
+		@::[key] = ->
+			
+			_private = @[_scope] Private
+			_private[key]
+			
 		@::[String.setterName key] = (value) ->
-			oldValue = @[_key]
-			@[_key] = value
-			@emit? "#{key}Changed" if value isnt oldValue
-		
+			
+			_private = @[_scope] Private
+			oldValue = _private[key]
+			_private[key] = value
+			@emit? "#{key}Changed" if oldValue isnt value
+			
+			return
+			
+		Private = class
+			
+			constructor: ->
+				
+				@[key] = defaultValue
