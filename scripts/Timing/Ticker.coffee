@@ -64,6 +64,9 @@ Ticker.InBand = class extends Ticker
 					
 Ticker.OutOfBand = class extends Ticker					
 	
+	constructor: ->
+		PrivateScope.call @, Private, 'outOfBandTickerScope'
+	
 	elapsedSinceLast: ->
 		
 		elapsed = (Timing.TimingService.elapsed() - @last) * 1000
@@ -79,10 +82,7 @@ Ticker.OutOfBand = class extends Ticker
 	Private = class
 		
 		constructor: ->
-			PrivateScope.call @, Private, 'outOfBandTickerScope'
 			
 			@last = Timing.TimingService.elapsed()
 			
-		reset: ->
-			
-			@last = Timing.TimingService.elapsed()
+		reset: -> @last = Timing.TimingService.elapsed()
