@@ -31,8 +31,6 @@ module.exports = Animation = class
 		# The rate at which the frames increment. Default to 10 FPS.
 		@frameRate_ = 100
 		
-		@setFrameTicker new Ticker @frameRate_
-		
 		# Total number of frames in this animation.
 		@frameCount_ = 1
 		
@@ -57,8 +55,6 @@ module.exports = Animation = class
 		# Try using the animation's URI as the starting pattern for an image
 		# if a URI wasn't given.
 		O.imageUri = O.uri.replace '.animation.json', '.png' if not O.imageUri?
-		
-		@setFrameTicker new Ticker @frameRate_
 		
 		Graphics.Image.load(O.imageUri).then (image) =>
 			
@@ -193,11 +189,11 @@ module.exports = Animation = class
 	start: (async = true) ->
 		return if @interval_ isnt null
 		
-		@setFrameTicker new Ticker @frameRate_, async
-		
 		if async
+			@setFrameTicker new Ticker.OutOfBand @frameRate_
 			@interval_ = setInterval (=> @tick()), 10
 		else
+			@setFrameTicker new Ticker.InBand @frameRate_
 			@interval_ = true
 		
 	stop: ->

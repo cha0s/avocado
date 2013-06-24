@@ -16,7 +16,7 @@ module.exports = class
 	# milliseconds.
 	constructor: (frequency = 250) ->
 		
-		@ticker = new Ticker frequency
+		@ticker = new Ticker.OutOfBand frequency
 		@fps = 0
 		@c = 0
 		

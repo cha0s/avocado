@@ -1,69 +1,88 @@
-# **Ticker** allows you to keep track of how many discrete ticks have
-# passed. Ticks are measured in milliseconds.
 
 Timing = require 'Timing'
 
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
+PrivateScope = require 'Utility/PrivateScope'
 
 module.exports = Ticker = class
 
-	# Initialize a ticker to count a tick every *frequency* milliseconds.
-	constructor: (@frequency, @async = true) ->
+	constructor: (frequency) ->
 		EventEmitter.call this
 		
-		@reset()
-	
+		_private = PrivateScope.call @, Private, 'tickerScope'
+		_private.frequency = frequency
+		
 	Mixin @::, EventEmitter
-		
-	# Deep copy a ticker.
-	deepCopy: ->
-		
-		ticker = new Ticker()
-		
-		ticker.tickRemainder = @tickRemainder
-		ticker.frequency = @frequency
-		
-		ticker.last_ = @last_ if ticker.async = @async
 	
-	# Reset a ticker, so it will be *@frequency* milliseconds until the next
-	# tick.
+	elapsedSinceLast: -> throw new Error(
+		'Ticker::elapsedSinceLast() is a pure virtual function!'
+	)
+	
 	reset: ->
 		
-		@tickRemainder = 0
-		@last_ = Timing.TimingService.elapsed() if @async
+		_private = @tickerScope Private
+		_private.reset()
 	
-	setFrequency: (@frequency) ->
+	setFrequency: (frequency) ->
 	
-	# Count the number of ticks passed since the last invocation.
+		_private = @tickerScope Private
+		_private.frequency = frequency
+	
 	tick: ->
-		return if @frequency is 0
 		
-		# Get current ticks.
-		if @async
-			now = (Timing.TimingService.elapsed() - @last_) * 1000
-			@last_ = Timing.TimingService.elapsed()
-		else
-			now = Timing.TimingService.tickElapsed() * 1000
+		_private = @tickerScope Private
+		_private.tick() 
+		
+	Private = class
+	
+		constructor: ->
 
-		# The number of milliseconds since last invocation.
-		since = 0
+			@remainder = 0
+		
+		reset: -> @remainder = 0
 
-		# The number of ticks since last invocation.
-		ticks = 0
-
-		# At least one tick?
-		if (since = (now + @tickRemainder)) >= @frequency
+		tick: ->
+			return if @frequency is 0
 			
-			# If there's been at least one tick, return the number of ticks
-			# that occured, and update the current marker to calculate the
-			# delta next time.
-			ticks = Math.floor since / @frequency
+			_public = @public()
+			elapsed = _public.elapsedSinceLast()
+			
+			ticks = 0
+			if (accumulated = (elapsed + @remainder)) >= @frequency
+				ticks = Math.floor accumulated / @frequency
+	
+			@remainder = accumulated - ticks * @frequency
+			
+			_public.emit 'tick' for i in [0...ticks]
+				
+			return
 
-		# Keep the remainder of a tick that's passed.
-		@tickRemainder = since - ticks * @frequency
+Ticker.InBand = class extends Ticker
+	
+	elapsedSinceLast: -> Timing.TimingService.tickElapsed() * 1000
+					
+Ticker.OutOfBand = class extends Ticker					
+	
+	elapsedSinceLast: ->
 		
-		for i in [0...ticks]
-			@emit 'tick'
+		elapsed = (Timing.TimingService.elapsed() - @last) * 1000
+		@last = Timing.TimingService.elapsed()
+		elapsed
+	
+	reset: ->
+		super
 		
-		return
+		_private = @outOfBandTickerScope Private
+		_private.reset()
+	
+	Private = class
+		
+		constructor: ->
+			PrivateScope.call @, Private, 'outOfBandTickerScope'
+			
+			@last = Timing.TimingService.elapsed()
+			
+		reset: ->
+			
+			@last = Timing.TimingService.elapsed()
