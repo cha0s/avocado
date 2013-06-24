@@ -88,6 +88,7 @@ module.exports = Animation = class
 			Property 'index', 0
 			VectorMixin [0, 0], 'position'
 			Property 'scale', [1, 1]
+			Property 'uri', ''
 		]
 		
 		constructor: (_public) ->
@@ -119,14 +120,14 @@ module.exports = Animation = class
 		animate: ->
 			index = @index() + 1
 			@setIndex Math.floor index % @frameCount()
-			@public().emit 'rolledOver' if index >= @frameCount()
+			@emit 'rolledOver' if index >= @frameCount()
 			
 		fromObject: (O) ->
 			
 			O.imageUri ?= O.uri.replace '.animation.json', '.png'
 			
 			for property in [
-				'directionCount', 'frameCount', 'frameRate', 'frameSize'
+				'directionCount', 'frameCount', 'frameRate', 'frameSize', 'uri'
 			]
 				@[String.setterName property] O[property] if O[property]?
 			
@@ -226,8 +227,11 @@ module.exports = Animation = class
 				
 		toJSON: ->
 			
+			defaultImageUri = @uri().replace '.animation.json', '.png'
+			imageUri = @image().uri() if @image().uri() isnt defaultImageUri
+			
 			directionCount: @directionCount()
 			frameRate: @frameRate()
 			frameCount: @frameCount()
 			frameSize: @frameSize()
-			imageUri: @image().uri() if @image().uri() isnt (@uri ? '').replace '.animation.json', '.png'
+			imageUri: imageUri
