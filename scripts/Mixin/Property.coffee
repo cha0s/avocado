@@ -1,7 +1,7 @@
 
 String = require 'Extension/String'
 
-module.exports = Property = (key, value) ->
+module.exports = Property = (key, defaultValue) ->
 	
 	_key = "_#{key}"
 	
@@ -9,8 +9,11 @@ module.exports = Property = (key, value) ->
 			
 		@::[_key] = null
 		
-		constructor: -> @[_key] = value
+		constructor: -> @[_key] = defaultValue
 			
 		@::[key] = -> @[_key]
-		@::[String.setterName key] = (value) -> @[_key] = value
+		@::[String.setterName key] = (value) ->
+			oldValue = @[_key]
+			@[_key] = value
+			@emit? "#{key}Changed" if value isnt oldValue
 		
