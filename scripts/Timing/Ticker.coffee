@@ -19,6 +19,11 @@ module.exports = Ticker = class
 		'Ticker::elapsedSinceLast() is a pure virtual function!'
 	)
 	
+	frequency: ->
+	
+		_private = @tickerScope Private
+		_private.frequency
+		
 	reset: ->
 		
 		_private = @tickerScope Private
@@ -65,13 +70,14 @@ Ticker.InBand = class extends Ticker
 Ticker.OutOfBand = class extends Ticker					
 	
 	constructor: ->
+		super
+		
 		PrivateScope.call @, Private, 'outOfBandTickerScope'
 	
 	elapsedSinceLast: ->
 		
-		elapsed = (Timing.TimingService.elapsed() - @last) * 1000
-		@last = Timing.TimingService.elapsed()
-		elapsed
+		_private = @outOfBandTickerScope Private
+		_private.elapsedSinceLast()
 	
 	reset: ->
 		super
@@ -85,4 +91,10 @@ Ticker.OutOfBand = class extends Ticker
 			
 			@last = Timing.TimingService.elapsed()
 			
+		elapsedSinceLast: ->
+			
+			elapsed = (Timing.TimingService.elapsed() - @last) * 1000
+			@last = Timing.TimingService.elapsed()
+			elapsed
+		
 		reset: -> @last = Timing.TimingService.elapsed()
