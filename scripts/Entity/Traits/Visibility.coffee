@@ -245,11 +245,9 @@ module.exports = Visibility = class extends Trait
 				return unless @state.isVisible
 				return if @state.alpha is 0
 				
-				position = Vector.sub @entity.position(), camera
-				
 				@currentAnimation().setAlpha @state.alpha
 				@currentAnimation().setPosition Vector.add(
-					position
+					Vector.sub @entity.position(), camera
 					Rectangle.position @entity.visibleRect()
 				)
 				@currentAnimation().setScale @state.scale
@@ -259,12 +257,10 @@ module.exports = Visibility = class extends Trait
 			ui: (destination, camera) ->
 				return unless @state.isVisible
 				
-				position = Vector.sub @entity.position(), camera
-				
 				if Debug.isDebugging()
 				
 					destination.drawCircle(
-						position
+						Vector.sub @entity.position(), camera
 						@entity.width() / 2
 						255, 255, 255, .5
 					)
