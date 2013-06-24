@@ -1,5 +1,5 @@
 
-module.exports = class
+module.exports = Position = class
 
 	@::_position = []
 	

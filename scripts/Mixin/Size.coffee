@@ -1,7 +1,7 @@
 
 String = require 'Extension/String'
 
-module.exports = (
+module.exports = Size = (
 	size = 'size'
 	width = 'width'
 	height = 'height'

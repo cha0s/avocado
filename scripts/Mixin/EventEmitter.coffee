@@ -4,7 +4,7 @@
 
 _ = require 'Utility/underscore'
 
-module.exports = class
+module.exports = EventEmitter = class
 
 	# Keeping track of events registered against this object.
 	@::events_ = {}

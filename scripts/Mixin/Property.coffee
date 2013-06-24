@@ -1,7 +1,7 @@
 
 String = require 'Extension/String'
 
-module.exports = (key, value) ->
+module.exports = Property = (key, value) ->
 	
 	_key = "_#{key}"
 	

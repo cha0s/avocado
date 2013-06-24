@@ -2,7 +2,7 @@
 Rectangle = require 'Extension/Rectangle'
 String = require 'Extension/String'
 
-module.exports = (
+module.exports = RectangleMixin = (
 	rectangle = 'rectangle'
 	x = 'x'
 	y = 'y'
