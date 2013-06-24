@@ -243,6 +243,7 @@ module.exports = Visibility = class extends Trait
 			
 			inline: (destination, camera) ->
 				return unless @state.isVisible
+				return if @state.alpha is 0
 				
 				position = Vector.sub @entity.position(), camera
 				
@@ -252,8 +253,6 @@ module.exports = Visibility = class extends Trait
 					Rectangle.position @entity.visibleRect()
 				)
 				@currentAnimation().setScale @state.scale
-				
-				return if @state.alpha is 0
 				
 				@currentAnimation().render destination
 				
