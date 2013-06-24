@@ -18,19 +18,30 @@ module.exports = Animation = class
 	
 	constructor: ->
 		EventEmitter.call this
+		Property.call this for Property in Properties
 		
 		PrivateScope.call @, Private, 'animationScope'
 		
+	Properties = [
+		Property 'alpha', 1
+		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
+		DirectionProperty = Property 'direction', 0
+		Property 'directionCount', 1
+		Property 'frameCount', 0
+		Property 'frameRate', 100
+		Property 'frameSize', [0, 0]
+		ImageProperty = Property 'image', null
+		Property 'index', 0
+		VectorMixin [0, 0], 'position'
+		Property 'scale', [1, 1]
+		Property 'uri', ''
+	]
+	
 	Mixin @::, EventEmitter
-		
+	Mixin.apply null, [@::].concat Properties
+	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
 		@::, call
-		-> Private
-		'animationScope'
-	)
-	
-	forwardPropertyToPrivate = (property) => PrivateScope.forwardProperty(
-		@::, property
 		-> Private
 		'animationScope'
 	)
@@ -40,71 +51,72 @@ module.exports = Animation = class
 			O.uri = uri
 			(new Animation()).fromObject O
 	
-	forwardPropertyToPrivate 'alpha'
+	fromObject: (O) ->
+		
+		O.imageUri ?= O.uri.replace '.animation.json', '.png'
+		
+		for property in [
+			'directionCount', 'frameCount', 'frameRate', 'frameSize', 'uri'
+		]
+			@[String.setterName property] O[property] if O[property]?
+		
+		Graphics.Image.load(O.imageUri).then (image) =>
+			
+			@setImage image, O.frameSize
+			
+			this
+			
+	setImage: (
+		image
+		frameSize
+	) ->
+		ImageProperty::setImage.call this, image
+		
+		# If the frame size isn't explicitly given, then calculate the
+		# size of one frame using the total number of frames and the total
+		# spritesheet size. Width is calculated by dividing the total
+		# spritesheet width by the number of frames, and the height is the
+		# height of the spritesheet divided by the number of directions
+		# in the animation.
+		@setFrameSize frameSize ? Vector.div(
+			@image().size()
+			[@frameCount(), @directionCount()]
+		)
 	
-	forwardPropertyToPrivate 'blendMode'
-	
-	forwardPropertyToPrivate 'direction'
-
-	forwardPropertyToPrivate 'directionCount'
-
-	forwardPropertyToPrivate 'frameCount'
-
-	forwardPropertyToPrivate 'frameRate'
-
-	forwardPropertyToPrivate 'frameSize'
-	
-	forwardCallToPrivate 'fromObject'
-
-	forwardPropertyToPrivate 'image'
-
-	forwardPropertyToPrivate 'index'
-
-	forwardPropertyToPrivate 'position'
-
+		return
+		
 	forwardCallToPrivate 'render'
 
-	forwardPropertyToPrivate 'scale'
-	
 	forwardCallToPrivate 'start'
 
 	forwardCallToPrivate 'stop'
 
 	forwardCallToPrivate 'tick'
-
-	forwardCallToPrivate 'toJSON'
-
+				
+	toJSON: ->
+		
+		defaultImageUri = @uri().replace '.animation.json', '.png'
+		imageUri = @image().uri() if @image().uri() isnt defaultImageUri
+		
+		directionCount: @directionCount()
+		frameRate: @frameRate()
+		frameCount: @frameCount()
+		frameSize: @frameSize()
+		imageUri: imageUri
+		
 	Private = class
 		
-		Properties = [
-			Property 'alpha', 1
-			Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
-			DirectionProperty = Property 'direction', 0
-			Property 'directionCount', 1
-			Property 'frameCount', 0
-			Property 'frameRate', 100
-			Property 'frameSize', [0, 0]
-			ImageProperty = Property 'image', null
-			Property 'index', 0
-			VectorMixin [0, 0], 'position'
-			Property 'scale', [1, 1]
-			Property 'uri', ''
-		]
-		
 		constructor: (_public) ->
-			Property.call this for Property in Properties
-			
-			@emit = (name) -> _public.emit.apply _public, arguments
 			
 			@interval = null
 			@sprite = new Graphics.Sprite()
 			@ticker = null
 			
-			_public.on 'imageChanged', => @sprite.setSource @image()
-			_public.on 'positionChanged', => @sprite.setPosition @position()
-			_public.on 'alphaChanged', => @sprite.setAlpha @alpha()
-			_public.on 'blendModeChanged', => @sprite.setBlendMode @blendMode()
-			_public.on 'scaleChanged', => @sprite.setScale @scale()
+			_public.on 'imageChanged', => @sprite.setSource _public.image()
+			_public.on 'positionChanged', => @sprite.setPosition _public.position()
+			_public.on 'alphaChanged', => @sprite.setAlpha _public.alpha()
+			_public.on 'blendModeChanged', => @sprite.setBlendMode _public.blendMode()
+			_public.on 'scaleChanged', => @sprite.setScale _public.scale()
 			_public.on(
 				[
 					'directionChanged'
@@ -115,31 +127,19 @@ module.exports = Animation = class
 				=> @sprite.setSourceRectangle @sourceRectangle()
 			)
 			
-		Mixin.apply null, [@::].concat Properties
-			
 		animate: ->
-			index = @index() + 1
-			@setIndex Math.floor index % @frameCount()
-			@emit 'rolledOver' if index >= @frameCount()
 			
-		fromObject: (O) ->
+			_public = @public()
 			
-			O.imageUri ?= O.uri.replace '.animation.json', '.png'
+			index = _public.index() + 1
+			_public.setIndex Math.floor index % _public.frameCount()
+			_public.emit 'rolledOver' if index >= _public.frameCount()
 			
-			for property in [
-				'directionCount', 'frameCount', 'frameRate', 'frameSize', 'uri'
-			]
-				@[String.setterName property] O[property] if O[property]?
-			
-			Graphics.Image.load(O.imageUri).then (image) =>
-				
-				@setImage image, O.frameSize
-				
-				@public()
-				
 		clampDirection: (direction) ->
 			
-			return 0 if @directionCount() is 1
+			_public = @public()
+			
+			return 0 if _public.directionCount() is 1
 			
 			direction = Math.min 7, Math.max direction, 0
 			direction = {
@@ -147,71 +147,59 @@ module.exports = Animation = class
 				5: 1
 				6: 3
 				7: 3
-			}[direction] if @directionCount() is 4 and direction > 3
+			}[direction] if _public.directionCount() is 4 and direction > 3
 			
 			direction
 		
 		render: (
 			destination
-			index = @index()
+			index
 		) ->
-			return unless @frameCount() > 0
-			return unless @image()?
 			
-			if index isnt @index()
+			_public = @public()
+			
+			return unless _public.frameCount() > 0
+			return unless _public.image()?
+			
+			if (index ?= _public.index()) isnt _public.index()
 				@sprite.setSourceRectangle @sourceRectangle index
 				
 			@sprite.renderTo destination
 		
 		setDirection: (direction) ->
 			DirectionProperty::setDirection.call(
-				this
+				@public()
 				@clampDirection direction
 			)
 		
-		setImage: (
-			image
-			frameSize
-		) ->
-			ImageProperty::setImage.call this, image
+		sourceRectangle: (index) ->
 			
-			# If the frame size isn't explicitly given, then calculate the
-			# size of one frame using the total number of frames and the total
-			# spritesheet size. Width is calculated by dividing the total
-			# spritesheet width by the number of frames, and the height is the
-			# height of the spritesheet divided by the number of directions
-			# in the animation.
-			@setFrameSize frameSize ? Vector.div(
-				@image().size()
-				[@frameCount(), @directionCount()]
-			)
-		
-			return
-		
-		sourceRectangle: (index = @index()) ->
+			_public = @public()
 			
 			Rectangle.compose(
-				Vector.mul @frameSize(), [
-					Math.floor index % @frameCount()
-					@direction()
+				Vector.mul _public.frameSize(), [
+					Math.floor (index ? _public.index()) % _public.frameCount()
+					_public.direction()
 				]
-				@frameSize()
+				_public.frameSize()
 			)
 		
 		start: (async = true) ->
 			return if @interval?
 			
+			_public = @public()
+			
 			if async
 				
 				type = 'OutOfBand'
-				@interval = setInterval (=> @tick()), 10
+				@interval = setInterval (=> _public.tick()), 10
 				
 			else
 				
 				type = 'InBand'
 				@interval = true
 	
-			@ticker = new Ticker[type] @frameRate()
+			@ticker = new Ticker[type] _public.frameRate()
 			@ticker.on 'tick', @animate, @
 
 		stop: ->
@@ -224,14 +212,3 @@ module.exports = Animation = class
 			@ticker = null
 			
 		tick: -> @ticker?.tick() if @interval is true
-				
-		toJSON: ->
-			
-			defaultImageUri = @uri().replace '.animation.json', '.png'
-			imageUri = @image().uri() if @image().uri() isnt defaultImageUri
-			
-			directionCount: @directionCount()
-			frameRate: @frameRate()
-			frameCount: @frameCount()
-			frameSize: @frameSize()
-			imageUri: imageUri
