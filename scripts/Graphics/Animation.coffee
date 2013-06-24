@@ -100,15 +100,10 @@ module.exports = Animation = class
 			@ticker = null
 			
 			_public.on 'imageChanged', => @sprite.setSource @image()
-			
 			_public.on 'positionChanged', => @sprite.setPosition @position()
-			
 			_public.on 'alphaChanged', => @sprite.setAlpha @alpha()
-			
 			_public.on 'blendModeChanged', => @sprite.setBlendMode @blendMode()
-			
 			_public.on 'scaleChanged', => @sprite.setScale @scale()
-			
 			_public.on(
 				[
 					'directionChanged'
