@@ -27,13 +27,13 @@ module.exports = Animation = class
 		@::, call
 		-> Private
 		'animationScope'
-	) 
+	)
 	
 	forwardPropertyToPrivate = (property) => PrivateScope.forwardProperty(
 		@::, property
 		-> Private
 		'animationScope'
-	) 
+	)
 	
 	@load: (uri) ->
 		Core.CoreService.readJsonResource(uri).then (O) ->
