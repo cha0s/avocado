@@ -114,15 +114,14 @@ module.exports = EventEmitter = class
 		undefined
 		
 	# Notify ALL the listeners!
-	emit: (eventName, args...) ->
-		return if not @events_[eventName]?
+	emit: (name, args...) ->
+		return if not @events_[name]?
 		
-		for callback of @events_[eventName]
-			spec = @events_[eventName][callback]
+		for callback of @events_[name]
+			spec = @events_[name][callback]
 			
 			f = spec.f
-			@off "#{eventName}.#{spec.namespace}", f if spec.once
+			@off "#{name}.#{spec.namespace}", f if spec.once
 			f.apply spec.that, args
 
 		undefined
-		
