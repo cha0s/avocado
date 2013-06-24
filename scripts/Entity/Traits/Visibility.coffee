@@ -86,16 +86,6 @@ module.exports = Visibility = class extends Trait
 		delete @state.animations[index]
 		delete @animationObjects[index]
 	
-	renderCurrentAnimation: (position, destination) ->
-		return if @state.alpha is 0
-		
-		@currentAnimation().render(
-			position
-			destination
-			@state.alpha
-			@state.scale
-		)
-
 	setAnimation: (index, animation) ->
 		
 		animation.object.on 'ticked.VisibilityTrait', =>
@@ -161,21 +151,16 @@ module.exports = Visibility = class extends Trait
 			
 				if @state.index is index
 					
-					@currentAnimation()?.setCurrentFrameIndex 0 if reset
-					
-					if start
+					@currentAnimation()?.setIndex 0 if reset
+					@currentAnimation()?.start false if start
 						
-						unless @currentAnimation()?.isRunning()
-						
-							@currentAnimation()?.start false
-							
 				else 
 				
-					@currentAnimation().stop() if @currentAnimation()?.isRunning()
+					@currentAnimation().stop()
 					
 					@state.index = index
 					
-					@currentAnimation()?.setCurrentFrameIndex 0 if reset
+					@currentAnimation()?.setIndex 0 if reset
 					
 					@currentAnimation()?.start false if start
 					
@@ -205,7 +190,9 @@ module.exports = Visibility = class extends Trait
 						
 						if @animationPlays is 1
 							animation.stop()
-							animation.setCurrentFrameIndex animation.frameCount - 1 unless reset
+							
+							unless reset
+								animation.setIndex animation.frameCount() - 1
 						
 					animation.start false
 				
@@ -228,13 +215,13 @@ module.exports = Visibility = class extends Trait
 		
 		startedMoving: ->
 			
-			frameIndex = if @state.preserveFrameWhenMoving
-				@currentAnimation().currentFrameIndex
+			index = if @state.preserveFrameWhenMoving
+				@currentAnimation().index()
 			else
 				0
 			
 			@entity.setCurrentAnimationIndex @entity.visibilityIndex(), false
-			@currentAnimation().setCurrentFrameIndex frameIndex
+			@currentAnimation().setIndex index
 		
 		moving: (hypotenuse) ->
 			@entity.setCurrentAnimationIndex @entity.visibilityIndex(), false
@@ -244,7 +231,7 @@ module.exports = Visibility = class extends Trait
 		
 		directionChanged: (direction) ->
 			for index, animation of @animationObjects
-				animation.setCurrentDirection direction
+				animation.setDirection direction
 
 	handler: ->
 		
@@ -259,10 +246,16 @@ module.exports = Visibility = class extends Trait
 				
 				position = Vector.sub @entity.position(), camera
 				
-				@renderCurrentAnimation(
-					Vector.add position, Rectangle.position @entity.visibleRect()
-					destination
+				@currentAnimation().setAlpha @state.alpha
+				@currentAnimation().setPosition Vector.add(
+					position
+					Rectangle.position @entity.visibleRect()
 				)
+				@currentAnimation().setScale @state.scale
+				
+				return if @state.alpha is 0
+				
+				@currentAnimation().render destination
 				
 			ui: (destination, camera) ->
 				return unless @state.isVisible

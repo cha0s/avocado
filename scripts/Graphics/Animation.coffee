@@ -1,235 +1,241 @@
-# Animations control animating images.
 
 Core = require 'Core'
 Graphics = require 'Graphics'
 
+_ = require 'Utility/underscore'
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
+PrivateScope = require 'Utility/PrivateScope'
+Property = require 'Mixin/Property'
 Rectangle = require 'Extension/Rectangle'
+String = require 'Extension/String'
 Ticker = require 'Timing/Ticker'
 Vector = require 'Extension/Vector'
+VectorMixin = require 'Mixin/Vector'
 
 module.exports = Animation = class
 	
 	constructor: ->
+		EventEmitter.call this
+		
+		PrivateScope.call @, Private, 'animationScope'
+		
+	Mixin @::, EventEmitter
+		
+	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
+		@::, call
+		-> Private
+		'animationScope'
+	) 
 	
-		Mixin this, EventEmitter
-		
-		# The image to animate.
-		@image_ = new Graphics.Image()
-		
-		# The current frame index.
-		@currentFrameIndex_ = 0
-		
-		# The current direction.
-		@currentDirection_ = 0
-		
-		# The size (in frames) of the animation.
-		@frameArea_ = [0, 0]
-		
-		# The rate at which the frames increment. Default to 10 FPS.
-		@frameRate_ = 100
-		
-		# Total number of frames in this animation.
-		@frameCount_ = 1
-		
-		# The size of each individual frame.
-		@frameSize_ = [0, 0]
-		
-		# Total number of directions.
-		@directionCount_ = 1
-		
-		# Whether the animation is paused.
-		@paused_ = false
-		
-		# The handle for the recurring tick interval.
-		@interval_ = null
-		
-		@frameRateScaling_ = 1
-		
-	fromObject: (O) ->
-		
-		@["#{i}_"] = O[i] for i of O
-		
-		# Try using the animation's URI as the starting pattern for an image
-		# if a URI wasn't given.
-		O.imageUri = O.uri.replace '.animation.json', '.png' if not O.imageUri?
-		
-		Graphics.Image.load(O.imageUri).then (image) =>
-			
-			# Set and break up the image into frames.
-			@setImage image, O.frameSize
-			
-			this
-		
+	forwardPropertyToPrivate = (property) => PrivateScope.forwardProperty(
+		@::, property
+		-> Private
+		'animationScope'
+	) 
+	
 	@load: (uri) ->
-		
 		Core.CoreService.readJsonResource(uri).then (O) ->
 			O.uri = uri
-			
-			animation = new Animation()
-			animation.fromObject O
+			(new Animation()).fromObject O
 	
-	# ***Internal***: Helper function to set the ticker frequency as the
-	# scaled frame rate.
-	setTickerFrequency: ->
-		
-		@frameTicker_.setFrequency @frameRate_ / @frameRateScaling_
+	forwardPropertyToPrivate 'alpha'
 	
-	setFrameTicker: (frameTicker) ->
-		
-		@frameTicker_?.off 'tick'
-		@frameTicker_ = frameTicker
-		@frameTicker_.on 'tick', @tickAnimation, @
+	forwardPropertyToPrivate 'blendMode'
 	
-	# Set the frame rate of the animation. 
-	setFrameRate: (@frameRate_) -> @setTickerFrequency()
-	
-	# Set the scale of the frame rate.
-	setFrameRateScaling: (@frameRateScaling_) -> @setTickerFrequency()
-	
-	# Set the image used for the animation.
-	setImage: (
-		@image_
-		
-		# If the frame size isn't explicitly given, then calculate the size of
-		# one frame using the total number of frames and the total spritesheet
-		# size. Width is calculated by dividing the total spritesheet width by
-		# the number of frames, and the height is the height of the spritesheet
-		# divided by the number of directions in the animation.
-		@frameSize_ = Vector.div(
-			@image_.size()
-			[@frameCount_, @directionCount_]
-		)
-	) ->
-		
-		# Pre-calculate the total number of frames.
-		@calculateFrameArea()
-	
-	# Map 8-direction or 4-direction to this animation's direction.
-	mapDirection: (direction) ->
-		
-		return 0 if @directionCount_ is 1
-		
-		direction = Math.min 7, Math.max direction, 0
-		direction = {
-			4: 1
-			5: 1
-			6: 3
-			7: 3
-		}[direction] if @directionCount_ is 4 and direction > 3
-		
-		direction
-	
-	currentDirection: -> @currentDirection_
-		
-	setCurrentDirection: (direction) ->
-		
-		@currentDirection_ = @mapDirection direction
-		
-		@emit 'directionChanged'
-	
-	currentFrameIndex: -> @currentFrameIndex_
-	
-	setCurrentFrameIndex: (index) ->
-		
-		@currentFrameIndex_ = Math.min @frameCount_ - 1, Math.max index, 0
-		
-		@emit 'frameChanged'		
-	
-	# Calculate the area of the animation, in frames.
-	calculateFrameArea: ->
-		
-		# Make sure the matrix changed before trying to allocate a new one.
-		matrix = Vector.div @image_.size(), @frameSize_
-		return if Vector.equals matrix, @frameArea_
+	forwardPropertyToPrivate 'direction'
 
-		@frameArea_ = matrix
-	
-	# Get the position of one frame within the image.
-	framePosition: (index = @currentFrameIndex_) ->
+	forwardPropertyToPrivate 'directionCount'
 
-		Vector.mul @frameSize_, [
-			Math.floor index % @frameArea_[0]
-			@currentDirection_ + Math.floor(index / @frameArea_[0]) % @frameArea_[1]
+	forwardPropertyToPrivate 'frameCount'
+
+	forwardPropertyToPrivate 'frameRate'
+
+	forwardPropertyToPrivate 'frameSize'
+	
+	forwardCallToPrivate 'fromObject'
+
+	forwardPropertyToPrivate 'image'
+
+	forwardPropertyToPrivate 'index'
+
+	forwardPropertyToPrivate 'position'
+
+	forwardCallToPrivate 'render'
+
+	forwardPropertyToPrivate 'scale'
+	
+	forwardCallToPrivate 'start'
+
+	forwardCallToPrivate 'stop'
+
+	forwardCallToPrivate 'tick'
+
+	forwardCallToPrivate 'toJSON'
+
+	Private = class
+		
+		Properties = [
+			Property 'alpha', 1
+			Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
+			DirectionProperty = Property 'direction', 0
+			Property 'directionCount', 1
+			Property 'frameCount', 0
+			Property 'frameRate', 100
+			Property 'frameSize', [0, 0]
+			ImageProperty = Property 'image', null
+			Property 'index', 0
+			VectorMixin [0, 0], 'position'
+			Property 'scale', [1, 1]
 		]
-	
-	frameSize: -> @frameSize_
-	
-	isPaused: -> @paused_ or @interval_ is null
-	isRunning: -> not @paused_ and @interval_ isnt null
-	
-	pause: -> @paused_ = true
-	unpause: -> @paused_ = false
-	
-	tickAnimation: ->
-	
-		# If we got some, increment the current frame pointer by how
-		# many we got, but clamp it to the number of frames.
-		c = @currentFrameIndex_ + 1
+		
+		constructor: (_public) ->
+			Property.call this for Property in Properties
+			
+			@emit = (name) -> _public.emit.apply _public, arguments
+			
+			@interval = null
+			@sprite = new Graphics.Sprite()
+			@ticker = null
+			
+			setSourceRectangle = =>
+				@sprite.setSourceRectangle @sourceRectangle()
+				
+			_public.on 'directionChanged', setSourceRectangle
+			_public.on 'frameSizeChanged', setSourceRectangle
+			_public.on 'frameSizeChanged', setSourceRectangle
+			_public.on 'imageChanged', => setSourceRectangle
+			_public.on 'indexChanged', setSourceRectangle
 
-		# Clamped current index.
-		@currentFrameIndex_ = Math.floor c % @frameCount_
-
-		# If the animation rolled over, return TRUE.
-		@emit 'frameChanged'
-		@emit 'rolledOver' if c >= @frameCount_
+			_public.on 'imageChanged', => @sprite.setSource @image()
+			
+			_public.on 'positionChanged', => @sprite.setPosition @position()
+			
+			_public.on 'alphaChanged', => @sprite.setAlpha @alpha()
+			
+			_public.on 'blendModeChanged', => @sprite.setBlendMode @blendMode()
+			
+			_public.on 'scaleChanged', => @sprite.setScale @scale()
+			
+		Mixin.apply null, [@::].concat Properties
+			
+		animate: ->
+			index = @index() + 1
+			@setIndex Math.floor index % @frameCount()
+			@public().emit 'rolledOver' if index >= @frameCount()
+			
+		fromObject: (O) ->
+			
+			O.imageUri ?= O.uri.replace '.animation.json', '.png'
+			
+			for property in [
+				'directionCount', 'frameCount', 'frameRate', 'frameSize'
+			]
+				@[String.setterName property] O[property] if O[property]?
+			
+			Graphics.Image.load(O.imageUri).then (image) =>
+				
+				@setImage image, O.frameSize
+				
+				@public()
+				
+		clampDirection: (direction) ->
+			
+			return 0 if @directionCount() is 1
+			
+			direction = Math.min 7, Math.max direction, 0
+			direction = {
+				4: 1
+				5: 1
+				6: 3
+				7: 3
+			}[direction] if @directionCount() is 4 and direction > 3
+			
+			direction
 		
-	tick: ->
+		render: (
+			destination
+			index = @index()
+		) ->
+			return unless @frameCount() > 0
+			return unless @image()?
+			
+			if index isnt @index()
+				@sprite.setSourceRectangle @sourceRectangle index
+				
+			@sprite.renderTo destination
 		
-		return if @paused_
+		setDirection: (direction) ->
+			DirectionProperty::setDirection.call(
+				this
+				@clampDirection direction
+			)
 		
-		if @frameCount_ is 0
-			@emit 'rolledOver'
+		setImage: (
+			image
+			frameSize
+		) ->
+			ImageProperty::setImage.call this, image
+			
+			_public = @public()
+			
+			_public.emit 'imageChanged'
+			
+			# If the frame size isn't explicitly given, then calculate the
+			# size of one frame using the total number of frames and the total
+			# spritesheet size. Width is calculated by dividing the total
+			# spritesheet width by the number of frames, and the height is the
+			# height of the spritesheet divided by the number of directions
+			# in the animation.
+			@setFrameSize frameSize ? Vector.div(
+				@image().size()
+				[@frameCount(), @directionCount()]
+			)
+		
 			return
+		
+		sourceRectangle: (index = @index()) ->
 			
-		@frameTicker_.tick()
+			Rectangle.compose(
+				Vector.mul @frameSize(), [
+					Math.floor index % @frameCount()
+					@direction()
+				]
+				@frameSize()
+			)
+		
+		start: (async = true) ->
+			return if @interval?
 			
-	start: (async = true) ->
-		return if @interval_ isnt null
-		
-		if async
-			@setFrameTicker new Ticker.OutOfBand @frameRate_
-			@interval_ = setInterval (=> @tick()), 10
-		else
-			@setFrameTicker new Ticker.InBand @frameRate_
-			@interval_ = true
-		
-	stop: ->
-		return if @interval_ is null
-		
-		clearInterval @interval_ unless @interval_ is true
-		@interval_ = null
-		
-	render: (
-		position
-		destination
-		alpha = 1
-		scale = [1, 1]
-		mode = Graphics.GraphicsService.BlendMode_Blend
-		index
-	) ->
-		return if @frameCount_ is 0
-		
-		sprite = new Graphics.Sprite()
-		sprite.setSource @image_
-		sprite.setPosition position
-		sprite.setBlendMode mode
-		sprite.setAlpha alpha
-		sprite.setScale scale[0], scale[1]
-		sprite.setSourceRectangle Rectangle.compose(
-			@framePosition index
-			@frameSize_
-		)
-		sprite.renderTo destination
+			if async
+				
+				type = 'OutOfBand'
+				@interval = setInterval (=> @tick()), 10
+				
+			else
+				
+				type = 'InBand'
+				@interval = true
 	
-	toJSON: ->
-		
-		@uri ?= ''
-		
-		image: @image_.uri() if @image_.uri() isnt @uri.replace '.animation.json', '.png'
-		directionCount: @directionCount_
-		frameRate: @frameRate_
-		frameCount: @frameCount_
-		frameSize: @frameSize_
+			@ticker = new Ticker[type] @frameRate()
+			@ticker.on 'tick', @animate, @
+
+		stop: ->
+			return unless @interval?
+			
+			clearInterval @interval if @interval isnt true
+			@interval = null
+			
+			@ticker.off 'tick'
+			@ticker = null
+			
+		tick: -> @ticker?.tick() if @interval is true
+				
+		toJSON: ->
+			
+			directionCount: @directionCount()
+			frameRate: @frameRate()
+			frameCount: @frameCount()
+			frameSize: @frameSize()
+			imageUri: @image().uri() if @image().uri() isnt (@uri ? '').replace '.animation.json', '.png'
