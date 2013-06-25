@@ -18,18 +18,12 @@ module.exports = class extends Trait
 
 	setVariables: (variables) -> @room = variables.room if variables.room?
 	
-	actions: ->
+	properties: ->
 		
-		setLayer: (layer) ->
-			oldLayer = @state.layer
-			
-			@state.layer = layer
-			@entity.emit 'layerChanged', oldLayer if oldLayer isnt @state.layer
+		layer: {}
 	
 	values: ->
 		
 		room: -> @room
 
-		layer: -> @state.layer
-		
 		saveWithRoom: -> @state.saveWithRoom

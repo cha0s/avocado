@@ -7,17 +7,18 @@ module.exports = Behavior = class extends Trait
 	
 	stateDefaults: ->
 		
-		rules: []
-		routines: []
+		actionIndex: 0
 		behaving: true
 		evaluatingRules: true
 		executingRoutine: true
+		routineIndex: 0
+		routines: []
+		rules: []
 	
 	constructor: (entity, state) ->
 	
 		super entity, state
 		
-		@actionIndex = 0
 		@routines = []
 		@routinePromiseLock = false
 		@rules = []
@@ -36,18 +37,22 @@ module.exports = Behavior = class extends Trait
 		return if @routinePromiseLock
 		@routinePromiseLock = true
 		
+		actionIndex = @entity.actionIndex()
+		
 		fulfill = (result) =>
 			@routinePromiseLock = false	
 			
-			@actionIndex += result?.increment ? 1
-			if @actionIndex >= @routine['actions'].length
-				@actionIndex = 0
+			actionIndex += result?.increment ? 1
+			if actionIndex >= @routine['actions'].length
+				actionIndex = 0
 				
 				@entity.emit 'finishedRoutine', @routine
+				
+			@entity.setActionIndex actionIndex
 		
 		promiseOrResult = Method.EvaluateManually(
 			@variables
-			@routine['actions'][@actionIndex].Method
+			@routine['actions'][actionIndex].Method
 		)
 		
 		# Promises will always wait a tick, so if it isn't a promise, fulfill
@@ -60,67 +65,47 @@ module.exports = Behavior = class extends Trait
 	initializeTrait: ->
 		
 		@routines = @state.routines.concat()
-		@routine = @routines[@actionIndex]
+		@routine = @routines[@entity.routineIndex()]
 		
 		rulePromises = for ruleO in @state.rules.concat()
 			rule = new Rule()
 			rule.fromObject ruleO
 		
 		Q.all(rulePromises).then (@rules) =>
+	
+	properties: ->
+		
+		actionIndex: {}
+		behaving: {}
+		evaluatingRules: {}
+		executingRoutine: {}
+		routineIndex:
+			set: (routineIndex, actionIndex = 0) ->
+				
+				@routine = @routines[@state.routineIndex = routineIndex]
+				@entity.setActionIndex actionIndex
+				unless @routine['actions'][actionIndex]?
+					throw new Error 'No such command index'
+					
+				# Don't increment; the routine changed.
+				increment: 0
 			
-	values: ->
-		
-		currentRoutineName: -> @routine['name']
-		
-		currentActionIndex: -> @actionIndex
-		
 	actions: ->
 		
-		setRoutine:
+		setRoutineIndexByName: (routineName, actionIndex = 0) ->
+			return if @routine['name'] is routineName
 			
-			name: "Set routine"
-			argTypes: ['String', 'Number']
-			argNames: ['Routine name', 'Action index']
-			f: (routineName, actionIndex = 0) ->
-				return if @routine['name'] is routineName
-				
-				routineNames = _.map @routines, (routine) -> routine.name
-				if -1 is routineIndex = routineNames.indexOf routineName
-					throw new Error 'routine[' + routineName + '] does not exist!'
-				
-				@routine = @routines[routineIndex]
-				unless @routine['actions'][@actionIndex = actionIndex]?
-					throw new Error 'No such command index'
-				
-				# Don't increment since the routine changed.
-				increment: 0
+			routineNames = _.map @routines, (routine) -> routine.name
+			if -1 is routineIndex = routineNames.indexOf routineName
+				throw new Error 'routine[' + routineName + '] does not exist!'
+			
+			@entity.setRoutineIndex routineIndex, actionIndex
 		
-		setBehaving:
-			
-			name: "Set behaving"
-			argTypes: ['Boolean']
-			argNames: ['Behaving']
-			f: (behaving) -> @state.behaving = behaving
-			
-		setEvaluatingRules:
-			
-			name: "Set rules are evaluating"
-			argTypes: ['Boolean']
-			argNames: ['Rules are evaluating']
-			f: (evaluatingRules) -> @state.evaluatingRules = evaluatingRules
-			
-		setExecutingRoutine:
-			
-			name: "Set routines are evaluating"
-			argTypes: ['Boolean']
-			argNames: ['Routines are evaluating']
-			f: (executingRoutine) -> @state.executingRoutine = executingRoutine
-			
 	handler: ->
 		
 		ticker: ->
 			
-			return unless @state.behaving
+			return unless @entity.behaving()
 			
-			@evaluateRules() if @state.evaluatingRules
-			@executeRoutine() if @state.executingRoutine
+			@evaluateRules() if @entity.evaluatingRules()
+			@executeRoutine() if @entity.executingRoutine()

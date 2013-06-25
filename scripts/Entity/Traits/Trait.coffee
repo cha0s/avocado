@@ -3,7 +3,6 @@ Q = require 'Utility/Q'
 
 module.exports = class
 
-	# Currently unused: map Trait modules 
 	@moduleMap = {}
 	
 	# Extend the state with defaults. Make sure you call from children!
@@ -39,10 +38,15 @@ module.exports = class
 	
 	values: -> {}
 	
+	properties: -> {}
+	
 	initializeTrait: -> Q.resolve()
 	
 	resetTrait: ->
-	
+		
+		for key of @['properties']()
+			@entity.emit "#{key}Changed"
+		
 	removeTrait: ->
 	
 	setVariables: (variables) ->

@@ -24,6 +24,7 @@ module.exports = Animation = class
 		
 	Properties = [
 		Property 'alpha', 1
+		Property 'async', true
 		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
 		DirectionProperty = Property 'direction', 0
 		Property 'directionCount', 1
@@ -184,12 +185,12 @@ module.exports = Animation = class
 				_public.frameSize()
 			)
 		
-		start: (async = true) ->
+		start: ->
 			return if @interval?
 			
 			_public = @public()
 			
-			if async
+			if _public.async()
 				
 				type = 'OutOfBand'
 				@interval = setInterval (=> _public.tick()), 10
@@ -211,4 +212,4 @@ module.exports = Animation = class
 			@ticker.off 'tick'
 			@ticker = null
 			
-		tick: -> @ticker?.tick() if @interval is true
+		tick: -> @ticker?.tick()

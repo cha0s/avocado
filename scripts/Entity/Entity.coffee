@@ -8,6 +8,7 @@ EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
+String = require 'Extension/String'
 Transition = require 'Mixin/Transition'
 Vector = require 'Extension/Vector'
 
@@ -134,6 +135,21 @@ module.exports = Entity = class
 		trait.type = type
 		@traits[trait.type] = trait
 		
+		# Bind properties
+		for key, meta of trait['properties']()
+			do (key, meta) =>
+				@[key] = _.bind(
+					meta.get ? -> @state[key]
+					trait
+				)
+				setter = meta.set ? (value) -> @state[key] = value
+				@[String.setterName key] = (value) =>
+					oldValue = @[key]()
+					setter.apply trait, arguments
+					@emit "#{key}Changed" if oldValue isnt trait.state[key]
+					
+				@emit "#{key}Changed"
+			
 		# Bind the actions and values associated with this trait.
 		for type in ['actions', 'values']
 			for index, meta of trait[type]()
@@ -350,6 +366,7 @@ module.exports = Entity = class
 	# Called every engine tick.
 	tick: ->
 		ticker.f() for ticker in @tickers
+		@emit 'tick'
 		return
 	
 	# Called every engine render cycle.
