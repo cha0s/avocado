@@ -32,7 +32,7 @@ module.exports = Animation = class
 		Property 'frameRate', 100
 		Property 'frameSize', [0, 0]
 		ImageProperty = Property 'image', null
-		Property 'index', 0
+		IndexProperty = Property 'index', 0
 		VectorMixin [0, 0], 'position'
 		Property 'scale', [1, 1]
 		Property 'uri', ''
@@ -88,6 +88,10 @@ module.exports = Animation = class
 		
 	forwardCallToPrivate 'render'
 
+	forwardCallToPrivate 'setDirection'
+	
+	forwardCallToPrivate 'setIndex'
+	
 	forwardCallToPrivate 'start'
 
 	forwardCallToPrivate 'stop'
@@ -113,9 +117,9 @@ module.exports = Animation = class
 			@sprite = new Graphics.Sprite()
 			@ticker = null
 			
+			_public.on 'alphaChanged', => @sprite.setAlpha _public.alpha()
 			_public.on 'imageChanged', => @sprite.setSource _public.image()
 			_public.on 'positionChanged', => @sprite.setPosition _public.position()
-			_public.on 'alphaChanged', => @sprite.setAlpha _public.alpha()
 			_public.on 'blendModeChanged', => @sprite.setBlendMode _public.blendMode()
 			_public.on 'scaleChanged', => @sprite.setScale _public.scale()
 			_public.on(
@@ -166,11 +170,20 @@ module.exports = Animation = class
 				@sprite.setSourceRectangle @sourceRectangle index
 				
 			@sprite.renderTo destination
-		
+			
 		setDirection: (direction) ->
 			DirectionProperty::setDirection.call(
 				@public()
 				@clampDirection direction
+			)
+		
+		setIndex: (index) ->
+			
+			_public = @public()
+			
+			IndexProperty::setIndex.call(
+				_public
+				index % _public.frameCount()
 			)
 		
 		sourceRectangle: (index) ->
@@ -179,7 +192,7 @@ module.exports = Animation = class
 			
 			Rectangle.compose(
 				Vector.mul _public.frameSize(), [
-					Math.floor (index ? _public.index()) % _public.frameCount()
+					(index ? _public.index()) % _public.frameCount()
 					_public.direction()
 				]
 				_public.frameSize()
@@ -200,7 +213,9 @@ module.exports = Animation = class
 				type = 'InBand'
 				@interval = true
 	
-			@ticker = new Ticker[type] _public.frameRate()
+			@ticker = new Ticker[type]()
+			@ticker.setFrequency _public.frameRate()
+			
 			@ticker.on 'tick', @animate, @
 
 		stop: ->

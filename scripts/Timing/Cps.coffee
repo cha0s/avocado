@@ -16,14 +16,16 @@ module.exports = class
 	# milliseconds.
 	constructor: (frequency = 250) ->
 		
-		@ticker = new Ticker.OutOfBand frequency
-		@fps = 0
-		@c = 0
+		@ticker = new Ticker.OutOfBand()
+		@ticker.setFrequency frequency
 		
 		@ticker.on 'tick', =>
 			@fps = @c * (1000 / frequency)
 			@c = 0
 
+		@fps = 0
+		@c = 0
+		
 	# Call every time the process you want to measure runs.
 	tick: ->
 		
