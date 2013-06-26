@@ -1,6 +1,11 @@
 
+
+
+Mixin = require 'Mixin/Mixin'
 Rectangle = require 'Extension/Rectangle'
 String = require 'Extension/String'
+Vector = require 'Extension/Vector'
+VectorMixin = require 'Mixin/Vector'
 
 module.exports = RectangleMixin = (
 	rectangle = 'rectangle'
@@ -11,49 +16,36 @@ module.exports = RectangleMixin = (
 	position = 'position'
 	size = 'size'
 ) ->
-	
-	_rectangle = "_#{rectangle}"
-	setPosition = "#{String.setterName position}"
-	setRectangle = "#{String.setterName rectangle}"
-	setSize = "#{String.setterName size}"
+
+	_setRectangle = String.setterName rectangle
+	_setPosition = String.setterName position
+	_setSize = String.setterName size
 	
 	class
-	
-		@::[_rectangle] = [0, 0, 0, 0]
 		
-		constructor: -> @[_rectangle] = [0, 0, 0, 0]
+		constructor: ->
+			property.call this for property in properties
+			
+		properties = [
+			PositionProperty = VectorMixin position, x, y
+			SizeProperty = VectorMixin size, width, height
+		]
 		
-		@::[rectangle] = -> @[_rectangle]
-		@::[setRectangle] = (rectangle) ->
-			@[_rectangle] = rectangle
+		Mixin.apply null, [@::].concat properties
 		
-		@::[x] = -> @[_rectangle][0]
-		@::["#{String.setterName x}"] = (x) ->
-			r = @[_rectangle]
-			@[setPosition] [x, r[1]]
-	
-		@::[y] = -> @[_rectangle][1]
-		@::["#{String.setterName y}"] = (y) ->
-			r = @[_rectangle]
-			@[setPosition] [r[0], y]
-	
-		@::[position] = -> Rectangle.position @[_rectangle]
-		@::["#{String.setterName position}"] = (position) ->
-			r = @[_rectangle]
-			@[setRectangle] [position[0], position[1], r[2], r[3]]
-	
-		@::[width] = -> @[_rectangle][2]
-		@::["#{String.setterName width}"] = (width) ->
-			r = @[_rectangle]
-			@[setSize] [width, r[3]]
-	
-		@::[height] = -> @[_rectangle][3]
-		@::["#{String.setterName height}"] = (height) ->
-			r = @[_rectangle]
-			@[setSize] [r[2], height]
-
-		@::[size] = -> Rectangle.size @[_rectangle]
-		@::["#{String.setterName size}"] = (size) ->
-			r = @[_rectangle]
-			@[setRectangle] [r[0], r[1], size[0], size[1]]
-		
+		@::[rectangle] = -> Rectangle.compose @[position](), @[size]()
+		@::[_setRectangle] = (_rectangle) ->
+			oldRectangle = @[rectangle]()
+			PositionProperty::[_setPosition].call this, Rectangle.position _rectangle
+			SizeProperty::[_setSize].call this, Rectangle.size _rectangle
+			@emit? "#{rectangle}Changed" unless Rectangle.equals oldRectangle, _rectangle
+			
+		@::[_setPosition] = (_position) ->
+			oldPosition = @[position]()
+			@[_setRectangle] Rectangle.compose _position, @[size]()
+			@emit? "#{position}Changed" unless Vector.equals oldPosition, _position
+			
+		@::[_setSize] = (_size) ->
+			oldSize = @[size]()
+			@[_setRectangle] Rectangle.compose @[position](), _size
+			@emit? "#{size}Changed" unless Vector.equals oldSize, _size
