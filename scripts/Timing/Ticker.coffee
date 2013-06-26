@@ -10,16 +10,16 @@ module.exports = Ticker = class
 
 	constructor: ->
 		EventEmitter.call this
-		Property.call this for Property in Properties
+		property.call this for property in properties
 		
 		PrivateScope.call @, Private, 'tickerScope'
 	
 	Mixin @::, EventEmitter
 
-	Properties = [
+	properties = [
 		Property 'frequency', 0
 	]
-	Mixin.apply null, [@::].concat Properties
+	Mixin.apply null, [@::].concat properties
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
 		@::, call

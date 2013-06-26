@@ -7,21 +7,21 @@ module.exports = Color = class
 
 	constructor: (r = 255, g = 0, b = 255, a = 1) ->
 		
-		Property.call this for Property, i in Properties
+		property.call this for property, i in properties
 		
 		@setRed r
 		@setGreen g
 		@setBlue b
 		@setAlpha a
 			
-	Properties = [
+	properties = [
 		Property 'red', 0
 		Property 'green', 0
 		Property 'blue', 0
 		Property 'alpha', 1
 	]
 	
-	Mixin.apply null, [@::].concat Properties
+	Mixin.apply null, [@::].concat properties
 
 Color.Rgba = Rgba = (r, g, b, a) ->
 

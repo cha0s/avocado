@@ -18,11 +18,11 @@ module.exports = Animation = class
 	
 	constructor: ->
 		EventEmitter.call this
-		Property.call this for Property in Properties
+		property.call this for property in properties
 		
 		PrivateScope.call @, Private, 'animationScope'
 		
-	Properties = [
+	properties = [
 		Property 'alpha', 1
 		Property 'async', true
 		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
@@ -33,13 +33,13 @@ module.exports = Animation = class
 		Property 'frameSize', [0, 0]
 		ImageProperty = Property 'image', null
 		IndexProperty = Property 'index', 0
-		VectorMixin [0, 0], 'position'
+		VectorMixin 'position'
 		Property 'scale', [1, 1]
 		Property 'uri', ''
 	]
 	
 	Mixin @::, EventEmitter
-	Mixin.apply null, [@::].concat Properties
+	Mixin.apply null, [@::].concat properties
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
 		@::, call
