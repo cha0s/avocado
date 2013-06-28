@@ -79,7 +79,7 @@ module.exports = Entity = class
 		# 
 		# * **[EventEmitter](../Utility/EventEmitter.html)** for Existence::emit()
 		# * **[Transition](../Utility/Transition.html)** for transitioning any property.
-		Mixin this, EventEmitter, Transition
+		Mixin this, EventEmitter, Transition.InBand
 		
 		# Initialize members.
 		@traits = {}

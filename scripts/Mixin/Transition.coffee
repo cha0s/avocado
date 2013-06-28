@@ -19,17 +19,192 @@
 # [jQuery.animate](http://api.jquery.com/animate/), though the API is ***NOT***
 # compatible.
 
+Timing = require 'Timing'
+
 Mixin = require 'Mixin/Mixin'
+PrivateScope = require 'Utility/PrivateScope'
 Q = require 'Utility/Q'
 String = require 'Extension/String'
 TimingService = require('Timing').TimingService
 
-module.exports = Transition = class
+TransitionResult = class
+	
+	constructor: (object, props, speed, easing) ->
+		_private = PrivateScope.call @, Private, 'transitionResultScope'
+		
+		_private.construct object, props, speed, easing
+	
+	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
+		@::, call
+		-> Private
+		'transitionResultScope'
+	)
+	
+	elapsedSinceLast: -> throw new Error(
+		'Transition::elapsedSinceLast() is a pure virtual function!'
+	)
+	
+	forwardCallToPrivate 'skipTransition'
+	
+	forwardCallToPrivate 'stopTransition'
+	
+	forwardCallToPrivate 'tick'
+	
+	Private = class
+		
+		construct: (@object, @props, speed, easing) ->
+			
+			_public = @public()
+			
+			# Speed might not get passed. If it doesn't, default to 100
+			# milliseconds.
+			@speed = if 'number' is typeof speed
+				speed
+			else
+				100
+		
+			# If easing isn't passed in as a function, attempt to look it up
+			# as a string key into Transition.easing. If that fails, then
+			# default to 'easeOutQuad'.
+			@easing = if 'function' isnt typeof easing
+				Transition.easing[easing] ? Transition.easing['easeOutQuad']
+			else
+				easing
+			
+			@original = {}
+			@change = {}
+			@method = {}
+			
+			for i, prop of @props
+				value = @object[i]()
+				
+				@original[i] = value
+				@change[i] = prop - value
+				@method[i] = String.setterName i
+			
+			# Set up the transition object.
+			@deferred = Q.defer()
+			_public.promise = @deferred.promise
+				
+			@elapsed = 0
+			@duration = @speed / 1000
+			@interval = null
+			@self = this
 
-	# Registered easing functions. An easing function is a parametric equation
-	# that determines the value of a property over the time length of the
-	# transition.
-	@easing: {}
+		# Immediately finish the transition. This will leave the object
+		# in the fully transitioned state.
+		skipTransition: ->
+		
+			# Just trick it into thinking the time passed and do one last
+			# tick.
+			@elapsed = @duration
+			@tick()
+
+		# Immediately stop the transition. This will leave the object in
+		# its current state; potentially partially transitioned.				
+		stopTransition: ->
+		
+			# Let any listeners know that the transition is complete.
+			@deferred.notify [@elapsed, @duration]
+			@deferred.resolve()
+
+		# Tick callback. Called repeatedly while this transition is
+		# running.
+		tick: ->
+			
+			_public = @public()
+			
+			# Update the transition's elapsed time.
+			@elapsed += _public.elapsedSinceLast()
+			
+			# If we've overshot the duration, we'll fix it up here, so
+			# things never transition too far (through the end point).
+			if @elapsed >= @duration
+				@elapsed = @duration
+				
+				for i of @change
+					if @change[i]
+						@object[@method[i]] @props[i]
+						
+			else
+			
+				# Do easing for each property that actually changed.
+				for i of @change
+					if @change[i]
+						@object[@method[i]] @easing(
+							@elapsed,
+							@original[i],
+							@change[i],
+							@duration
+						)
+			
+			# Stop if we're done.
+			if @elapsed is @duration
+				@stopTransition()
+			else
+				@deferred.notify [@elapsed, @duration]
+
+module.exports = Transition = class					
+
+	TransitionResultOutOfBand = class extends TransitionResult
+	
+		constructor: ->
+			super
+			
+			_private = PrivateScope.call @, Private, 'outOfBandTransitionScope'
+			_private.startInterval()
+		
+		elapsedSinceLast: ->
+			
+			_private = @outOfBandTransitionScope Private
+			_private.elapsedSinceLast()
+		
+		stopTransition: ->
+			super
+			
+			_private = @outOfBandTransitionScope Private
+			_private.stopTransition()
+		
+		Private = class
+			
+			constructor: -> @last = Timing.TimingService.elapsed()
+				
+			elapsedSinceLast: ->
+				
+				elapsed = Timing.TimingService.elapsed() - @last
+				@last = Timing.TimingService.elapsed()
+				elapsed
+				
+			startInterval: (result) ->
+				
+				_public = @public()
+				@interval = setInterval (=> _public.tick()), 10
+			
+			stopTransition: ->
+			
+				# Stop the tick loop and clear out the handle so additional
+				# transitions attached to this object won't wait.
+				if @interval?
+					clearInterval @interval
+					@interval = null
+			
+	# Transition a set of properties at the specified speed in milliseconds,
+	# using the specified easing function.
+	transition: (
+		props
+		speed
+		easing
+	) ->
+		
+		new TransitionResultOutOfBand @, props, speed, easing
+
+Transition.OutOfBand = Transition
+
+Transition.InBand = class					
+
+	TransitionResultInBand = class extends TransitionResult
+	
+		elapsedSinceLast: -> Timing.TimingService.tickElapsed()
 	
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.
@@ -37,120 +212,18 @@ module.exports = Transition = class
 		props
 		speed
 		easing
-		async = true
 	) ->
 		
-		# Speed might not get passed. If it doesn't, default to 100
-		# milliseconds.
-		speed = if 'number' == typeof speed then speed else 100
-		
-		# If easing isn't passed in as a function, attempt to look it up
-		# as a string key into Transition.easing. If that fails, then
-		# default to 'easeOutQuad'.
-		if 'function' isnt typeof easing
-			easing = Transition.easing[easing] ? Transition.easing['easeOutQuad']
-		
-		# Store the original values of the properties and calculate the
-		# difference between the original values and the requested values.
-		original = {}
-		change = {}
-		method = {}
-		for i, prop of props
-			value = this[i]()
-			original[i] = value
-			change[i] = prop - value
-			method[i] = String.setterName i
-		
-		# Set up the transition object.
-		deferred = Q.defer()
-		transition = promise: deferred.promise
-			
-		elapsed = 0
-		duration = speed / 1000
-		interval = null
-		start = TimingService.elapsed() if async
-		self = this
-			
-		# Tick callback. Called repeatedly while this transition is
-		# running.
-		transition.tick = ->
-			
-			# Update the transition's elapsed time.
-			if async
-				elapsed += TimingService.elapsed() - start
-				start = TimingService.elapsed()
-			else
-				elapsed += TimingService.tickElapsed()
-			
-			# If we've overshot the duration, we'll fix it up here, so
-			# things never transition too far (through the end point).
-			if elapsed >= duration
-				elapsed = duration
-				
-				for i of change
-					
-					if change[i]
-						
-						self[method[i]] props[i]
-						
-			else
-			
-				# Do easing for each property that actually changed.
-				for i of change
-					
-					if change[i]
-						
-						self[method[i]] easing(
-							elapsed,
-							original[i],
-							change[i],
-							duration
-						)
-			
-			# Stop if we're done.
-			if elapsed is duration
-				@stopTransition()
-			else
-				deferred.notify [elapsed, duration]
-
-		# Immediately stop the transition. This will leave the object in
-		# its current state; potentially partially transitioned.				
-		transition.stopTransition = ->
-			
-			# Stop the tick loop and clear out the handle so additional
-			# transitions attached to this object won't wait.
-			if interval?
-				clearInterval interval
-			
-			# Let any listeners know that the transition is complete.
-			deferred.notify [elapsed, duration]
-			deferred.resolve()
-			
-		# Immediately finish the transition. This will leave the object
-		# in the fully transitioned state.
-		transition.skipTransition = ->
-			
-			# Just trick it into thinking the time passed and do one last
-			# tick.
-			elapsed = duration
-			@tick()
-			
-		# The tick interval.
-		interval = setInterval(
-			=> transition.tick()
-			10
-		) if async
-		
-		transition
+		new TransitionResultInBand @, props, speed, easing
 
 Transition.Vector = class
 
-	constructor: (vector) ->
+	constructor: (vector, Type = Transition) ->
 		
 		@[0] = vector[0]
 		@[1] = vector[1]
 		
-		Mixin this, Transition
+		Mixin this, Type
 		
 	x: -> @[0]
 	setX: (x) -> @[0] = x
@@ -159,15 +232,20 @@ Transition.Vector = class
 
 Transition.Value = class
 
-	constructor: (value, key = 'value') ->
+	constructor: (value, key = 'value', Type = Transition) ->
 		
 		@["_#{key}"] = value
 		
 		@[key] = -> @["_#{key}"]
 		@[String.setterName key] = (value) -> @["_#{key}"] = value
 		
-		Mixin this, Transition
-		
+		Mixin this, Type
+
+# Registered easing functions. An easing function is a parametric equation
+# that determines the value of a property over the time length of the
+# transition.
+Transition.easing = {}
+
 ###
  *
  * jQuery Easing v1.3 - http://gsgd.co.uk/sandbox/jquery/easing/
