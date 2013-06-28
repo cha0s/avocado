@@ -35,10 +35,10 @@ module.exports = VectorMixin = (
 			
 		@::[_setX] = (_x) ->
 			oldX = @[x]()
-			@[_setVector] _x, @[y]()
+			@[_setVector] [_x, @[y]()]
 			@emit? "#{x}Changed" if oldX isnt _x
 			
 		@::[_setY] = (_y) ->
 			oldY = @[y]()
-			@[_setVector] @[x](), _y
+			@[_setVector] [@[x](), _y]
 			@emit? "#{y}Changed" if oldY isnt _y
