@@ -22,9 +22,7 @@ module.exports = Ticker = class
 	Mixin.apply null, [@::].concat properties
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call
-		-> Private
-		'tickerScope'
+		@::, call, (-> Private), 'tickerScope'
 	)
 	
 	elapsedSinceLast: -> throw new Error(

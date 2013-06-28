@@ -42,9 +42,7 @@ module.exports = Animation = class
 	Mixin.apply null, [@::].concat properties
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call
-		-> Private
-		'animationScope'
+		@::, call, (-> Private), 'animationScope'
 	)
 	
 	@load: (uri) ->

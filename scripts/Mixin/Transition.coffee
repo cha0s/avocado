@@ -35,9 +35,7 @@ TransitionResult = class
 		_private.construct object, props, speed, easing
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call
-		-> Private
-		'transitionResultScope'
+		@::, call, (-> Private), 'transitionResultScope'
 	)
 	
 	elapsedSinceLast: -> throw new Error(
