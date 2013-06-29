@@ -3,6 +3,7 @@
 # events.
 
 _ = require 'Utility/underscore'
+Mixin = require 'Mixin/Mixin'
 
 module.exports = EventEmitter = class
 
@@ -132,3 +133,5 @@ module.exports = EventEmitter = class
 			f.apply spec.that, args
 
 		undefined
+
+EventEmitter.Mixin = (O) -> Mixin O, EventEmitter
