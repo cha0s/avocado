@@ -1,79 +1,99 @@
 
 # # Main
 # 
-# Abstract execution context. Stuff that happens regardless of the platform
-# we're running on.
+# Execution context. The "main loop" of the Avocado engine.
 Graphics = require 'Graphics'
 
 Cps = require 'Timing/Cps' 
 EventEmitter = require 'Mixin/EventEmitter'
-Mixin = require 'Mixin/Mixin'
 PrivateScope = require 'Utility/PrivateScope'
-Q = require 'Utility/Q'
 StateMachine = require 'State/StateMachine'
 Timing = require 'Timing'
 
 # #### Construction
-# Implements the main engine loop. Uses a [state machine](./State/StateMachine.html)
-# to handle engine states, and handles fixed-step tick timing.
-# 
-# Subclass this to implement platform-specific functionality.
-# 
+# Uses a [state machine](./State/StateMachine.html) to handle engine states, 
+# and handles fixed-step tick timing.
 module.exports = Main = class
 	
 	constructor: ->
-		PrivateScope.call @, Private
+		EventEmitter.call this
 		
-		stateMachine = @private().stateMachine
+		PrivateScope.call @, Private, 'mainScope'
 		
-		# Emits:
-		# 
-		# * <code>error</code>: When an error was encountered.
-		# * <code>quit</code>: When the engine is shutting down.
-		# * <code>stateConstructed</code>: When constructing a state.
-		# * <code>stateLeft</code>: When leaving a state.
-		# * <code>stateInitialized</code>: When initializing a state.
-		# * <code>stateEntered</code>: When entering a state.
-		# 
-		Mixin this, EventEmitter
-		stateMachine.on 'stateLeft', (name) => @emit 'stateLeft', name
-		stateMachine.on 'stateConstructed', (state) => state.main = @
-		stateMachine.on 'stateInitialized', (name) => @emit 'stateInitialized', name
-		stateMachine.on 'stateEntered', (name) => @emit 'stateEntered', name
+		# Enter the 'Initial' state. This is implemented by your game.
+		@transitionToState 'Initial'
 		
+	# #### Emits
+	# 
+	# * `error` - When an error was encountered.
+	# * `quit` - When the engine is shutting down.
+	# * `stateConstructed` - When constructing a state.
+	# * `stateLeft` - When leaving a state.
+	# * `stateInitialized` - When initializing a state.
+	# * `stateEntered` - When entering a state.
+	# * `tick` - When the engine ticks.
+	# 
+	EventEmitter.Mixin @::
+	
+	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
+		@::, call, (-> Private), 'mainScope'
+	)
+	
 	# ##### begin
+	# 
 	# Start asynchronous execution. Calling again before calling
-	# <code>quit()</code> is a no-op.
-	begin: -> @private().begin()
+	# `quit()` is a no-op.
+	forwardCallToPrivate 'begin'
 		
 	# ##### transitionToState
+	# * `name` - The name of the state.
+	# * `args` - The arguments passed to `State::enter()`.
+	# 
 	# Change state on the next tick.
-	transitionToState: (name, args = {}) -> 
-		@private().stateMachine.transitionToState name, args
+	transitionToState: (name, args = {}) ->
+		
+		_private = @mainScope Private
+		_private.stateMachine.transitionToState name, args
 	
 	# ##### currentStateInstance
+	# 
 	# Returns a reference to the current state instance.
-	currentStateInstance: -> @private().stateMachine.currentStateInstance()
+	currentStateInstance: ->
+		
+		_private = @mainScope Private
+		_private.stateMachine.currentStateInstance()
 	
 	# ##### tick
+	# 
 	# Tick the engine, exposed so that subclasses can augment their ticks.
-	tick: -> @private().tick()
+	# Emits the `tick` event.
+	forwardCallToPrivate 'tick'
 	
 	# ##### tps
+	# 
 	# Returns the ticks per second the engine is achieving.
-	tps: -> @private().tickCps.count()
+	tps: ->
+		
+		_private = @mainScope Private
+		_private.tickCps.count()
 	
 	# ##### quit
-	# Stop execution: Clear intervals and emit the <code>quit</code> event.
-	quit: -> @private().quit()
+	# 
+	# Stop execution: Clear intervals and emit the `quit` event.
+	# Calling before calling `begin()` is a no-op.
+	forwardCallToPrivate 'quit'
 	
 	# #### Private
 	# Implementation details follow...
 	Private = class
 		
-		constructor: ->
+		constructor: (_public) ->
 
 			@stateMachine = new StateMachine()
+			@stateMachine.on 'stateLeft', (name) => _public.emit 'stateLeft', name
+			@stateMachine.on 'stateConstructed', (state) => state.main = _public
+			@stateMachine.on 'stateInitialized', (name) => _public.emit 'stateInitialized', name
+			@stateMachine.on 'stateEntered', (name) => _public.emit 'stateEntered', name
 			
 			# #### Timing
 			# 
@@ -87,10 +107,10 @@ module.exports = Main = class
 			@tickInterval = null
 			
 			# [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
+			@lastElapsed = 0
 			@tickFrequency = 1000 / Timing.ticksPerSecondTarget
 			@tickTargetSeconds = 1 / Timing.ticksPerSecondTarget
-			@lastElapsed = 0
-			@elapsedPending = 0
+			@tickRemainder = 0
 			Timing.TimingService.setTickElapsed @tickTargetSeconds
 		
 		begin: ->
@@ -118,20 +138,16 @@ module.exports = Main = class
 		tick: ->
 		
 			elapsed = Timing.TimingService.elapsed()
-			@elapsedPending += elapsed - @lastElapsed
+			@tickRemainder += elapsed - @lastElapsed
 			@lastElapsed = elapsed
 			
 			_public = @public()
 			
-			while @elapsedPending > @tickTargetSeconds
+			while @tickRemainder > @tickTargetSeconds
 				@tickCps.tick()
 				@stateMachine.tick()
 				_public.emit 'tick'
 				
-				@elapsedPending -= @tickTargetSeconds
+				@tickRemainder -= @tickTargetSeconds
 				
 			return
-		
-		public: -> @getScope()
-	
-	private: -> @getScope Private
