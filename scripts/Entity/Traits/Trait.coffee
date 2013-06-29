@@ -40,12 +40,14 @@ module.exports = class
 	
 	properties: -> {}
 	
-	initializeTrait: -> Q.resolve()
+	initializeTrait: ->
 	
 	resetTrait: ->
 		
 		for key of @['properties']()
 			@entity.emit "#{key}Changed"
+			
+		return
 		
 	removeTrait: ->
 	

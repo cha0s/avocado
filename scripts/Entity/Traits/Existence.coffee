@@ -28,8 +28,12 @@ module.exports = Existence = class extends Trait
 		
 		directionCount: {}
 		name: {}	
-		position: set: (position) -> @state.position = Vector.copy position
-		size: set: (size) -> @state.size = Vector.copy size
+		position:
+			set: (position) -> @state.position = Vector.copy position
+			eq: (l, r) -> Vector.equals l, r
+		size:
+			set: (size) -> @state.size = Vector.copy size
+			eq: (l, r) -> Vector.equals l, r
 	
 	values: ->
 		

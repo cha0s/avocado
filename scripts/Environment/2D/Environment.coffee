@@ -45,11 +45,6 @@ module.exports = Environment = class
 	uri: -> @uri_
 	setUri: (@uri_) ->
 	
-	copy: ->
-		environment = new Environment()
-		environment.fromObject @toJSON()
-		environment
-	
 	toJSON: ->
 		
 		name: @name_

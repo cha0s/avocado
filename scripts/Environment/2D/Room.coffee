@@ -60,11 +60,6 @@ module.exports = Room = class
 			
 			this
 		
-	copy: ->
-		room = new Room()
-		room.fromObject @toJSON()
-		room
-	
 	physics: -> @_physics
 	
 	reset: -> entity.reset() for entity in @entities_

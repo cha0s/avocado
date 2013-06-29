@@ -17,7 +17,6 @@ describe 'Environment', ->
 		(new Environment()).fromObject(O).then (environment) ->
 			
 			expect(environment.roomCount()).toBe 2
-			expect(environment.tileset().isValid()).toBe false
 			
 			done()
 

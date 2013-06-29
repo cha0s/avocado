@@ -4,7 +4,7 @@
   "description": "Avocado game framework",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_PATH=scripts:test/scripts node node_modules/jasmine-node/lib/jasmine-node/cli.js --coffee scripts",
+    "test": "NODE_PATH=scripts:test/scripts node node_modules/jasmine-node/lib/jasmine-node/cli.js --coffee scripts test",
     "doc": "NODE_PATH=node_modules/groc/node_modules coffee doc-src/groc.coffee"
   },
   "repository": {
