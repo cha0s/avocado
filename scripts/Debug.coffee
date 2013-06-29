@@ -1,6 +1,8 @@
-# The **Debug** module provides tools to help debug your
-# application.
-	
+
+# # Debug
+# 
+# Provides tools to help debug your application.
+
 	Graphics = require 'Graphics'
 	Timing = require 'Timing'
 	
