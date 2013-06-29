@@ -1,5 +1,15 @@
 {
-  "glob": ["scripts/**/*.coffee", "docu/**/*.md", "README.md"],
-  "strip": ["scripts/", "docu/"],
-  "except": ["scripts/**/*.spec.coffee"]
+	"glob": [
+		"scripts/**/*.coffee",
+		"docu/**/*.md",
+		"README.md"
+	],
+	"strip": [
+		"scripts/", "docu/"
+	],
+	"except": [
+		"scripts/**/*.spec.coffee",
+		"scripts/AbstractConfig.coffee",
+		"scripts/proxySpiis.coffee"
+	]
 }

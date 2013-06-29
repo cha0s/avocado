@@ -132,7 +132,6 @@ body
   left:     $commentary-column-width
   padding:  $common-margin / 4 $common-margin
 
-
 // ## Two-Column Scaling
 
 // Before we swap over to a single column layout, we scale the page down a little bit in an effort
@@ -154,6 +153,12 @@ $scale-stop-width:  $scale-start-width * $scale-min
 
 // We swap over to the single column layout once we hit the edge of the scaling
 $single-column-toggle-width: $scale-stop-width
+
+@media (max-width: #{$single-column-toggle-width})
+
+  #meta
+    top: 43px
+    left: 0
 
 // Switch modes at a little wider than a full (padded) column
 @media (max-width: #{$single-column-toggle-width})
@@ -446,6 +451,14 @@ html
 
   a
     text-decoration: none
+
+@media (max-width: #{$single-column-toggle-width})
+
+  #meta > *
+    text-shadow: 1px 1px 0 #C0D8EC
+    
+    &, a
+      color: #32383d
 
 // We apply font changes to .wrapper elements so that we do not resize the 'standard' em unit that
 // we are relying on for layout.
