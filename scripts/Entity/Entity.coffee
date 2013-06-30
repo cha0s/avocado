@@ -338,6 +338,15 @@ module.exports = Entity = class
 			trait.setVariables variables for type, trait of @traits
 			return
 			
+		# Called every engine tick.
+		tick: ->
+			
+			_public = @public()
+			
+			ticker.f() for ticker in @tickers
+			_public.emit 'tick'
+			return
+			
 		# Initialize an Entity from a POD object.
 		# Emit a JSON representation of the entity.
 		toJSON: ->
@@ -349,15 +358,6 @@ module.exports = Entity = class
 			uri: @uri
 			traits: traits
 		
-		# Called every engine tick.
-		tick: ->
-			
-			_public = @public()
-			
-			ticker.f() for ticker in @tickers
-			_public.emit 'tick'
-			return
-			
 		# Get a trait by name.
 		trait: (traitName) -> @traits[traitName]
 		
