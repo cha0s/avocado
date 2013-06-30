@@ -181,7 +181,7 @@ Private = class
 		_public.on 'mouseButtonDown.Avocado', ({button}) =>
 			switch button
 				when Mouse.ButtonLeft, Mouse.ButtonMiddle, Mouse.ButtonRight
-					@dragStartLocation[button] = mouseLocation
+					@dragStartLocation[button] = @mouseLocation
 					@buttons[button] = true
 				
 		# Stop dragging when a button is released.
@@ -193,7 +193,7 @@ Private = class
 		
 		# When the mouse moves,
 		_public.on 'mouseMove.Avocado', ({x, y}) =>
-			mouseLocation = [x, y]
+			@mouseLocation = [x, y]
 			
 			# Check if any buttons are being held down
 			keys = Object.keys @buttons
@@ -203,10 +203,10 @@ Private = class
 				for key in keys
 					_window.emit(
 						'mouseDrag'
-							position: mouseLocation
+							position: @mouseLocation
 							button: parseInt key
 							relative: Vector.sub(
-								mouseLocation
+								@mouseLocation
 								@dragStartLocation[key]
 							)
 					)
