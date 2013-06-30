@@ -20,6 +20,7 @@ module.exports = Main = class
 	
 		# #### Emits
 		# 
+		# * `beforeTick` - Before the engine ticks.
 		# * `error` - When an error was encountered.
 		# * `quit` - When the engine is shutting down.
 		# * `stateConstructed` - When constructing a state.
@@ -143,11 +144,13 @@ module.exports = Main = class
 
 		tick: ->
 		
+			_public = @public()
+			
+			_public.emit 'beforeTick'
+				
 			elapsed = Timing.TimingService.elapsed()
 			@tickRemainder += elapsed - @lastElapsed
 			@lastElapsed = elapsed
-			
-			_public = @public()
 			
 			while @tickRemainder > @tickTargetSeconds
 				@tickCps.tick()
