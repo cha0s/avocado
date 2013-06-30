@@ -8,7 +8,7 @@ describe 'Entity', ->
 		
 		entity = new Entity()
 		
-		O = uri: undefined, traits: [ type: 'Existence' ]
+		O = uri: null, traits: [ type: 'Existence' ]
 		expect(entity.toJSON()).toEqual O
 		expect(entity.hasTrait 'Existence').toBe true
 		expect(entity.position()).toEqual [-10000, -10000]
