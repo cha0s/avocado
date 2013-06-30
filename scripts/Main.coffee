@@ -2,38 +2,44 @@
 # # Main
 # 
 # Execution context. The "main loop" of the Avocado engine.
+# 
+# Uses a [`StateMachine`](./State/StateMachine.html) to handle engine states, 
+# and handles fixed-step tick timing.
 Graphics = require 'Graphics'
 
 Cps = require 'Timing/Cps' 
 EventEmitter = require 'Mixin/EventEmitter'
+Mixin = require 'Mixin/Mixin'
 PrivateScope = require 'Utility/PrivateScope'
 StateMachine = require 'State/StateMachine'
 Timing = require 'Timing'
 
-# #### Construction
-# Uses a [state machine](./State/StateMachine.html) to handle engine states, 
-# and handles fixed-step tick timing.
 module.exports = Main = class
 	
+	mixins = [
+	
+		# #### Emits
+		# 
+		# * `error` - When an error was encountered.
+		# * `quit` - When the engine is shutting down.
+		# * `stateConstructed` - When constructing a state.
+		# * `stateEntered` - When entering a state.
+		# * `stateLeft` - When leaving a state.
+		# * `stateInitialized` - When initializing a state.
+		# * `tick` - When the engine ticks.
+		# 
+		EventEmitter
+	]
+	
 	constructor: ->
-		EventEmitter.call this
+		mixin.call this for mixin in mixins
 		
 		PrivateScope.call @, Private, 'mainScope'
 		
 		# Enter the 'Initial' state. This is implemented by your game.
 		@transitionToState 'Initial'
 		
-	# #### Emits
-	# 
-	# * `error` - When an error was encountered.
-	# * `quit` - When the engine is shutting down.
-	# * `stateConstructed` - When constructing a state.
-	# * `stateLeft` - When leaving a state.
-	# * `stateInitialized` - When initializing a state.
-	# * `stateEntered` - When entering a state.
-	# * `tick` - When the engine ticks.
-	# 
-	EventEmitter.Mixin @::
+	Mixin.apply null, [@::].concat mixins
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
 		@::, call, (-> Private), 'mainScope'
