@@ -8,12 +8,14 @@ Timing = require 'Timing'
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
 PrivateScope = require 'Utility/PrivateScope'
+Property = require 'Mixin/Property'
 Vector = require 'Extension/Vector'
 
 Window = Graphics.Window
 
 Window.mixins = [
 	EventEmitter
+	Property 'inputReceiver', null
 ]
 
 Mixin.apply null, [Window::].concat Window.mixins
@@ -55,7 +57,7 @@ Window::height = -> @size()[1]
 forwardCallToPrivate 'playerTickMovement'
 
 # Poll for events sent to this window.
-Window::pollEvents = -> @['%pollEvents']()
+forwardCallToPrivate 'pollEvents'
 
 forwardCallToPrivate 'registerPlayerMovement'
 
@@ -98,7 +100,30 @@ Window::width = -> @size()[0]
 Private = class
 	
 	constructor: (_public) ->
-
+		
+		for inputEvent in [
+			'keyDown', 'keyUp'
+			'joyAxis', 'joyButtonDown', 'joyButtonUp'
+			'mouseButtonDown', 'mouseButtonUp', 'mouseDrag', 'mouseMove', 'mouseWheelMove'
+			'resize'
+			'quit'
+		]
+			
+			do (inputEvent) ->
+			
+				_public.on(
+					inputEvent
+					->
+						
+						return unless (inputReceiver = _public.inputReceiver())?
+						return unless inputReceiver.emit?
+						
+						args = ['inputEvent', inputEvent]
+						args.push argument for argument in arguments
+						
+						inputReceiver.emit.apply inputReceiver, args
+				)
+		
 		# We want to store how much a player is moving either with the
 		# arrow keys or the joystick/gamepad.
 		@movement = {}
@@ -192,6 +217,24 @@ Private = class
 		return [0, 0] unless @movement[player]?
 		
 		@movement[player].unit
+	
+	pollEvents: ->
+		
+		_public = @public()
+		
+		_public['%pollEvents']()
+		
+		return unless (inputReceiver = _public.inputReceiver())?
+		return unless inputReceiver.emit?
+		
+		for player of @movement
+		
+			inputReceiver.emit(
+				'inputEvent'
+				'unitMovement'
+				player: player
+				movement: _public.playerTickMovement player
+			)
 	
 	# We'll store any movement that comes in, combining keyboard and
 	# joystick movement, making sure that combined they never exceed 1.
