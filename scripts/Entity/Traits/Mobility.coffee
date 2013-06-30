@@ -17,7 +17,6 @@ module.exports = class extends Trait
 		
 		@isMoving = false
 	
-	
 	properties: ->
 		
 		mobilityAnimationIndex: {}
