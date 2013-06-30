@@ -1,56 +1,117 @@
-# The **Entity** class specifies objects in the game engine. Entities are
-# merely compositions of (subclassed) [Trait](Traits/Trait.html) objects.
+# # Entity
+# Specifies objects in the game engine. Entities are essentially just
+# compositions of (subclassed) [`Trait`](./Traits/Trait.html) objects.
 
 _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
+PrivateScope = require 'Utility/PrivateScope'
 Q = require 'Utility/Q'
-Rectangle = require 'Extension/Rectangle'
 String = require 'Extension/String'
 Transition = require 'Mixin/Transition'
-Vector = require 'Extension/Vector'
 
 module.exports = Entity = class
 	
-	@loadObject: (uri) ->
-
-		CoreService.readJsonResource(uri).then (O) ->
+	# #### Mixins
+	# 
+	# * [`EventEmitter`](../Mixin/EventEmitter.html) for trait signals.
+	# * [`Transition`](../Mixin/Transition.html) for transitioning any
+	#    property.
+	mixins = [
+		EventEmitter
+		Transition.InBand
+	]
+	
+	# Instantiation
+	constructor: ->
+		
+		mixin.call this for mixin in mixins
+		PrivateScope.call @, Private, 'entityScope'
 			
-			{parent, traits} = O
-			
-			if parent?
-				
-				Entity.loadObject(parent).then (O) ->
-					
-					childTraits = traitArrayToObject traits
-					parentTraits = traitArrayToObject O.traits
-					
-					traitTypes = _.uniq _.flatten [
-						_.keys childTraits
-						_.keys parentTraits
-					]
-					
-					O.traits = for traitType in traitTypes
-						
-						state = _.extend(
-							parentTraits[traitType] ? {}
-							childTraits[traitType] ? {}
-						)
-						
-						type: traitType
-						state: state unless _.isEmpty state
-						
-					O
-			else
-				
-				O
+		# All entities require an Existence trait. The assumption here is that
+		# Existence::initializeTrait() returns an immediate value (not a
+		# promise).
+		@extendTraits([type: 'Existence']).done()
+		
+	Mixin.apply null, [@::].concat mixins
+	
+	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
+		@::, call, (-> Private), 'entityScope'
+	)
+	
+	forwardCallToPrivate 'extendTraits'
+	
+	forwardCallToPrivate 'fromObject'
+	
+	forwardCallToPrivate 'hasTrait'
+	
+	forwardCallToPrivate 'invoke'
+	
+	forwardCallToPrivate 'removeTrait'
+	
+	forwardCallToPrivate 'render'
+	
+	forwardCallToPrivate 'reset'
+	
+	forwardCallToPrivate 'setTraitVariables'
+	
+	forwardCallToPrivate 'tick'
+	
+	forwardCallToPrivate 'toJSON'
+	
+	forwardCallToPrivate 'trait'
+	
+	forwardCallToPrivate 'traitExtensions'
+	
+	uri: ->
+		
+		_private = @entityScope Private
+		_private.uri
+	
+	traitArrayToObject = (traits) ->
+		object = {}
+		object[trait.type] = trait.state ? {} for trait in traits
+		object
 	
 	# Load an entity by URI.
 	@load: (uri, traitExtensions = []) ->
+	
+		loadObject = (uri) ->
+	
+			CoreService.readJsonResource(uri).then (O) ->
+				
+				{parent, traits} = O
+				
+				if parent?
+					
+					loadObject(parent).then (O) ->
+						
+						childTraits = traitArrayToObject traits
+						parentTraits = traitArrayToObject O.traits
+						
+						traitTypes = _.uniq _.flatten [
+							_.keys childTraits
+							_.keys parentTraits
+						]
+						
+						O.traits = for traitType in traitTypes
+							
+							state = _.extend(
+								parentTraits[traitType] ? {}
+								childTraits[traitType] ? {}
+							)
+							
+							type: traitType
+							state: state unless _.isEmpty state
+							
+						O
+				else
+					
+					O
 		
-		Entity.loadObject(uri).then (O) ->
+		loadObject(uri).then (O) ->
 			O.uri = uri
 			
 			entity = new Entity()
@@ -72,325 +133,287 @@ module.exports = Entity = class
 		else
 			traitName
 	
-	# Instantiation
-	constructor: ->
+	Private = class
 		
-		# Mixins
-		# 
-		# * **[EventEmitter](../Utility/EventEmitter.html)** for Existence::emit()
-		# * **[Transition](../Utility/Transition.html)** for transitioning any property.
-		Mixin this, EventEmitter, Transition.InBand
+		requireTrait: (type) -> require "Entity/Traits/#{Entity.traitModule type}"
 		
-		# Initialize members.
-		@traits = {}
+		constructor: ->
 
-		@tickers = []
-		@renderers = {}
-		
-		# All entities require an Existence trait. It is hacky, but we have
-		# to work around that trait initialization is asynchronous (for now).
-		addTrait.call this, type: 'Existence'
-		@traits['Existence'].initializeTrait().done()
-		@traits['Existence'].resetTrait()
-		
-	# Initialize an Entity from a POD object.
-	fromObject: (O) ->
-		
-		{@uri, traits} = O
-		
-		# Add traits asynchronously.
-		@extendTraits(traits).then (entity) =>
-			
-			traitArray = for key, value of entity.traits
-				value
-			@originalTraits = JSON.parse JSON.stringify traitArray
-			entity
+			@originalTraits = {}
+			@renderers = {}
+			@tickers = []
+			@traits = {}
+			@uri = null
 
-	# Deep copy.
-	copy: ->
-		entity = new Entity()
-		entity.fromObject @toJSON()
-		entity
-	
-	requireTrait = (type) ->
-		require "Entity/Traits/#{Entity.traitModule type}"
-	
-	# ***Internal:*** Add an array of [Trait](Traits/Trait.html) PODs to this
-	# entity.
-	addTrait = (traitInfo) ->
-		
-		# Instantiate and insert the Trait.
-		type = traitInfo.type
-		Trait = requireTrait type
+		addTrait: (traitInfo) ->
 			
-		try
-			trait = new Trait this, traitInfo.state
-		catch error
-			throw new Error "Can't instantiate #{
-				type
-			} trait: #{
-				Debug.errorMessage error
-			}"
-		
-		trait.type = type
-		@traits[trait.type] = trait
-		
-		# Bind properties
-		for key, meta of trait['properties']()
-			do (key, meta) =>
-				@[key] = _.bind(
-					meta.get ? -> @state[key]
-					trait
-				)
-				setter = meta.set ? (value) -> @state[key] = value
-				@[String.setterName key] = (value) =>
-					oldValue = @[key]()
-					setter.apply trait, arguments
-					@emit "#{key}Changed" if oldValue isnt trait.state[key]
-					
-				@emit "#{key}Changed"
+			_public = @public()
 			
-		# Bind the actions and values associated with this trait.
-		for type in ['actions', 'values']
-			for index, meta of trait[type]()
-				@[index] = _.bind meta.f ? meta, trait
-		
-		# Refresh the signals associated with this trait.
-		@off ".#{trait.type}Trait"
-		for index, signal of trait['signals']()
-			name = "#{index}.#{trait.type}Trait"
-			@on name, signal, trait
-		
-		addHandlerToList = (handler, list) =>
-		
-			# Normalize the handler object.
-			unless handler.f
-				f = handler
-				handler = {}
-				handler.f = f
-			
-			handler.f = _.bind(
-				handler.f
-				trait
-			)
-			handler.weight ?= 0
-			handler.trait = trait
-		
-			# Add the handler.
-			list.push handler
+			# Instantiate and insert the Trait.
+			type = traitInfo.type
+			Trait = @requireTrait type
 				
-		# Add the handlers associated with this trait.
-		if handler = trait['handler']?()
+			try
+				trait = new Trait _public, traitInfo.state
+			catch error
+				throw new Error "Can't instantiate #{
+					type
+				} trait: #{
+					Debug.errorMessage error
+				}"
 			
-			if handler['ticker']?
-				addHandlerToList handler['ticker'], @tickers
+			trait.type = type
+			@traits[trait.type] = trait
 			
-			if handler['renderer']?
+			# Bind properties
+			for key, meta of trait['properties']()
+				do (key, meta) =>
+					
+					# Getter.
+					_public[key] = _.bind (meta.get ? -> @state[key]), trait
+					
+					# Setter and comparison.
+					eq = meta.eq ? (l, r) -> l is r
+					setter = meta.set ? (value) -> @state[key] = value
+					_public[String.setterName key] = (value) =>
+						oldValue = _public[key]()
+						setter.apply trait, arguments
+						_public.emit "#{key}Changed" unless eq oldValue, trait.state[key]
+						
+			# Bind the actions and values associated with this trait.
+			for type in ['actions', 'values']
+				for index, meta of trait[type]()
+					_public[index] = _.bind meta.f ? meta, trait
+			
+			# Refresh the signals associated with this trait.
+			_public.off ".#{trait.type}Trait"
+			for index, signal of trait['signals']()
+				_public.on "#{index}.#{trait.type}Trait", signal, trait
+			
+			addHandlerToList = (handler, list) =>
+			
+				# Normalize the handler object.
+				unless handler.f
+					f = handler
+					handler = f: f
 				
-				if _.isFunction handler['renderer']
-					
-					addHandlerToList(
-						handler['renderer']
-						@renderers['inline'] ?= []
-					)
-					
-				else
-					
-					for key, spec of handler['renderer']
+				handler.f = _.bind handler.f, trait
+				handler.trait = trait
+				handler.weight ?= 0
 			
+				# Add the handler.
+				list.push handler
+					
+			# Add the handlers associated with this trait.
+			if handler = trait['handler']?()
+				
+				if handler['ticker']?
+					addHandlerToList handler['ticker'], @tickers
+				
+				if handler['renderer']?
+					
+					if _.isFunction handler['renderer']
+						
 						addHandlerToList(
-							spec
-							@renderers[key] ?= []
+							handler['renderer'], @renderers['inline'] ?= []
 						)
 						
-		# Cache hooks to make lookups more efficient.
-		trait['hookCache'] = trait['hooks']()
-		
-		# Sort all the tickers and renderers by weight.
-		@tickers = @tickers.sort (l, r) -> l.weight - r.weight
-		
-		for key, list of @renderers
+					else
+						
+						addHandlerToList(
+							spec, @renderers[key] ?= []
+						) for key, spec of handler['renderer']
+							
+			# Cache hooks to make lookups more efficient.
+			trait['hookCache'] = trait['hooks']()
+			
+			# Sort all the tickers and renderers by weight.
+			@tickers = @tickers.sort (l, r) -> l.weight - r.weight
+			
 			@renderers[key] = @renderers[key].sort(
 				(l, r) -> l.weight - r.weight
+			) for key, list of @renderers
+			
+			trait
+			
+		coalesceTraits: (allTraits) ->
+			traitMap = {}
+			@traitDependencies traitMap, trait for trait in allTraits
+			trait for type, trait of traitMap
+		
+		# Extend this Entity's traits.
+		extendTraits: (traits) ->
+			
+			_public = @public()
+			
+			# Wrap all the trait promises in a promise and return it.	
+			traits = for trait in @coalesceTraits traits
+				
+				{type, state} = trait
+				
+				# If the trait already exists,
+				if @traits[type]?
+					
+					# extend the state,
+					_.extend @traits[type].state, state
+					
+					# and fire Trait::initializeTrait().
+					@traits[type]
+				
+				# Otherwise, add the trait.
+				else
+					
+					@addTrait trait
+				
+			Q.allAsap(
+				_.map traits, (trait) -> trait.initializeTrait()
+				=>
+					trait.resetTrait() for type, trait of @traits
+					_public
 			)
-		
-		trait
-		
-	traitDependencies = (traitMap, trait) ->
-		
-		try
-			Trait = requireTrait trait.type
-		catch error
-			console.log Debug.errorMessage error
-			console.log "Ignoring entity trait: #{trait.type}"
-			traitMap[trait.type] = false
-			return
-			
-		for dependency in Trait.dependencies ? []
-			continue if traitMap[dependency]?
-			
-			try
-				DependentTrait = requireTrait dependency
-			catch error
-				console.log Debug.errorMessage error
-				console.log "Ignoring entity trait: #{dependency}"
-				continue
-			
-			traitInfo = type: dependency
-			traitDependencies traitMap, traitMap[dependency] = traitInfo
-	
-	coalesceTraits = (allTraits) ->
-		
-		traitMap = {}
-		allTraits.forEach (trait) -> traitMap[trait.type] = trait
-		
-		for trait in allTraits
-			
-			traitDependencies traitMap, trait
-			
-		trait for type, trait of traitMap
-	
-	# Extend this Entity's traits.
-	extendTraits: (traits) ->
-		
-		traits = _.filter(
-			coalesceTraits traits
-			_.identity
-		)
-		
-		# Wrap all the trait promises in a promise and return it.	
-		traits = for trait in traits
-			
-			{type, state} = trait
-			
-			# If the trait already exists,
-			if @traits[type]?
 				
-				# extend the state,
-				_.extend @traits[type].state, state
+		fromObject: (O) ->
+			
+			_public = @public()
+			
+			{traits} = O
+			
+			@uri = O.uri
+			
+			# Add traits asynchronously.
+			_public.extendTraits(traits).then =>
 				
-				# and fire Trait::initializeTrait().
-				@traits[type]
-			
-			# Otherwise, add the trait.
-			else
-				
-				addTrait.call this, trait
-			
-		traitPromises = _.map traits, (trait) -> trait.initializeTrait()
-		
-		Q.all(traitPromises).then =>
-			trait.resetTrait() for trait in traits
-			this
-			
-	# Remove a Trait from this Entity.
-	removeTrait: (type) ->
-		
-		trait = @traits[type]
-		
-		# Fire Trait::removeTrait().
-		trait.removeTrait()
-		
-		# Remove the actions and values.
-		delete @[index] for index of trait['actions']()
-		delete @[index] for index of trait['values']()
+				@originalTraits = JSON.parse JSON.stringify @traits
+				_public
 	
-		# Remove the handlers.
-		@tickers = _.filter @tickers, (e) -> e.trait.type isnt type
-
-		for key, list of @renderers
+		# Check whether this Entity has a trait.
+		hasTrait: (traitName) -> @traits[traitName]?
+		
+		# Invoke a hook with the specified arguments. Returns an array of responses
+		# from hook implementations.
+		invoke: (hook, args...) ->
+			for type, trait of @traits
+				continue if not trait['hookCache'][hook]?
+				trait['hookCache'][hook].apply trait, args
+	
+		# Remove a Trait from this Entity.
+		removeTrait: (type) ->
+			
+			trait = @traits[type]
+			
+			# Fire Trait::removeTrait().
+			trait.removeTrait()
+			
+			# Remove the actions and values.
+			delete @[index] for index of trait['actions']()
+			delete @[index] for index of trait['values']()
+		
+			# Remove the handlers.
+			@tickers = _.filter @tickers, (e) -> e.trait.type isnt type
+	
 			@renderers[key] = _.filter(
 				@renderers[key]
 				(e) -> e.trait.type isnt type
-			)
-		
-		# Remove the trait object.
-		delete @traits[type]
-	
-	# Check whether this Entity has a trait.
-	hasTrait: (traitName) -> @traits[traitName]?
-	
-	# Get a trait by name.
-	trait: (traitName) -> @traits[traitName]
-	
-	traitArrayToObject = (traits) ->
-		object = {}
-		object[trait.type] = trait.state ? {} for trait in traits
-		object
-	
-	traitExtensions: ->
-	
-		O = @toJSON()
-		
-		originalTraits = traitArrayToObject @originalTraits
-		currentTraits = traitArrayToObject O.traits
-		
-		O.traits = []
-		
-		sgfy = JSON.stringify.bind JSON
-		
-		for type, currentState of currentTraits
-		
-			unless originalTraits[type]?
-				O.traits.push
-					type: type
-					state: currentState unless _.isEmpty state
-				
-				continue
-				
-			state = {}
-			stateDefaults = originalTraits[type]
+			) for key, list of @renderers
 			
-			for k, v of _.defaults currentState, JSON.parse sgfy stateDefaults
-				state[k] = v if sgfy(v) isnt sgfy(stateDefaults[k])
+			# Remove the trait object.
+			delete @traits[type]
+		
+		# Called every engine render cycle.
+		render: (destination, camera = [0, 0], type = 'inline') ->
+			
+			_public = @public()
+			
+			renderer.f destination, camera for renderer in @renderers[type] ? []
+			_public.emit 'render', type
+			return
+	
+		# Reset traits.			
+		reset: ->
+			trait.resetTrait() for type, trait of @traits
+			return
+		
+		# Set trait variables.
+		setTraitVariables: (variables) ->
+			trait.setVariables variables for type, trait of @traits
+			return
+			
+		# Initialize an Entity from a POD object.
+		# Emit a JSON representation of the entity.
+		toJSON: ->
+			
+			traits = for type, trait of @traits
+				continue if trait['transient']
+				trait.toJSON()
+			
+			uri: @uri
+			traits: traits
+		
+		# Called every engine tick.
+		tick: ->
+			
+			_public = @public()
+			
+			ticker.f() for ticker in @tickers
+			_public.emit 'tick'
+			return
+			
+		# Get a trait by name.
+		trait: (traitName) -> @traits[traitName]
+		
+		traitDependencies: (traitMap, trait) ->
+			
+			try
 				
-			traitO = {}
-			traitO.type = type
+				Trait = @requireTrait trait.type
+				traitMap[trait.type] = trait
+				
+			catch error
+				
+				console.log Debug.errorMessage error
+				console.log "Ignoring entity trait: #{trait.type}"
+				
+				return
+				
+			for dependency in Trait.dependencies ? []
+				continue if traitMap[dependency]?
+				
+				@traitDependencies traitMap, type: dependency
+		
+		traitExtensions: ->
+		
+			O = _public.toJSON()
 			
-			if _.isEmpty state
-				continue if originalTraits[type]?
-			else
-				traitO.state = state
+			originalTraits = traitArrayToObject @originalTraits
+			currentTraits = traitArrayToObject O.traits
 			
-			O.traits.push traitO
-		
-		O
-	
-	# Invoke a hook with the specified arguments. Returns an array of responses
-	# from hook implementations.
-	invoke: (hook, args...) ->
-		for type, trait of @traits
-			continue if not trait['hookCache'][hook]?
-			trait['hookCache'][hook].apply trait, args
-
-	# Called every engine tick.
-	tick: ->
-		ticker.f() for ticker in @tickers
-		@emit 'tick'
-		return
-	
-	# Called every engine render cycle.
-	render: (destination, camera = [0, 0], type = 'inline') ->
-		for renderer in @renderers[type] ? []
-			renderer.f.call this, destination, camera
-		return
-
-	# Reset traits.			
-	reset: ->
-		trait.resetTrait() for type, trait of @traits
-		return
-	
-	# Set trait variables.
-	setTraitVariables: (variables) ->
-		trait.setVariables variables for type, trait of @traits
-		return
-		
-	# Emit a JSON representation of the entity.
-	toJSON: ->
-		
-		traits = for type, trait of @traits
-			continue if trait['transient']
-			trait.toJSON()
-		
-		uri: @uri
-		traits: traits
+			O.traits = []
+			
+			sgfy = JSON.stringify.bind JSON
+			
+			for type, currentState of currentTraits
+			
+				unless originalTraits[type]?
+					O.traits.push
+						type: type
+						state: currentState unless _.isEmpty state
+					
+					continue
+					
+				state = {}
+				stateDefaults = originalTraits[type]
+				
+				for k, v of _.defaults currentState, JSON.parse sgfy stateDefaults
+					state[k] = v if sgfy(v) isnt sgfy(stateDefaults[k])
+					
+				traitO = type: type
+				
+				if _.isEmpty state
+					continue if originalTraits[type]?
+				else
+					traitO.state = state
+				
+				O.traits.push traitO
+			
+			O
+			

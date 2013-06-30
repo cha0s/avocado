@@ -196,6 +196,8 @@ module.exports = Transition = class
 		
 		new TransitionResultOutOfBand @, props, speed, easing
 
+Transition.Mixin = (O) -> Mixin O, Transition
+
 Transition.OutOfBand = Transition
 
 Transition.InBand = class					
@@ -213,6 +215,8 @@ Transition.InBand = class
 	) ->
 		
 		new TransitionResultInBand @, props, speed, easing
+
+Transition.InBand.Mixin = (O) -> Mixin O, Transition.InBand
 
 Transition.Vector = class
 

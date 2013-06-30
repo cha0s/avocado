@@ -30,7 +30,7 @@ module.exports = Visibility = class extends Trait
 		
 		animationPromises = for animationIndex, O of @state.animations
 			
-			O.animationUri = @entity.uri.replace(
+			O.animationUri = @entity.uri().replace(
 				'.entity.json',
 				'/' + animationIndex + '.animation.json'
 			) unless O.animationUri?
@@ -169,7 +169,7 @@ module.exports = Visibility = class extends Trait
 		# Delete animation URIs that are just using the entity's uri, since
 		# that's the default.
 		if state.animations?
-			uri = @entity.uri.replace '.entity.json', ''
+			uri = @entity.uri().replace '.entity.json', ''
 			
 			for index, animation of state.animations
 				if animation.animationUri is "#{uri}/#{index}.animation.json"
