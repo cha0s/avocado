@@ -101,7 +101,7 @@ TransitionResult = class
 		# Immediately stop the transition. This will leave the object in
 		# its current state; potentially partially transitioned.				
 		stopTransition: ->
-		
+			
 			# Let any listeners know that the transition is complete.
 			@deferred.notify [@elapsed, @duration]
 			@deferred.resolve()
@@ -138,7 +138,7 @@ TransitionResult = class
 			
 			# Stop if we're done.
 			if @elapsed is @duration
-				@stopTransition()
+				_public.stopTransition()
 			else
 				@deferred.notify [@elapsed, @duration]
 
@@ -176,15 +176,12 @@ module.exports = Transition = class
 			startInterval: (result) ->
 				
 				_public = @public()
-				@interval = setInterval (=> _public.tick()), 10
+				@interval = setInterval (-> _public.tick()), 10
 			
 			stopTransition: ->
 			
-				# Stop the tick loop and clear out the handle so additional
-				# transitions attached to this object won't wait.
-				if @interval?
-					clearInterval @interval
-					@interval = null
+				# Stop the tick loop.
+				clearInterval @interval
 			
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.
