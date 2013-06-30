@@ -2,23 +2,25 @@
 
 # **Window** handles window creation and properties of the window. 
 
+Graphics = require 'Graphics'
+
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
+Window = Graphics.Window
 
-Window = require('Graphics').Window
-
-Mixin(
-	Window.prototype
+Window.mixins = [
 	EventEmitter
-)
+]
+
+Mixin.apply null, [Window::].concat Window.mixins
 
 # Window creation constants.
 # 
-# * <code>Window.Flags_Default</code>: ***(default)*** Nothing special.
-# * <code>Window.Flags_Fullscreen</code>: Create a fullscreen window.
+# * <code>Window.FlagsDefault</code>: ***(default)*** Nothing special.
+# * <code>Window.FlagsFullscreen</code>: Create a fullscreen window.
 # ***NOTE:*** May not be supported on all platforms.
-Window.Flags_Default = 0
-Window.Flags_Fullscreen = 1
+Window.FlagsDefault = 0
+Window.FlagsFullscreen = 1
 
 # Mouse and keycode constants.
 Window.Mouse = Object.freeze Window.Mouse
@@ -40,7 +42,7 @@ Window::render = (image, rectangle = [0, 0, 0, 0]) ->
 	@['%render'] image, rectangle
 
 # Set the window parameters.
-Window::setFlags = (flags = Window.Flags_Default) ->
+Window::setFlags = (flags = Window.FlagsDefault) ->
 	return unless flags?
 	
 	@['%setFlags'] flags

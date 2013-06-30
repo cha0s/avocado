@@ -1,14 +1,15 @@
 
 Graphics = require 'Graphics'
 Timing = require 'Timing'
+
 Vector = require 'Extension/Vector'
 
 # Blend mode constants.
 # 
-# * <code>GraphicsService.BlendMode_Replace</code>: Write over any graphics
-# under this image when rendering.
-# * <code>GraphicsService.BlendMode_Blend</code>: ***(default)*** Blend the
-# image with any graphics underneath using alpha pixel values.
+# * `GraphicsService.BlendMode_Replace`: Write over any graphics under this 
+# image when rendering.
+# * `GraphicsService.BlendMode_Blend`: ***(default)*** Blend the image with any 
+# graphics underneath using alpha pixel values.
 Graphics.GraphicsService.BlendMode_Replace = 0
 Graphics.GraphicsService.BlendMode_Blend   = 1
 
@@ -78,13 +79,14 @@ registerMovement = (player) ->
 
 Graphics.newWindow = (size, flags) ->
 	
-	window_ = new Graphics.Window()
+	_window = new Graphics.Window()
+	mixin.call _window for mixin in Graphics.Window.mixins
 	
-	window_.setSize size if size?
-	window_.setFlags flags if flags?
+	_window.setSize size if size?
+	_window.setFlags flags if flags?
 	
 	# Joystick movement.
-	window_.on 'joyAxis.Avocado', ({stickIndex, axis, value}) ->
+	_window.on 'joyAxis.Avocado', ({stickIndex, axis, value}) ->
 		return if axis > 1
 		
 		return unless (player = stickIndexMap[stickIndex])?
@@ -103,7 +105,7 @@ Graphics.newWindow = (size, flags) ->
 		registerMovement player
 		
 	# Keyboard movement started.
-	window_.on 'keyDown.Avocado', ({code}) ->
+	_window.on 'keyDown.Avocado', ({code}) ->
 		
 		return unless (player = keyCodeMap[code])?
 		return unless m = movement[player]
@@ -113,7 +115,7 @@ Graphics.newWindow = (size, flags) ->
 		registerMovement player
 		
 	# Keyboard movement stopped.
-	window_.on 'keyUp.Avocado', ({code}) ->
+	_window.on 'keyUp.Avocado', ({code}) ->
 	
 		return unless (player = keyCodeMap[code])?
 		return unless m = movement[player]
@@ -129,21 +131,21 @@ Graphics.newWindow = (size, flags) ->
 	mouseLocation = [0, 0]
 	
 	# Start dragging when a button is clicked.
-	window_.on 'mouseButtonDown.Avocado', ({button}) ->
+	_window.on 'mouseButtonDown.Avocado', ({button}) ->
 		switch button
 			when Graphics.Window.Mouse.ButtonLeft, Graphics.Window.Mouse.ButtonMiddle, Graphics.Window.Mouse.ButtonRight
 				dragStartLocation[button] = mouseLocation
 				buttons[button] = true
 			
 	# Stop dragging when a button is released.
-	window_.on 'mouseButtonUp.Avocado', ({button}) ->
+	_window.on 'mouseButtonUp.Avocado', ({button}) ->
 		switch button
 			when Graphics.Window.Mouse.ButtonLeft, Graphics.Window.Mouse.ButtonMiddle, Graphics.Window.Mouse.ButtonRight
 				delete buttons[button]
 				delete dragStartLocation[button]
 	
 	# When the mouse moves,
-	window_.on 'mouseMove.Avocado', ({x, y}) ->
+	_window.on 'mouseMove.Avocado', ({x, y}) ->
 		mouseLocation = [x, y]
 		
 		# Check if any buttons are being held down
@@ -152,7 +154,7 @@ Graphics.newWindow = (size, flags) ->
 			
 			# If so, send a mouseDrag event for each of them.
 			for key in keys
-				window_.emit(
+				_window.emit(
 					'mouseDrag'
 						position: mouseLocation
 						button: parseInt key
@@ -162,4 +164,4 @@ Graphics.newWindow = (size, flags) ->
 						)
 				)
 				
-	window_
+	_window
