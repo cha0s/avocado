@@ -127,8 +127,14 @@ module.exports = Room = class
 		list = []
 		for entity in @entities_
 			if distance >= Vector.cartesianDistance entity.position(), position
-				list.push entity
-		list
+				list.push(
+					distance: distance
+					entity: entity
+				)
+		
+		list.sort (l, r) -> l.distance - r.distance
+		
+		_.map list, (spec) -> spec.entity
 	
 	toImage: (tileset) ->
 		
