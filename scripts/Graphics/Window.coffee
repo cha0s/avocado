@@ -201,7 +201,7 @@ Private = class
 				
 				# If so, send a mouseDrag event for each of them.
 				for key in keys
-					_window.emit(
+					_public.emit(
 						'mouseDrag'
 							position: @mouseLocation
 							button: parseInt key
