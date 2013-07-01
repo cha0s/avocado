@@ -135,7 +135,7 @@ module.exports = Vector =
 	#
 	#     avocado> Vector.hypotenuse [.5, .7]
 	#     [0.5812381937190965, 0.813733471206735]
-	hypotenuse: (unitOrDestination, origin = null) ->
+	hypotenuse: (unitOrDestination, origin) ->
 		
 		distanceOrUnit = unitOrDestination
 		distanceOrUnit = Vector.sub distanceOrUnit, origin if origin?
