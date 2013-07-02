@@ -146,24 +146,18 @@ module.exports = Room = class
 	
 	toJSON: ->
 		
-		traitArrayToObject = (traits) ->
-			object = {}
-			object[trait.type] = trait.state ? {} for trait in traits
-			object
-		
-		entities = _.map @entities_, (entity) ->
+		entities = for entity in @entities_
 			if entity.hasTrait 'Inhabitant'
-				return unless entity.saveWithRoom()
+				continue unless entity.saveWithRoom()
 			
-			entity.traitExtensions()
-		
-		entities = _.filter entities, _.identity
-		 
-		layers = _.map @layers_, (layer) -> layer.toJSON()
+			extensions = entity.traitExtensions()
+			
+			uri: entity.uri()
+			traits: extensions.traits
 		
 		name: @name_
 		size: @size_
-		layers: layers
+		layers: _.map @layers_, (layer) -> layer.toJSON()
 		collision: @collision_
 		entities: entities
 		tilesetUri: @tileset_?.uri()
