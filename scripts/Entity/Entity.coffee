@@ -355,7 +355,6 @@ module.exports = Entity = class
 				continue if trait['transient']
 				trait.toJSON()
 			
-			uri: @uri
 			traits: traits
 		
 		# Get a trait by name.
@@ -381,10 +380,15 @@ module.exports = Entity = class
 				@traitDependencies traitMap, type: dependency
 		
 		traitExtensions: ->
-		
+			
+			_public = @public()
+			
 			O = _public.toJSON()
 			
-			originalTraits = traitArrayToObject @originalTraits
+			originalTraits = {}
+			for k, v of @originalTraits
+				originalTraits[k] = v.state ? {}
+			
 			currentTraits = traitArrayToObject O.traits
 			
 			O.traits = []
@@ -396,7 +400,7 @@ module.exports = Entity = class
 				unless originalTraits[type]?
 					O.traits.push
 						type: type
-						state: currentState unless _.isEmpty state
+						state: currentState unless _.isEmpty currentState
 					
 					continue
 					
@@ -414,6 +418,8 @@ module.exports = Entity = class
 					traitO.state = state
 				
 				O.traits.push traitO
+			
+			delete O.traits unless O.traits.length > 0
 			
 			O
 			
