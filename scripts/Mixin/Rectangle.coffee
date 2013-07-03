@@ -1,6 +1,4 @@
 
-
-
 Mixin = require 'Mixin/Mixin'
 Rectangle = require 'Extension/Rectangle'
 String = require 'Extension/String'
