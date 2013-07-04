@@ -11,35 +11,33 @@ Property = require 'Mixin/Property'
 Rectangle = require 'Extension/Rectangle'
 String = require 'Extension/String'
 Ticker = require 'Timing/Ticker'
+TimedIndex = require 'Mixin/TimedIndex'
 Vector = require 'Extension/Vector'
 VectorMixin = require 'Mixin/Vector'
 
 module.exports = Animation = class
 	
-	constructor: ->
-		EventEmitter.call this
-		property.call this for property in properties
-		
-		PrivateScope.call @, Private, 'animationScope'
-		
-	properties = [
+	mixins = [
 		Property 'alpha', 1
-		Property 'async', true
 		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
 		DirectionProperty = Property 'direction', 0
 		Property 'directionCount', 1
-		Property 'frameCount', 0
-		Property 'frameRate', 100
 		Property 'frameSize', [0, 0]
 		ImageProperty = Property 'image', null
-		IndexProperty = Property 'index', 0
 		VectorMixin 'position'
 		Property 'scale', [1, 1]
+		TimedIndex 'frame'
 		Property 'uri', ''
 	]
 	
+	constructor: ->
+		EventEmitter.call this
+		mixin.call this for mixin in mixins
+		
+		PrivateScope.call @, Private, 'animationScope'
+		
 	Mixin @::, EventEmitter
-	Mixin.apply null, [@::].concat properties
+	Mixin.apply null, [@::].concat mixins
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
 		@::, call, (-> Private), 'animationScope'
@@ -88,14 +86,6 @@ module.exports = Animation = class
 
 	forwardCallToPrivate 'setDirection'
 	
-	forwardCallToPrivate 'setIndex'
-	
-	forwardCallToPrivate 'start'
-
-	forwardCallToPrivate 'stop'
-
-	forwardCallToPrivate 'tick'
-				
 	toJSON: ->
 		
 		defaultImageUri = @uri().replace '.animation.json', '.png'
@@ -129,14 +119,6 @@ module.exports = Animation = class
 				]
 				=> @sprite.setSourceRectangle @sourceRectangle()
 			)
-			
-		animate: ->
-			
-			_public = @public()
-			
-			index = _public.index() + 1
-			_public.setIndex Math.floor index % _public.frameCount()
-			_public.emit 'rolledOver' if index >= _public.frameCount()
 			
 		clampDirection: (direction) ->
 			
@@ -175,15 +157,6 @@ module.exports = Animation = class
 				@clampDirection direction
 			)
 		
-		setIndex: (index) ->
-			
-			_public = @public()
-			
-			IndexProperty::setIndex.call(
-				_public
-				index % _public.frameCount()
-			)
-		
 		sourceRectangle: (index) ->
 			
 			_public = @public()
@@ -195,34 +168,3 @@ module.exports = Animation = class
 				]
 				_public.frameSize()
 			)
-		
-		start: ->
-			return if @interval?
-			
-			_public = @public()
-			
-			if _public.async()
-				
-				type = 'OutOfBand'
-				@interval = setInterval (=> _public.tick()), 10
-				
-			else
-				
-				type = 'InBand'
-				@interval = true
-	
-			@ticker = new Ticker[type]()
-			@ticker.setFrequency _public.frameRate()
-			
-			@ticker.on 'tick', @animate, @
-
-		stop: ->
-			return unless @interval?
-			
-			clearInterval @interval if @interval isnt true
-			@interval = null
-			
-			@ticker.off 'tick'
-			@ticker = null
-			
-		tick: -> @ticker?.tick()
