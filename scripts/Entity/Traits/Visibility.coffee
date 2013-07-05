@@ -4,6 +4,7 @@ Animation = require 'Graphics/Animation'
 Debug = require 'Debug'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
+Ticker = require 'Timing/Ticker'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
 
@@ -26,6 +27,7 @@ module.exports = Visibility = class extends Trait
 		
 		@animations = {}
 		@animation = null
+		@flashing = false
 		@metadata = null
 		
 		animationPromises = for animationIndex, O of @state.animations
@@ -54,7 +56,7 @@ module.exports = Visibility = class extends Trait
 		animationIndex: {}
 				
 	values: ->
-	
+		
 		hasAnimationIndex: (animationIndex, qualify = true) ->
 			animationIndex = qualifyWithPrefix animationIndex if qualify
 			@animations[animationIndex]?
@@ -71,6 +73,19 @@ module.exports = Visibility = class extends Trait
 		)
 		
 	actions: ->
+		
+		setIsFlashing: (ms = 45) ->
+			
+			if ms is false
+				
+				@flashingTicker = null
+				
+			else
+			
+				@flashingTicker = new Ticker.InBand()
+				@flashingTicker.setFrequency ms
+				@flashingTicker.on 'tick', =>
+					@flashing = not @flashing
 		
 		playAnimation: (plays = 1) ->
 			
@@ -132,6 +147,7 @@ module.exports = Visibility = class extends Trait
 		
 		ticker: ->
 			
+			@flashingTicker?.tick()
 			@animation?.tick()
 		
 		renderer:
@@ -145,7 +161,12 @@ module.exports = Visibility = class extends Trait
 					Rectangle.position @entity.visibleRect()
 				)
 				
+				alpha = @animation?.alpha()
+				@animation?.setAlpha alpha * .5 if @flashing
+				
 				@animation?.render destination
+				
+				@animation?.setAlpha alpha
 				
 			ui: (destination, camera) ->
 				return unless @state.isVisible
