@@ -7,12 +7,12 @@ describe 'Environment', ->
 	room = null
 
 	it "can instantiate", (done) ->
-	
-		O =
-			rooms: [
-				(new Room [10, 20]).toJSON()
-				(new Room [20, 30]).toJSON()
-			]
+		
+		O = rooms: [
+			size: [10, 20]
+		,
+			size: [20, 30]
+		]
 		
 		(new Environment()).fromObject(O).then (environment) ->
 			

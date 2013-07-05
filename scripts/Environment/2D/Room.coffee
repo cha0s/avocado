@@ -2,166 +2,240 @@
 _ = require 'Utility/underscore'
 Debug = require 'Debug'
 Entity = require 'Entity/Entity'
+EventEmitter = require 'Mixin/EventEmitter'
 Image = require('Graphics').Image
+Mixin = require 'Mixin/Mixin'
 Physics = require 'Physics/Physics'
+PrivateScope = require 'Utility/PrivateScope'
+Property = require 'Mixin/Property'
 Q = require 'Utility/Q'
 Vector = require 'Extension/Vector'
+VectorMixin = require 'Mixin/Vector'
 
 module.exports = Room = class
 	
-	@layerCount: 5
-		
-	constructor: (size = [0, 0]) ->
-		
-		@tileset_ = new Room.Tileset()
-		@layers_ = []
-		@size_ = Vector.copy size
-		@sizeInPx_ = [0, 0]
-		@name_ = ''
-		@entities_ = []
-		@collision_ = []
-		
-		@_physics = new Physics()
-		@_physics.addFloor()
-		@_physics.setWalls @size_
+	@defaultLayerCount: 5
 	
-		@layers_[i] = new Room.TileLayer size for i in [0...Room.layerCount]
-
-	fromObject: (O) ->
+	mixins = [
+		EventEmitter
+		Property 'name', ''
+		Property 'physics', new Physics()
+		SizeProperty = VectorMixin 'size', 'width', 'height'
+		TilesetProperty = Property 'tileset', null
+	]
 	
-		@["#{i}_"] = O[i] for i of O
+	constructor: ->
 		
-		tilesetPromise =  if O.tilesetUri?
-			Room.Tileset.load O.tilesetUri
-		else
-			@tileset_
-		Q.when(tilesetPromise).then (@tileset_) =>
+		mixin.call this for mixin in mixins
+		PrivateScope.call @, Private, 'roomScope'
 		
-		@setSize Vector.copy O.size
+	Mixin.apply null, [@::].concat mixins
+	
+	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
+		@::, call, (-> Private), 'roomScope'
+	)
+	
+	forwardCallToPrivate 'addEntity'
 		
-		@layers_ = []
-		layerPromises = for layerO, i in O.layers
-			@layers_[i] = new Room.TileLayer()
-			@layers_[i].fromObject layerO
+	forwardCallToPrivate 'entity'
+		
+	forwardCallToPrivate 'entityCount'
+		
+	forwardCallToPrivate 'entityList'
+		
+	forwardCallToPrivate 'fromObject'
+		
+	forwardCallToPrivate 'layer'
+		
+	forwardCallToPrivate 'layerCount'
+		
+	forwardCallToPrivate 'removeEntity'
+		
+	forwardCallToPrivate 'setSize'
+		
+	forwardCallToPrivate 'setTileset'
+		
+	forwardCallToPrivate 'sizeInPx'
+		
+	forwardCallToPrivate 'tick'
+		
+	forwardCallToPrivate 'tileIndexFromPosition'
+		
+	forwardCallToPrivate 'toImage'
+		
+	forwardCallToPrivate 'toJSON'
+		
+	Private = class
+		
+		constructor: (_public) ->
 			
-		@entities_ = []
-		entityPromises = for entityO in O.entities ? []
-			Entity.load entityO.uri, entityO.traits ? []
-		Q.all(entityPromises).then (entities) =>
-			@addEntity entity for entity in entities
-		
-		Q.all(_.flatten [
-			entityPromises
-			layerPromises
-			[tilesetPromise]
-		], true).then =>
+			@collision = []
+			@entities = []
+			@layers = for i in [0...Room.defaultLayerCount]
+				new Room.TileLayer()
 			
-			@setTileset @tileset_
+			@_sizeInPx = [0, 0]
 			
-			this
-		
-	physics: -> @_physics
-	
-	reset: -> entity.reset() for entity in @entities_
-		
-	height: -> @size_[1]
-	width: -> @size_[0]
-	
-	size: -> @size_
-	_calculateSizeInPx: -> @sizeInPx_ = Vector.mul @size_, @tileset_.tileSize()
-	sizeInPx: -> @sizeInPx_
-	setSize: (size) ->
-		return if Vector.equals @size_, size
-		
-		@size_ = Vector.copy size
-		
-		@_calculateSizeInPx()
-		@setWalls()
-		
-		layer.setSize size for layer in @layers_
-	
-	layer: (index) -> @layers_[index]
-	layerCount: -> @layers_.length
-	
-	tileset: -> @tileset_
-	setTileset: (@tileset_) ->
-		
-		layer.setTileset @tileset_ for layer in @layers_
-		
-		@_calculateSizeInPx()
-		@setWalls()		
-	
-	setWalls: -> @_physics.setWalls @sizeInPx()
-	
-	# Get a tile index by passing in a position vector.
-	tileIndexFromPosition: (position) ->
-		@layers_[0].tileIndexFromPosition position
-	
-	tick: ->
-		
-		entity.tick() for entity in @entities_
-		
-		@_physics.tick()
-	
-	name: -> @name_
-	
-	entityCount: -> @entities_.length
-	
-	entity: (index) -> @entities_[index]
-	
-	addEntity: (entity) ->
-		
-		entity.setTraitVariables room: this
-		
-		@entities_.push entity
-		
-		entity
-	
-	removeEntity: (entity) ->
-		
-		return if -1 is index = @entities_.indexOf entity
-		
-		@entities_.splice index, 1
-	
-	entityList: (position, distance) ->
-		list = []
-		for entity in @entities_
-			if distance >= Vector.cartesianDistance entity.position(), position
-				list.push(
-					distance: distance
-					entity: entity
-				)
-		
-		list.sort (l, r) -> l.distance - r.distance
-		
-		_.map list, (spec) -> spec.entity
-	
-	toImage: (tileset) ->
-		
-		image = new Image Vector.mul tileset.tileSize(), @size_
-		
-		layer.render [0, 0], tileset, image for layer in @layers_
+			_public.on 'sizeChanged', => @recomputeTotalSize()
+			_public.on 'tilesetChanged', => @recomputeTotalSize()
 			
-		image
+		addEntity: (entity) ->
+			
+			_public = @public()
+			
+			return if _.contains @entities, entity
+			
+			entity.setTraitVariables room: _public
+			@entities.push entity
+			entity
+		
+		entity: (index) -> @entities[index]
+		
+		entityCount: -> @entities.length
+		
+		entityList: (position, distance) ->
+			list = []
+			for entity in @entities
+				if distance >= Vector.cartesianDistance entity.position(), position
+					list.push(
+						distance: distance
+						entity: entity
+					)
+			list.sort (l, r) -> l.distance - r.distance
+			_.map list, (spec) -> spec.entity
+		
+		fromObject: (O) ->
+			
+			_public = @public()
+			
+			entityPromises = if (O.entities ?= []).length > 0
+				
+				promises = for entityO in O.entities
+					Entity.load entityO.uri, entityO.traits ? []
+				
+				Q.all(promises).then (entities) =>
+					@entities = []
+					_public.addEntity entity for entity in entities
+				
+				promises
+			else
+				[]
+			
+			layerPromises = if (O.layers ?= []).length > 0
+				
+				promises = for layerO in O.layers
+					(new Room.TileLayer()).fromObject layerO
+				
+				Q.all(promises).then (layers) => @layers = layers
+				
+				promises
+			else
+				[]
+			
+			_public.setName O.name
+			
+			tilesetPromise = if O.tilesetUri?
+				Room.Tileset.load O.tilesetUri
+			else
+				O.tileset
+			Q.when(tilesetPromise).then (tileset) =>
+				_public.setTileset tileset
+			
+			promises = [
+				tilesetPromise
+			].concat(
+				entityPromises
+				layerPromises
+			)		
+			
+			Q.all(promises).then =>
+				
+				_public.setSize O.size
+				
+				_public
 	
-	toJSON: ->
+		layer: (index) -> @layers[index]
 		
-		entities = for entity in @entities_
-			if entity.hasTrait 'Inhabitant'
-				continue unless entity.saveWithRoom()
+		layerCount: -> @layers.length
+	
+		recomputeTotalSize: ->
 			
-			extensions = entity.traitExtensions()
+			_public = @public()
 			
-			uri: entity.uri()
-			traits: extensions.traits
+			@_sizeInPx = Vector.mul(
+				_public.size()
+				_public.tileset()?.tileSize() ? [0, 0]
+			)
+			
+			_public.physics().setWalls @_sizeInPx
+			
+		removeEntity: (entity) ->
+			return if -1 is index = @entities.indexOf entity
+			
+			@entities.splice index, 1
 		
-		name: @name_
-		size: @size_
-		layers: _.map @layers_, (layer) -> layer.toJSON()
-		collision: @collision_
-		entities: entities
-		tilesetUri: @tileset_?.uri()
+		setSize: (size) ->
 		
+			_public = @public()
+			
+			SizeProperty::setSize.call _public, size
+			
+			layer.setSize size for layer in @layers
+	
+		setTileset: (tileset) ->
+		
+			_public = @public()
+			
+			TilesetProperty::setTileset.call _public, tileset
+			
+			layer.setTileset tileset for layer in @layers
+	
+		sizeInPx: -> @_sizeInPx
+			
+		tick: ->
+			
+			_public = @public()
+			
+			for entity in @entities
+				entity.tick()
+			
+			for entity in @entities
+				_public.removeEntity entity if entity.isDestroyed()
+			
+			_public.physics().tick()
+	
+		tileIndexFromPosition: (position, layerIndex = 0) ->
+			
+			@layers[layerIndex].tileIndexFromPosition position
+	
+		toImage: (tileset) ->
+		
+			_public = @public()
+			
+			image = new Image _public.sizeInPx()
+			layer.render [0, 0], image for layer in @layers
+			image
+		
+		toJSON: ->
+			
+			_public = @public()
+			
+			entities = for entity in @entities
+				if entity.hasTrait 'Inhabitant'
+					continue unless entity.saveWithRoom()
+				
+				extensions = entity.traitExtensions()
+				
+				uri: entity.uri()
+				traits: extensions.traits
+			
+			name: _public.name()
+			size: _public.size()
+			layers: _.map @layers, (layer) -> layer.toJSON()
+			collision: @collision
+			entities: entities
+			tilesetUri: _public.tileset()?.uri()
+	
 Room.TileLayer = require 'Environment/2D/TileLayer'
 Room.Tileset = require 'Environment/2D/Tileset'
 		
