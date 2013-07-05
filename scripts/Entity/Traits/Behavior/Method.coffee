@@ -33,8 +33,9 @@ for elementName in ['Value']
 Evaluate = (E, variables) ->
 	
 	[key] = Object.keys E
+	return E unless evaluate = Evaluators[key]
 	
 	args = [variables]
 	args.push.apply args, E[key]
 	
-	Evaluators[key].apply Evaluators[key], args
+	evaluate.apply Evaluators[key], args
