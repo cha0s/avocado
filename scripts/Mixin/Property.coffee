@@ -21,7 +21,7 @@ module.exports = Property = (key, defaultValue) ->
 			_private = @[_scope] Private
 			oldValue = _private[key]
 			_private[key] = value
-			@emit? "#{key}Changed" if oldValue isnt value
+			@emit? "#{key}Changed", oldValue if oldValue isnt value
 			
 			return
 			

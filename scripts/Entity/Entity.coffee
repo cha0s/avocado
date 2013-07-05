@@ -178,7 +178,7 @@ module.exports = Entity = class
 					_public[String.setterName key] = (value) =>
 						oldValue = _public[key]()
 						setter.apply trait, arguments
-						_public.emit "#{key}Changed" unless eq oldValue, trait.state[key]
+						_public.emit "#{key}Changed", oldValue unless eq oldValue, trait.state[key]
 						
 			# Bind the actions and values associated with this trait.
 			for type in ['actions', 'values']
