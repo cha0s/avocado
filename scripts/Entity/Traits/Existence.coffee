@@ -9,6 +9,7 @@ module.exports = Existence = class extends Trait
 
 	stateDefaults: ->
 		
+		isDestroyed: false
 		direction: 0
 		directionCount: 1
 		name: 'Abstract'
@@ -18,6 +19,7 @@ module.exports = Existence = class extends Trait
 		
 	properties: ->
 		
+		isDestroyed: {}
 		direction: set: (direction) ->
 			@state.direction = if direction < 0
 				0
