@@ -24,7 +24,7 @@ module.exports = Visibility = class extends Trait
 
 	initializeTrait: ->
 		
-		@animations ?= {}
+		@animations = {}
 		@animation = null
 		@metadata = null
 		
@@ -72,7 +72,7 @@ module.exports = Visibility = class extends Trait
 		
 	actions: ->
 		
-		playAnimation: (plays) ->
+		playAnimation: (plays = 1) ->
 			
 			deferred = Q.defer()
 			
