@@ -1,6 +1,7 @@
 
 Timing = require 'Timing'
 
+_ = require 'Utility/underscore'
 Mixin = require 'Mixin/Mixin'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
@@ -12,6 +13,7 @@ module.exports = Existence = class extends Trait
 		isDestroyed: false
 		direction: 0
 		directionCount: 1
+		immovable: false
 		name: 'Abstract'
 		position: [-10000, -10000]
 		secondsSeen: 0
@@ -19,7 +21,6 @@ module.exports = Existence = class extends Trait
 		
 	properties: ->
 		
-		isDestroyed: {}
 		direction: set: (direction) ->
 			@state.direction = if direction < 0
 				0
@@ -29,6 +30,8 @@ module.exports = Existence = class extends Trait
 				direction
 		
 		directionCount: {}
+		immovable: {}
+		isDestroyed: {}
 		name: {}	
 		position:
 			set: (position) -> @state.position = Vector.copy position
@@ -61,6 +64,28 @@ module.exports = Existence = class extends Trait
 
 	actions: ->
 		
+		forceMove: (vector, force) ->
+			return if @entity.immovable()
+			
+			@entity.setDirection(
+				Vector.toDirection vector, @entity.directionCount()
+			)
+			
+			magnitude = Timing.TimingService.tickElapsed() * force
+			
+			moveInvocations = @entity.invoke(
+				'moveRequest'
+				vector, magnitude
+			)
+			
+			# If no one cared about movement, we'll just do naive movement.
+			if moveInvocations.length is 0
+				
+				@entity.setPosition Vector.add(
+					@entity.position()
+					Vector.scale vector, magnitude
+				)
+				
 		setHeight: (height) -> @entity.setSize [@state.size[0], height]
 			
 		setWidth: (width) -> @entity.setSize [width, @state.size[1]]
