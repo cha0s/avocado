@@ -92,6 +92,17 @@ module.exports = Behavior = class extends Trait
 			
 	actions: ->
 		
+		parallel: (actions) ->
+			
+			promisesOrResults = for action in actions
+				
+				Method.EvaluateManually(
+					@variables
+					action.Method
+				)
+			
+			Q.all promisesOrResults
+			
 		setRoutineIndexByName: (routineName, actionIndex = 0) ->
 			return if @routine['name'] is routineName
 			
@@ -100,6 +111,10 @@ module.exports = Behavior = class extends Trait
 				throw new Error 'routine[' + routineName + '] does not exist!'
 			
 			@entity.setRoutineIndex routineIndex, actionIndex
+	
+	values: ->
+		
+		routine: -> @routine
 		
 	handler: ->
 		
