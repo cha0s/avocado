@@ -29,6 +29,8 @@ module.exports = Room = class
 		mixin.call this for mixin in mixins
 		PrivateScope.call @, Private, 'roomScope'
 		
+		@physics().addFloor()
+		
 	Mixin.apply null, [@::].concat mixins
 	
 	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
