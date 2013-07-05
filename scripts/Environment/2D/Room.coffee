@@ -89,6 +89,9 @@ module.exports = Room = class
 			
 			entity.setTraitVariables room: _public
 			@entities.push entity
+			
+			_public.emit 'entityAdded', entity
+			
 			entity
 		
 		entity: (index) -> @entities[index]
@@ -172,9 +175,14 @@ module.exports = Room = class
 			_public.physics().setWalls @_sizeInPx
 			
 		removeEntity: (entity) ->
+			
+			_public = @public()
+			
 			return if -1 is index = @entities.indexOf entity
 			
 			@entities.splice index, 1
+			
+			_public.emit 'entityRemoved', entity
 		
 		setSize: (size) ->
 		
