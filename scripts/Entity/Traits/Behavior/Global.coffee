@@ -20,7 +20,10 @@ module.exports =
 		
 		waitMs: (ms) ->
 			deferred = Q.defer()
-			setTimeout deferred.resolve, ms
+			setTimeout(
+				-> deferred.resolve()
+				ms
+			)
 			deferred.promise
 		
 	values: ->
