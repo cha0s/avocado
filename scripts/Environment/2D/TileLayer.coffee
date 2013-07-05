@@ -6,14 +6,13 @@ Graphics = require 'Graphics'
 Packer = require 'Utility/Packer'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
-Tileset = require 'Environment/2D/Tileset'
 Vector = require 'Extension/Vector'
 
 module.exports = TileLayer = class
 	
 	constructor: (size = [0, 0]) ->
 		
-		@tileset_ = new Tileset()
+		@tileset_ = new TileLayer.Tileset()
 		
 		# The tile index data.
 		area = Vector.area size
@@ -36,7 +35,7 @@ module.exports = TileLayer = class
 		else
 			(0 for i in [0...Vector.area @size_])
 		
-		Q.resolve()
+		Q.resolve this
 	
 	toJSON: ->
 		
@@ -223,3 +222,5 @@ module.exports = TileLayer = class
 
 			start[0] -= area[0]
 			start[1] += 1
+
+TileLayer.Tileset = require 'Environment/2D/Tileset'
