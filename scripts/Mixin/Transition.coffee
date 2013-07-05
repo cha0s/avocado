@@ -229,6 +229,24 @@ Transition.Vector = class
 	y: -> @[1]
 	setY: (y) -> @[1] = y
 
+Transition.Vector.OutOfBand = Transition.Vector
+
+Transition.Vector.InBand = class extends Transition.Vector
+
+	constructor: (vector) ->
+		
+		@[0] = vector[0]
+		@[1] = vector[1]
+		
+		Mixin this, Transition.InBand
+		
+	x: -> @[0]
+	setX: (x) -> @[0] = x
+	y: -> @[1]
+	setY: (y) -> @[1] = y
+	
+	vector: -> this
+
 Transition.Value = class
 
 	constructor: (value, key = 'value', Type = Transition) ->
@@ -239,6 +257,19 @@ Transition.Value = class
 		@[String.setterName key] = (value) -> @["_#{key}"] = value
 		
 		Mixin this, Type
+
+Transition.Value.OutOfBand = Transition.Value
+
+Transition.Value.InBand = class extends Transition.Value
+
+	constructor: (value, key = 'value') ->
+		
+		@["_#{key}"] = value
+		
+		@[key] = -> @["_#{key}"]
+		@[String.setterName key] = (value) -> @["_#{key}"] = value
+		
+		Mixin this, Transition.InBand
 
 # Registered easing functions. An easing function is a parametric equation
 # that determines the value of a property over the time length of the
