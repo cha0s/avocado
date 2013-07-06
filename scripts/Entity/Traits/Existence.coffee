@@ -3,6 +3,7 @@ Timing = require 'Timing'
 
 _ = require 'Utility/underscore'
 Mixin = require 'Mixin/Mixin'
+Rectangle = require 'Extension/Rectangle'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
 
@@ -46,10 +47,10 @@ module.exports = Existence = class extends Trait
 	
 		rectangle: ->
 				
-			Array.composeRect(
-				Vector.scale(
-					Vector.sub @state.position, @state.size
-					.5
+			Rectangle.compose(
+				Vector.sub(
+					@state.position
+					Vector.scale @state.size, .5
 				)
 				@state.size
 			)
