@@ -75,6 +75,7 @@ module.exports = Room = class
 		constructor: (_public) ->
 			
 			@collision = []
+			@entitiesDestroyed = []
 			@entities = []
 			@layers = for i in [0...Room.defaultLayerCount]
 				new Room.TileLayer()
@@ -94,6 +95,9 @@ module.exports = Room = class
 			@entities.push entity
 			
 			_public.emit 'entityAdded', entity
+			
+			entity.on 'isDestroyedChanged.Room', =>
+				@entitiesDestroyed.push entity
 			
 			entity
 		
@@ -211,6 +215,8 @@ module.exports = Room = class
 			
 			@entities.splice index, 1
 			
+			entity.off 'isDestroyedChanged.Room'
+			
 			_public.emit 'entityRemoved', entity
 		
 		setSize: (size) ->
@@ -235,11 +241,12 @@ module.exports = Room = class
 			
 			_public = @public()
 			
-			for entity in @entities
-				entity.tick()
+			if @entitiesDestroyed.length > 0
+				_public.removeEntity entity for entity in @entitiesDestroyed
+				@entitiesDestroyed = []
 			
 			for entity in @entities
-				_public.removeEntity entity if entity.isDestroyed()
+				entity.tick()
 			
 			_public.physics().tick()
 	
