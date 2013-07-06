@@ -43,7 +43,7 @@ module.exports = Room = class
 		
 	forwardCallToPrivate 'entityCount'
 		
-	forwardCallToPrivate 'entityList'
+	forwardCallToPrivate 'entitiesNearPosition'
 		
 	forwardCallToPrivate 'fromObject'
 		
@@ -98,7 +98,7 @@ module.exports = Room = class
 		
 		entityCount: -> @entities.length
 		
-		entityList: (position, distance) ->
+		entitiesNearPosition: (position, distance) ->
 			list = []
 			for entity in @entities
 				if distance >= Vector.cartesianDistance entity.position(), position

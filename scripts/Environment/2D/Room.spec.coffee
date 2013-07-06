@@ -70,9 +70,9 @@ describe 'Room', ->
 			]
 			room.addEntity entity
 		
-		expect(room.entityList([0, 0], 9.9).length).toBe 1
-		expect(room.entityList([0, 10], 10).length).toBe 3
-		expect(room.entityList([30, 30], 15).length).toBe 0
+		expect(room.entitiesNearPosition([0, 0], 9.9).length).toBe 1
+		expect(room.entitiesNearPosition([0, 10], 10).length).toBe 3
+		expect(room.entitiesNearPosition([30, 30], 15).length).toBe 0
 		
 	it "can chain calls from addEntity", ->
 	
