@@ -68,10 +68,6 @@ module.exports = Existence = class extends Trait
 		forceMove: (vector, force) ->
 			return if @entity.immovable()
 			
-			@entity.setDirection(
-				Vector.toDirection vector, @entity.directionCount()
-			)
-			
 			magnitude = Timing.TimingService.tickElapsed() * force
 			
 			moveInvocations = @entity.invoke(

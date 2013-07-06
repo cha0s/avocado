@@ -6,31 +6,28 @@ module.exports = class extends Trait
 
 	stateDefaults: ->
 		
+		isMobile: true
+		isMoving: false
 		mobilityAnimationIndex: 'moving'
 		movingSpeed: 0
 	
-	constructor: (entity, state) ->
-		
-		super entity, state
-		
-		@isMoving = false
-	
 	properties: ->
 		
+		isMobile: {}
+		isMoving: {}
 		mobilityAnimationIndex: {}
 		movingSpeed: {}
 	
-	values: ->
-
-		isMoving: -> @isMoving
-	
-	signals: ->
-	
-		startedMoving: -> @isMoving = true
-		stoppedMoving: -> @isMoving = false
-		
 	actions: ->
 
 		move: (vector) ->
+			
+			@entity.setDirection(
+				Vector.toDirection vector, @entity.directionCount()
+			)
+			
+			return unless @entity.isMobile()
+			
+			@entity.setIsMoving not Vector.isZero vector
 			
 			@entity.forceMove vector, @entity.movingSpeed()

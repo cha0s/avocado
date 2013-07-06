@@ -124,20 +124,22 @@ module.exports = Visibility = class extends Trait
 		
 		scaleChanged: -> @animation?.setScale @state.scale
 		
-		startedMoving: ->
+		isMovingChanged: ->
 			
-			index = if @state.preserveFrameWhenMoving
-				@animation?.index()
+			if @entity.isMoving()
+		
+				index = if @state.preserveFrameWhenMoving
+					@animation?.index()
+				else
+					0
+				
+				@entity.setAnimationIndex @entity.mobilityAnimationIndex()
+				@animation?.setIndex index
+				
 			else
-				0
 			
-			@entity.setAnimationIndex @entity.mobilityAnimationIndex(), false
-			@animation?.setIndex index
-		
-		stoppedMoving: ->
+				@entity.setAnimationIndex 'initial'
 			
-			@entity.setAnimationIndex 'initial'
-		
 		directionChanged: ->
 			
 			for i, animation of @animations
