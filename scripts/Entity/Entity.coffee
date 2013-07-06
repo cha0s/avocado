@@ -369,8 +369,8 @@ module.exports = Entity = class
 				
 			catch error
 				
-				console.log Debug.errorMessage error
-				console.log "Ignoring entity trait: #{trait.type}"
+				console.warn Debug.errorMessage error
+				console.warn "Ignoring entity trait: #{trait.type}"
 				
 				return
 				

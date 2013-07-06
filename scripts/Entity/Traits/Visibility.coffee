@@ -115,11 +115,11 @@ module.exports = Visibility = class extends Trait
 			
 			qualifiedAnimationIndex = qualifyWithPrefix @state.animationIndex
 			
-			unless (@animation = @animations[qualifiedAnimationIndex])?
-				throw new Error(
-					"Animation index '#{@state.animationIndex}' doesn't exist!"
-				)
+			unless (animation = @animations[qualifiedAnimationIndex])?
+				console.warn "Animation index '#{@state.animationIndex}' doesn't exist!"
+				return
 			
+			@animation = animation
 			@metadata = @state.animations[qualifiedAnimationIndex]
 		
 		scaleChanged: -> @animation?.setScale @state.scale
