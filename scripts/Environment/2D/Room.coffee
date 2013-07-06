@@ -9,6 +9,7 @@ Physics = require 'Physics/Physics'
 PrivateScope = require 'Utility/PrivateScope'
 Property = require 'Mixin/Property'
 Q = require 'Utility/Q'
+Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
 VectorMixin = require 'Mixin/Vector'
 
@@ -44,6 +45,8 @@ module.exports = Room = class
 	forwardCallToPrivate 'entityCount'
 		
 	forwardCallToPrivate 'entitiesNearPosition'
+		
+	forwardCallToPrivate 'entitiesWithinRectangle'
 		
 	forwardCallToPrivate 'fromObject'
 		
@@ -104,6 +107,32 @@ module.exports = Room = class
 				if distance >= Vector.cartesianDistance entity.position(), position
 					list.push(
 						distance: distance
+						entity: entity
+					)
+			list.sort (l, r) -> l.distance - r.distance
+			_.map list, (spec) -> spec.entity
+		
+		entitiesWithinRectangle: (
+			rectangle
+			origin
+			comparison
+		) ->
+			list = []
+			
+			comparison ?= (entity) ->
+				Rectangle.intersects rectangle, entity.rectangle()
+			
+			origin ?= Rectangle.translated(
+				rectangle
+				Vector.scale(
+					Rectangle.size rectangle
+					.5
+				)
+			) 
+			for entity in @entities
+				if comparison entity
+					list.push(
+						distance: Vector.cartesianDistance entity.position(), origin
 						entity: entity
 					)
 			list.sort (l, r) -> l.distance - r.distance
