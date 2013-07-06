@@ -49,7 +49,7 @@ module.exports = class
 			
 			@shapeList.push shape
 			
-		aabb: ->
+		aabb: (translated = true) ->
 			
 			_public = @public()
 			
@@ -65,12 +65,10 @@ module.exports = class
 				max[0] = Math.max max[0], aabb[0] + aabb[2]
 				max[1] = Math.max max[1], aabb[1] + aabb[3]
 				
-			[
-				min[0]
-				min[1]
-				max[0] - min[0]
-				max[1] - min[1]
-			]
+			Rectangle.translated(
+				[min[0], min[1], max[0] - min[0], max[1] - min[1]]
+				if translated then _public.position() else [0, 0]
+			)
 		
 		fromObject: (O) ->
 		
@@ -88,8 +86,8 @@ module.exports = class
 			_otherPrivate = shapeList.shapeListScope Private
 			
 			return false unless Rectangle.intersects(
-				Rectangle.translated _public.aabb(), _public.position()
-				Rectangle.translated shapeList.aabb(), shapeList.position()
+				_public.aabb()
+				shapeList.aabb()
 			)
 			
 			for shape in @shapeList
@@ -119,7 +117,7 @@ module.exports = class
 			destination.drawLineBox(
 				Rectangle.translated(
 					_public.aabb()
-					Vector.sub _public.position(), camera
+					Vector.scale camera, -1
 				)
 				255, 0, 255, .25
 			)
