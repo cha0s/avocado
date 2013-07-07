@@ -87,7 +87,7 @@ module.exports = Visibility = class extends Trait
 				@flashingTicker.on 'tick', =>
 					@flashing = not @flashing
 		
-		playAnimation: (plays = 1) ->
+		playAnimation: (plays = 1, reset = true) ->
 			
 			deferred = Q.defer()
 			
@@ -98,6 +98,9 @@ module.exports = Visibility = class extends Trait
 			@animation.on 'rolledOver.VisibilityTrait', =>
 				if 0 is plays -= 1
 					@animation.off 'rolledOver.VisibilityTrait'
+					
+					unless reset
+						@animation.setIndex @animation.frameCount() - 1
 					
 					deferred.resolve()
 				
