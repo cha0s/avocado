@@ -57,6 +57,8 @@ module.exports = Visibility = class extends Trait
 				
 	values: ->
 		
+		animation: -> @animation
+		
 		hasAnimationIndex: (animationIndex, qualify = true) ->
 			animationIndex = qualifyWithPrefix animationIndex if qualify
 			@animations[animationIndex]?
