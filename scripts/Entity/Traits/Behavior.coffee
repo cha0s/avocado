@@ -1,3 +1,4 @@
+
 _ = require 'Utility/underscore'
 Method = require 'Entity/Traits/Behavior/Method'
 Q = require 'Utility/Q'
@@ -52,28 +53,22 @@ module.exports = Behavior = class extends Trait
 		
 		actionIndex = @entity.actionIndex()
 		
-		fulfill = (result) =>
-			@routinePromiseLock = false	
-			
-			actionIndex += result?.increment ? 1
-			if actionIndex >= @routine['actions'].length
-				actionIndex = 0
+		Q.asap(
+			Method.EvaluateManually(
+				@variables
+				@routine['actions'][actionIndex].Method
+			)
+			(result) =>
+				@routinePromiseLock = false	
 				
-				@entity.emit 'finishedRoutine', @routine
-				
-			@entity.setActionIndex actionIndex
-		
-		promiseOrResult = Method.EvaluateManually(
-			@variables
-			@routine['actions'][actionIndex].Method
+				actionIndex += result?.increment ? 1
+				if actionIndex >= @routine['actions'].length
+					actionIndex = 0
+					
+					@entity.emit 'finishedRoutine', @routine
+					
+				@entity.setActionIndex actionIndex
 		)
-		
-		# Promises will always wait a tick, so if it isn't a promise, fulfill
-		# immediately.
-		if Q.isPromise promiseOrResult
-			promiseOrResult.then(fulfill).done()
-		else
-			fulfill promiseOrResult
 		
 	properties: ->
 		
