@@ -1,4 +1,5 @@
 
+String = require 'Extension/String'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
 
@@ -31,3 +32,24 @@ module.exports = class extends Trait
 			@entity.setIsMoving not Vector.isZero vector
 			
 			@entity.forceMove vector, @entity.movingSpeed()
+
+		moveToward: (position) ->
+			
+			@entity.move(
+				hypotenuse = Vector.hypotenuse position, @entity.position()
+			)
+			
+			axisKeys = ['width', 'height']
+			for i in [0, 1] when hypotenuse[i] isnt 0
+				
+				axis = @entity[axisKeys[i]]()
+				
+				if hypotenuse[i] < 0
+					if axis < position[i]
+						@entity[String.setterName axisKeys[i]] position[i]
+				
+				if hypotenuse[i] > 0
+					if axis > position[i]
+						@entity[String.setterName axisKeys[i]] position[i]
+				
+			increment: 0 + Vector.equals position, @entity.position()
