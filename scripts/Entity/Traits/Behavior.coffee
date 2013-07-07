@@ -90,20 +90,45 @@ module.exports = Behavior = class extends Trait
 					
 				# Don't increment; the routine changed.
 				increment: 0
+	
+	tickParallel: (skipFirstCheck = false) ->
+		return unless @parallel?
+		
+		for action in @parallel.actions
+			unless skipFirstCheck
+				continue if Q.isPromise action.result
+				continue if action.result?.increment ? 1
+			
+			action.result = Method.EvaluateManually(
+				@variables
+				action.method
+			)
+			
+		for action in @parallel.actions
+			return if Q.isPending action.result
+			return if action.result?.increment is 0
+			
+		@parallel.deferred.resolve()
+		@parallel = null
 			
 	actions: ->
 		
 		parallel: (actions) ->
 			
+			deferred = Q.defer()
+			
+			@parallel =
+				deferred: deferred
+				actions: []
+			
 			promisesOrResults = for action in actions
+				@parallel.actions.push
+					method: action.Method
 				
-				Method.EvaluateManually(
-					@variables
-					action.Method
-				)
+			@tickParallel true
 			
-			Q.all promisesOrResults
-			
+			deferred.promise
+		
 		setRoutineIndexByName: (routineName, actionIndex = 0) ->
 			return if @routine?['name'] is routineName
 			
@@ -124,4 +149,7 @@ module.exports = Behavior = class extends Trait
 			return unless @entity.behaving()
 			
 			@evaluateRules() if @entity.evaluatingRules()
-			@executeRoutine() if @entity.executingRoutine()
+			
+			if @entity.executingRoutine()
+				@tickParallel()
+				@executeRoutine()
