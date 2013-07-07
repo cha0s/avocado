@@ -294,7 +294,10 @@ module.exports = Entity = class
 		invoke: (hook, args...) ->
 			for type, trait of @traits
 				continue if not trait['hookCache'][hook]?
-				trait['hookCache'][hook].apply trait, args
+				continue unless results = trait['hookCache'][hook].apply(
+					trait, args
+				)
+				results
 	
 		# Remove a Trait from this Entity.
 		removeTrait: (type) ->

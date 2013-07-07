@@ -27,6 +27,17 @@ module.exports = Behavior = class extends Trait
 			Global: require 'Entity/Traits/Behavior/Global'
 			Vector: require 'Extension/Vector'
 		
+	initializeTrait: ->
+		
+		@routines = @state.routines.concat()
+		@routine = @routines[@entity.routineIndex()]
+		
+		rulePromises = for ruleO in @state.rules.concat()
+			rule = new Rule()
+			rule.fromObject ruleO
+		
+		Q.all(rulePromises).then (@rules) =>
+	
 	setVariables: (variables) -> _.extend @variables, variables
 	
 	evaluateRules: ->
@@ -34,6 +45,8 @@ module.exports = Behavior = class extends Trait
 		return
 	
 	executeRoutine: ->
+		return unless @routine?
+		
 		return if @routinePromiseLock
 		@routinePromiseLock = true
 		
@@ -62,17 +75,6 @@ module.exports = Behavior = class extends Trait
 		else
 			fulfill promiseOrResult
 		
-	initializeTrait: ->
-		
-		@routines = @state.routines.concat()
-		@routine = @routines[@entity.routineIndex()]
-		
-		rulePromises = for ruleO in @state.rules.concat()
-			rule = new Rule()
-			rule.fromObject ruleO
-		
-		Q.all(rulePromises).then (@rules) =>
-	
 	properties: ->
 		
 		actionIndex: {}
@@ -104,7 +106,7 @@ module.exports = Behavior = class extends Trait
 			Q.all promisesOrResults
 			
 		setRoutineIndexByName: (routineName, actionIndex = 0) ->
-			return if @routine['name'] is routineName
+			return if @routine?['name'] is routineName
 			
 			routineNames = _.map @routines, (routine) -> routine.name
 			if -1 is routineIndex = routineNames.indexOf routineName
