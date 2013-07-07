@@ -53,22 +53,26 @@ module.exports = Behavior = class extends Trait
 		
 		actionIndex = @entity.actionIndex()
 		
-		Q.asap(
-			Method.EvaluateManually(
-				@variables
-				@routine['actions'][actionIndex].Method
-			)
-			(result) =>
-				@routinePromiseLock = false	
-				
-				actionIndex += result?.increment ? 1
-				if actionIndex >= @routine['actions'].length
-					actionIndex = 0
-					
-					@entity.emit 'finishedRoutine', @routine
-					
-				@entity.setActionIndex actionIndex
+		promiseOrValue = Method.EvaluateManually(
+			@variables
+			@routine['actions'][actionIndex].Method
 		)
+		
+		fulfill = (result) =>
+			@routinePromiseLock = false	
+			
+			actionIndex += result?.increment ? 1
+			if actionIndex >= @routine['actions'].length
+				actionIndex = 0
+				
+				@entity.emit 'finishedRoutine', @routine
+				
+			@entity.setActionIndex actionIndex
+
+		if Q.isPromise promiseOrValue
+			promiseOrValue.then(fulfill).done()
+		else
+			fulfill promiseOrValue
 		
 	properties: ->
 		
