@@ -51,6 +51,8 @@ module.exports = class
 			
 		aabb: (translated = true) ->
 			
+			return [0, 0, 0, 0] if @shapeList.length is 0
+			
 			_public = @public()
 			
 			min = [Infinity, Infinity]
@@ -81,6 +83,8 @@ module.exports = class
 			return
 			
 		intersects: (shapeList) ->
+			
+			return false if @shapeList.length is 0
 			
 			_public	= @public()
 			_otherPrivate = shapeList.shapeListScope Private
