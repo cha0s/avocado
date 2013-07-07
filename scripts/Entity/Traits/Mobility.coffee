@@ -39,7 +39,7 @@ module.exports = class extends Trait
 				hypotenuse = Vector.hypotenuse position, @entity.position()
 			)
 			
-			axisKeys = ['width', 'height']
+			axisKeys = ['x', 'y']
 			for i in [0, 1] when hypotenuse[i] isnt 0
 				
 				axis = @entity[axisKeys[i]]()
