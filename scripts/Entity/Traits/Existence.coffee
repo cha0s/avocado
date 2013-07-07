@@ -20,6 +20,11 @@ module.exports = Existence = class extends Trait
 		secondsSeen: 0
 		size: [0, 0]
 		
+	constructor: ->
+		super
+		
+		@parent = null
+		
 	properties: ->
 		
 		direction: set: (direction) ->
@@ -44,6 +49,8 @@ module.exports = Existence = class extends Trait
 	values: ->
 		
 		height: -> @state.size[1]
+		
+		parent: -> @parent
 	
 		rectangle: ->
 				
@@ -85,6 +92,8 @@ module.exports = Existence = class extends Trait
 				
 		setHeight: (height) -> @entity.setSize [@state.size[0], height]
 			
+		setParent: (parent) -> @parent = parent
+		
 		setWidth: (width) -> @entity.setSize [width, @state.size[1]]
 			
 		setX: (x) -> @entity.setPosition [x, @state.position[1]]
