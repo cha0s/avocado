@@ -127,17 +127,18 @@ module.exports = Vector =
 	#     23
 	dot: (l, r) -> l[0] * r[0] + l[1] * r[1]
 	
-	projected: (vector, direction) ->
+	projected: (vector, direction, noNeg) ->
 		
-		switch direction
-			when 0
-				vector
-			when 1
-				[-vector[1], vector[0]]
-			when 2
-				[vector[0], -vector[1]]
-			when 3
-				[vector[1], -vector[0]]
+		projected = switch direction
+			when 0, 2 then vector
+			when 1, 3 then [vector[1], vector[0]]
+		
+		unless noNeg
+			switch direction
+				when 1 then projected[0] *= -1
+				when 2, 3 then projected[1] *= -1
+					
+		projected
 	
 	# Get a hypotenuse unit vector. If an origin vector is passed in, the
 	# hypotenuse is derived from the distance to the origin.

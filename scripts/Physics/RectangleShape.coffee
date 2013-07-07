@@ -22,12 +22,7 @@ module.exports = class extends Shape
 	aabb: (direction) ->
 		
 		position = Vector.projected @position(), direction
-		
-		size = switch direction
-			when 0, 2
-				@size()
-			when 1, 3
-				[@height(), @width()]
+		size = Vector.projected @size(), direction, true
 		
 		[
 			position[0] - size[0] / 2
