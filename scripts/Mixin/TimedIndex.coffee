@@ -57,7 +57,7 @@ module.exports = Animation = (
 				_public.setIndex Math.floor index % _public[_indexCount]()
 				_public.emit 'rolledOver' if index >= _public[_indexCount]()
 				
-			setIndex: (index) ->
+			setIndex: (index, reset = true) ->
 				
 				_public = @public()
 				
@@ -65,6 +65,8 @@ module.exports = Animation = (
 					_public
 					index % _public[_indexCount]()
 				)
+				
+				@ticker.reset() if reset
 			
 			start: ->
 				return if @interval?
