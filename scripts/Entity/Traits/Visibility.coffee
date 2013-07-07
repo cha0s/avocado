@@ -17,9 +17,9 @@ module.exports = Visibility = class extends Trait
 	stateDefaults: ->
 		
 		animations: {}
-		isVisible: true
 		animationIndex: 'initial'
 		alpha: 1
+		isVisible: true
 		scale: [1, 1]
 		preserveFrameWhenMoving: false
 
@@ -52,8 +52,11 @@ module.exports = Visibility = class extends Trait
 	properties: ->
 		
 		alpha: {}
-		isVisible: {}
 		animationIndex: {}
+		isVisible: {}
+		scale:
+			set: (scale) -> @state.scale = Vector.copy scale
+			eq: (l, r) -> Vector.equals l, r
 				
 	values: ->
 		
@@ -62,6 +65,10 @@ module.exports = Visibility = class extends Trait
 		hasAnimationIndex: (animationIndex, qualify = true) ->
 			animationIndex = qualifyWithPrefix animationIndex if qualify
 			@animations[animationIndex]?
+		
+		scaleX: -> @state.scale[0]
+		
+		scaleY: -> @state.scale[1]
 		
 		visibleRect: -> Rectangle.compose(
 			Vector.mul(
@@ -107,6 +114,10 @@ module.exports = Visibility = class extends Trait
 					deferred.resolve()
 				
 			deferred.promise
+
+		setScaleX: (x) -> @entity.setScale [x, @state.scale[1]]
+			
+		setScaleY: (y) -> @entity.setScale [@state.scale[0], y]
 
 		stopAnimation: -> @animation?.stop()
 		
