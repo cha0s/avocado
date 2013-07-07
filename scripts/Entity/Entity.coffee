@@ -65,6 +65,8 @@ module.exports = Entity = class
 	
 	forwardCallToPrivate 'traitExtensions'
 	
+	forwardCallToPrivate 'transition'
+	
 	uri: ->
 		
 		_private = @entityScope Private
@@ -143,6 +145,7 @@ module.exports = Entity = class
 			@renderers = {}
 			@tickers = []
 			@traits = {}
+			@transitions = []
 			@uri = null
 
 		addTrait: (traitInfo) ->
@@ -347,6 +350,9 @@ module.exports = Entity = class
 			_public = @public()
 			
 			ticker.f() for ticker in @tickers
+			
+			transition.tick() for transition in @transitions
+			
 			_public.emit 'tick'
 			return
 			
@@ -426,3 +432,21 @@ module.exports = Entity = class
 			
 			O
 			
+		transition: ->
+			
+			_public = @public()
+			
+			@transitions.push(
+				transition = Transition.InBand::transition.apply(
+					_public, arguments
+				)
+			)
+			
+			transition.promise.then =>
+				
+				@transitions.splice(
+					@transitions.indexOf transition
+					1
+				)
+				
+			transition
