@@ -25,7 +25,6 @@ Mixin = require 'Mixin/Mixin'
 PrivateScope = require 'Utility/PrivateScope'
 Q = require 'Utility/Q'
 String = require 'Extension/String'
-TimingService = require('Timing').TimingService
 
 TransitionResult = class
 	
