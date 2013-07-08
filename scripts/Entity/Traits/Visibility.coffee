@@ -125,7 +125,9 @@ module.exports = Visibility = class extends Trait
 		
 	signals: ->
 		
-		alphaChanged: -> @animation?.setAlpha @state.alpha
+		alphaChanged: ->
+			for i, animation of @animations
+				animation.setAlpha @state.alpha
 		
 		animationIndexChanged: ->
 			
@@ -138,7 +140,9 @@ module.exports = Visibility = class extends Trait
 			@animation = animation
 			@metadata = @state.animations[qualifiedAnimationIndex]
 		
-		scaleChanged: -> @animation?.setScale @state.scale
+		scaleChanged: ->
+			for i, animation of @animations
+				animation.setScale @state.scale
 		
 		isMovingChanged: ->
 			
