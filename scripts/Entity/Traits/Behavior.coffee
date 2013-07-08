@@ -21,6 +21,7 @@ module.exports = Behavior = class extends Trait
 		super entity, state
 		
 		@routines = []
+		@routineNames = []
 		@routinePromiseLock = false
 		@rules = []
 		@variables =
@@ -31,6 +32,16 @@ module.exports = Behavior = class extends Trait
 	initializeTrait: ->
 		
 		@routines = @state.routines.concat()
+		@routineNames = _.pluck @routines, 'name'
+		
+		for routine in _.flatten(
+			@entity.invoke 'routines'
+			true
+		)
+			unless _.contains @routines, routine.name
+				@routines.push routine
+				@routineNames.push routine.name
+		
 		@routine = @routines[@entity.routineIndex()]
 		
 		rulePromises = for ruleO in @state.rules.concat()
@@ -132,13 +143,14 @@ module.exports = Behavior = class extends Trait
 		setRoutineIndexByName: (routineName, actionIndex = 0) ->
 			return if @routine?['name'] is routineName
 			
-			routineNames = _.map @routines, (routine) -> routine.name
-			if -1 is routineIndex = routineNames.indexOf routineName
+			if -1 is routineIndex = @routineNames.indexOf routineName
 				throw new Error 'routine[' + routineName + '] does not exist!'
 			
 			@entity.setRoutineIndex routineIndex, actionIndex
 	
 	values: ->
+		
+		hasRoutine: (routineName) -> _.contains @routineNames, routineName
 		
 		routine: -> @routine
 		
