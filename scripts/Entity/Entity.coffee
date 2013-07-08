@@ -6,6 +6,7 @@ _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
 EventEmitter = require 'Mixin/EventEmitter'
+Lfo = require 'Mixin/Lfo'
 Mixin = require 'Mixin/Mixin'
 PrivateScope = require 'Utility/PrivateScope'
 Q = require 'Utility/Q'
@@ -21,6 +22,7 @@ module.exports = Entity = class
 	#    property.
 	mixins = [
 		EventEmitter
+		Lfo.InBand
 		Transition.InBand
 	]
 	
@@ -48,6 +50,8 @@ module.exports = Entity = class
 	forwardCallToPrivate 'hasTrait'
 	
 	forwardCallToPrivate 'invoke'
+	
+	forwardCallToPrivate 'lfo'
 	
 	forwardCallToPrivate 'removeTrait'
 	
@@ -141,6 +145,7 @@ module.exports = Entity = class
 		
 		constructor: ->
 
+			@lfos = []
 			@originalTraits = {}
 			@renderers = {}
 			@tickers = []
@@ -302,6 +307,27 @@ module.exports = Entity = class
 				)
 				results
 	
+			
+		lfo: ->
+			
+			_public = @public()
+			
+			lfo = Lfo.InBand::lfo.apply(
+				_public, arguments
+			)
+			
+			return lfo unless lfo.promise?
+			
+			@lfos.push lfo
+			lfo.promise.then =>
+				
+				@lfos.splice(
+					@lfos.indexOf lfo
+					1
+				)
+				
+			lfo
+		
 		# Remove a Trait from this Entity.
 		removeTrait: (type) ->
 			
@@ -352,6 +378,7 @@ module.exports = Entity = class
 			ticker.f() for ticker in @tickers
 			
 			transition.tick() for transition in @transitions
+			lfo.tick() for lfo in @lfos
 			
 			_public.emit 'tick'
 			return
