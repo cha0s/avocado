@@ -83,19 +83,6 @@ module.exports = Visibility = class extends Trait
 		
 	actions: ->
 		
-		setIsFlashing: (ms = 45) ->
-			
-			if ms is false
-				
-				@flashingTicker = null
-				
-			else
-			
-				@flashingTicker = new Ticker.InBand()
-				@flashingTicker.setFrequency ms
-				@flashingTicker.on 'tick', =>
-					@flashing = not @flashing
-		
 		playAnimation: (plays = 1, reset = true) ->
 			
 			deferred = Q.defer()
