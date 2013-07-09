@@ -13,17 +13,29 @@ module.exports = Behavior = class extends Trait
 		evaluatingRules: true
 		executingRoutine: true
 		routineIndex: 0
-		routines: []
+		routines: [
+			name: 'Default'
+			actions: [
+				Method: [
+					'Global:nop'
+					[
+						[]
+					]
+				]
+			]
+		]
 		rules: []
 	
 	constructor: (entity, state) ->
 	
 		super entity, state
 		
+		@lfos = []
 		@routines = []
 		@routineNames = []
 		@routinePromiseLock = false
 		@rules = []
+		@transitions = []
 		@variables =
 			entity: entity
 			Global: require 'Entity/Traits/Behavior/Global'
@@ -64,13 +76,19 @@ module.exports = Behavior = class extends Trait
 		
 		actionIndex = @entity.actionIndex()
 		
+		@entity.on 'lfoAdded.BehaviorTrait', (lfo) =>
+			@lfos.push lfo
+		@entity.on 'transitionAdded.BehaviorTrait', (transition) =>
+			@transitions.push transition
+		
 		promiseOrValue = Method.EvaluateManually(
 			@variables
 			@routine['actions'][actionIndex].Method
 		)
 		
 		fulfill = (result) =>
-			@routinePromiseLock = false	
+			
+			@releaseAsync()
 			
 			actionIndex += result?.increment ? 1
 			if actionIndex >= @routine['actions'].length
@@ -94,6 +112,8 @@ module.exports = Behavior = class extends Trait
 		routineIndex:
 			set: (routineIndex, actionIndex = 0) ->
 				
+				@releaseAsync()
+				
 				@routine = @routines[@state.routineIndex = routineIndex]
 				@entity.setActionIndex actionIndex
 				unless @routine['actions'][actionIndex]?
@@ -102,6 +122,19 @@ module.exports = Behavior = class extends Trait
 				# Don't increment; the routine changed.
 				increment: 0
 	
+	releaseAsync: ->
+	
+		@parallel = null
+		@routinePromiseLock = false
+		
+		@entity.removeLfo lfo for lfo in @lfos
+		@lfos = []
+		@entity.off 'lfoAdded.BehaviorTrait'
+	
+		@entity.removeTransition transition for transition in @transitions
+		@transitions = []
+		@entity.off 'transitionAdded.BehaviorTrait'
+				
 	tickParallel: (skipFirstCheck = false) ->
 		return unless @parallel?
 		
@@ -120,7 +153,6 @@ module.exports = Behavior = class extends Trait
 			return if action.result?.increment is 0
 			
 		@parallel.deferred.resolve()
-		@parallel = null
 			
 	actions: ->
 		
