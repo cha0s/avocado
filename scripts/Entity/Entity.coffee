@@ -53,7 +53,11 @@ module.exports = Entity = class
 	
 	forwardCallToPrivate 'lfo'
 	
+	forwardCallToPrivate 'removeLfo'
+	
 	forwardCallToPrivate 'removeTrait'
+	
+	forwardCallToPrivate 'removeTransition'
 	
 	forwardCallToPrivate 'render'
 	
@@ -125,8 +129,8 @@ module.exports = Entity = class
 			
 			if traitExtensions.length
 				objectPromise.then (entity) ->
-					entity.extendTraits traitExtensions
-					entity
+					entity.extendTraits(traitExtensions).then ->
+						entity
 			else
 				objectPromise
 		
@@ -318,16 +322,17 @@ module.exports = Entity = class
 			
 			return lfo unless lfo.promise?
 			
+			_public.emit 'lfoAdded', lfo
+			
 			@lfos.push lfo
-			lfo.promise.then =>
-				
-				@lfos.splice(
-					@lfos.indexOf lfo
-					1
-				)
+			lfo.promise.then => @removeLfo lfo
 				
 			lfo
-		
+			
+		removeLfo: (lfo) ->
+			return if -1 is index = @lfos.indexOf lfo
+			@lfos.splice index, 1
+			
 		# Remove a Trait from this Entity.
 		removeTrait: (type) ->
 			
@@ -351,6 +356,10 @@ module.exports = Entity = class
 			# Remove the trait object.
 			delete @traits[type]
 		
+		removeTransition: (transition) ->
+			return if -1 is index = @transitions.indexOf transition
+			@transitions.splice index, 1
+			
 		# Called every engine render cycle.
 		render: (destination, camera = [0, 0], type = 'inline') ->
 			
@@ -469,11 +478,8 @@ module.exports = Entity = class
 				)
 			)
 			
-			transition.promise.then =>
+			transition.promise.then => @removeTransition transition
 				
-				@transitions.splice(
-					@transitions.indexOf transition
-					1
-				)
-				
+			_public.emit 'transitionAdded', transition
+			
 			transition
