@@ -16,6 +16,7 @@ module.exports = Existence = class extends Trait
 		directionCount: 1
 		immovable: false
 		name: 'Abstract'
+		offset: [0, 0]
 		position: [-10000, -10000]
 		secondsSeen: 0
 		size: [0, 0]
@@ -38,8 +39,16 @@ module.exports = Existence = class extends Trait
 		directionCount: {}
 		immovable: {}
 		isDestroyed: {}
-		name: {}	
+		name: {}
+		offset: 
+			set: (offset) ->
+				oldOffset = Vector.copy @state.offset
+				@state.offset = Vector.copy offset
+				unless Vector.equals oldOffset, @entity.offset()
+					@entity.emit 'positionChanged'
+			eq: (l, r) -> Vector.equals l, r
 		position:
+			get: -> Vector.add @state.position, @state.offset
 			set: (position) -> @state.position = Vector.copy position
 			eq: (l, r) -> Vector.equals l, r
 		size:
@@ -49,6 +58,10 @@ module.exports = Existence = class extends Trait
 	values: ->
 		
 		height: -> @state.size[1]
+		
+		offsetX: -> @state.offset[0]
+		
+		offsetY: -> @state.offset[1]
 		
 		parent: -> @parent
 	
@@ -89,9 +102,13 @@ module.exports = Existence = class extends Trait
 					@entity.position()
 					Vector.scale vector, magnitude
 				)
-				
+		
 		setHeight: (height) -> @entity.setSize [@state.size[0], height]
 			
+		setOffsetX: (x) -> @entity.setOffset [x, @entity.offsetY()]
+		
+		setOffsetY: (y) -> @entity.setOffset [@entity.offsetX(), y]
+		
 		setParent: (parent) -> @parent = parent
 		
 		setWidth: (width) -> @entity.setSize [width, @state.size[1]]
