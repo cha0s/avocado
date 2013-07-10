@@ -156,7 +156,7 @@ module.exports = Entity = class
 			@traits = {}
 			@transitions = []
 			@uri = null
-
+			
 		addTrait: (traitInfo) ->
 			
 			_public = @public()
@@ -322,11 +322,11 @@ module.exports = Entity = class
 			
 			return lfo unless lfo.promise?
 			
-			_public.emit 'lfoAdded', lfo
-			
 			@lfos.push lfo
 			lfo.promise.then => @removeLfo lfo
 				
+			_public.emit 'lfoAdded', lfo
+			
 			lfo
 			
 		removeLfo: (lfo) ->
