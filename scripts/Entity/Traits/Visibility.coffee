@@ -165,8 +165,10 @@ module.exports = Visibility = class extends Trait
 				return unless @state.isVisible
 				return if @state.alpha is 0
 				
+				position = Vector.add @entity.position(), @entity.offset()
+				
 				@animation?.setPosition Vector.add(
-					Vector.sub @entity.position(), camera
+					Vector.sub position, camera
 					Rectangle.position @entity.visibleRect()
 				)
 				

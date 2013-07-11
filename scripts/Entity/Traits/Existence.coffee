@@ -42,13 +42,9 @@ module.exports = Existence = class extends Trait
 		name: {}
 		offset: 
 			set: (offset) ->
-				oldOffset = Vector.copy @state.offset
 				@state.offset = Vector.copy offset
-				unless Vector.equals oldOffset, @entity.offset()
-					@entity.emit 'positionChanged'
 			eq: (l, r) -> Vector.equals l, r
 		position:
-			get: -> Vector.add @state.position, @state.offset
 			set: (position) -> @state.position = Vector.copy position
 			eq: (l, r) -> Vector.equals l, r
 		size:
@@ -77,7 +73,7 @@ module.exports = Existence = class extends Trait
 		
 		width: -> @state.size[0]
 		
-		x: -> @entity.position[0]
+		x: -> @state.position[0]
 		
 		y: -> @state.position[1]
 		
@@ -99,10 +95,10 @@ module.exports = Existence = class extends Trait
 			if moveInvocations.length is 0
 				
 				@entity.setPosition Vector.add(
-					@entity.position()
+					[@entity.x(), @entity.y()]
 					Vector.scale vector, magnitude
 				)
-		
+				
 		setHeight: (height) -> @entity.setSize [@state.size[0], height]
 			
 		setOffsetX: (x) -> @entity.setOffset [x, @entity.offsetY()]
