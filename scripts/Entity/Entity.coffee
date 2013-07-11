@@ -43,6 +43,8 @@ module.exports = Entity = class
 		@::, call, (-> Private), 'entityScope'
 	)
 	
+	forwardCallToPrivate 'addTicker'
+	
 	forwardCallToPrivate 'extendTraits'
 	
 	forwardCallToPrivate 'fromObject'
@@ -53,11 +55,9 @@ module.exports = Entity = class
 	
 	forwardCallToPrivate 'lfo'
 	
-	forwardCallToPrivate 'removeLfo'
-	
 	forwardCallToPrivate 'removeTrait'
 	
-	forwardCallToPrivate 'removeTransition'
+	forwardCallToPrivate 'removeTicker'
 	
 	forwardCallToPrivate 'render'
 	
@@ -149,13 +149,19 @@ module.exports = Entity = class
 		
 		constructor: ->
 
-			@lfos = []
 			@originalTraits = {}
 			@renderers = {}
 			@tickers = []
 			@traits = {}
-			@transitions = []
 			@uri = null
+		
+		addTicker: (ticker) ->
+			
+			_public = @public()
+			
+			@tickers.push ticker
+			
+			_public.emit 'tickerAdded', ticker
 			
 		addTrait: (traitInfo) ->
 			
@@ -322,16 +328,17 @@ module.exports = Entity = class
 			
 			return lfo unless lfo.promise?
 			
-			@lfos.push lfo
-			lfo.promise.then => @removeLfo lfo
-				
-			_public.emit 'lfoAdded', lfo
+			ticker = f: -> lfo.tick()
 			
+			@addTicker ticker
+			
+			lfo.promise.then => @removeTicker ticker
+				
 			lfo
 			
-		removeLfo: (lfo) ->
-			return if -1 is index = @lfos.indexOf lfo
-			@lfos.splice index, 1
+		removeTicker: (ticker) ->
+			return if -1 is index = @tickers.indexOf ticker
+			@tickers.splice index, 1
 			
 		# Remove a Trait from this Entity.
 		removeTrait: (type) ->
@@ -356,10 +363,6 @@ module.exports = Entity = class
 			# Remove the trait object.
 			delete @traits[type]
 		
-		removeTransition: (transition) ->
-			return if -1 is index = @transitions.indexOf transition
-			@transitions.splice index, 1
-			
 		# Called every engine render cycle.
 		render: (destination, camera = [0, 0], type = 'inline') ->
 			
@@ -385,9 +388,6 @@ module.exports = Entity = class
 			_public = @public()
 			
 			ticker.f() for ticker in @tickers
-			
-			transition.tick() for transition in @transitions
-			lfo.tick() for lfo in @lfos
 			
 			_public.emit 'tick'
 			return
@@ -472,14 +472,14 @@ module.exports = Entity = class
 			
 			_public = @public()
 			
-			@transitions.push(
-				transition = Transition.InBand::transition.apply(
-					_public, arguments
-				)
+			transition = Transition.InBand::transition.apply(
+				_public, arguments
 			)
 			
-			transition.promise.then => @removeTransition transition
-				
-			_public.emit 'transitionAdded', transition
+			ticker = f: -> transition.tick()
 			
+			@addTicker ticker
+			
+			transition.promise.then => @removeTicker ticker
+				
 			transition

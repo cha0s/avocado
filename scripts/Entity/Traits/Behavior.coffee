@@ -30,12 +30,11 @@ module.exports = Behavior = class extends Trait
 	
 		super entity, state
 		
-		@lfos = []
 		@routines = []
 		@routineNames = []
 		@routinePromiseLock = false
 		@rules = []
-		@transitions = []
+		@tickers = []
 		@variables =
 			entity: entity
 			Global: require 'Entity/Traits/Behavior/Global'
@@ -76,10 +75,8 @@ module.exports = Behavior = class extends Trait
 		
 		actionIndex = @entity.actionIndex()
 		
-		@entity.on 'lfoAdded.BehaviorTrait', (lfo) =>
-			@lfos.push lfo
-		@entity.on 'transitionAdded.BehaviorTrait', (transition) =>
-			@transitions.push transition
+		@entity.on 'tickerAdded.BehaviorTrait', (ticker) =>
+			@tickers.push ticker
 		
 		promiseOrValue = Method.EvaluateManually(
 			@variables
@@ -127,14 +124,10 @@ module.exports = Behavior = class extends Trait
 		@parallel = null
 		@routinePromiseLock = false
 		
-		@entity.removeLfo lfo for lfo in @lfos
-		@lfos = []
-		@entity.off 'lfoAdded.BehaviorTrait'
-	
-		@entity.removeTransition transition for transition in @transitions
-		@transitions = []
-		@entity.off 'transitionAdded.BehaviorTrait'
-				
+		@entity.removeTicker ticker for ticker in @tickers
+		@ticker = []
+		@entity.off 'tickerAdded.BehaviorTrait'
+		
 	tickParallel: (skipFirstCheck = false) ->
 		return unless @parallel?
 		
