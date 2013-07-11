@@ -1,4 +1,7 @@
 
+Timing = require 'Timing'
+
+Q = require 'Utility/Q'
 String = require 'Extension/String'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
@@ -33,23 +36,39 @@ module.exports = class extends Trait
 			
 			@entity.forceMove vector, @entity.movingSpeed()
 
-		moveToward: (position) ->
+		moveToward: (destination, timeout = Infinity) ->
 			
-			@entity.move(
-				hypotenuse = Vector.hypotenuse position, @entity.position()
-			)
+			deferred = Q.defer()
 			
-			axisKeys = ['x', 'y']
-			for i in [0, 1] when hypotenuse[i] isnt 0
+			timeout /= 1000
+			
+			ticker = f: =>
+			
+				@entity.move hypotenuse = Vector.hypotenuse(
+					destination
+					@entity.position()
+				)
 				
-				axis = @entity[axisKeys[i]]()
+				entityPosition = @entity.position()
+				for i in [0, 1] when hypotenuse[i] isnt 0
+					
+					if hypotenuse[i] < 0
+						if entityPosition[i] < destination[i]
+							entityPosition[i] = destination[i]
+					
+					if hypotenuse[i] > 0
+						if entityPosition[i] > destination[i]
+							entityPosition[i] = destination[i]
 				
-				if hypotenuse[i] < 0
-					if axis < position[i]
-						@entity[String.setterName axisKeys[i]] position[i]
+				@entity.setPosition entityPosition
+				deferred.resolve() if Vector.equals(
+					destination
+					entityPosition
+				)
 				
-				if hypotenuse[i] > 0
-					if axis > position[i]
-						@entity[String.setterName axisKeys[i]] position[i]
-				
-			increment: 0 + Vector.equals position, @entity.position()
+				timeout -= Timing.TimingService.tickElapsed()
+				deferred.resolve() if timeout <= 0
+			
+			@entity.addTicker ticker
+			
+			deferred.promise
