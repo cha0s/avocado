@@ -116,52 +116,48 @@ module.exports = Behavior = class extends Trait
 				unless @routine['actions'][actionIndex]?
 					throw new Error 'No such command index'
 					
-				# Don't increment; the routine changed.
-				increment: 0
+				# Return a promise that never resolves, because otherwise the
+				# action index would increment in the new routine.
+				Q.defer().promise
 	
 	releaseAsync: ->
 	
-		@parallel = null
 		@routinePromiseLock = false
 		
 		@entity.removeTicker ticker for ticker in @tickers
-		@ticker = []
+		@tickers = []
 		@entity.off 'tickerAdded.BehaviorTrait'
 		
-	tickParallel: (skipFirstCheck = false) ->
-		return unless @parallel?
-		
-		for action in @parallel.actions
-			unless skipFirstCheck
-				continue if Q.isPromise action.result
-				continue if action.result?.increment ? 1
-			
-			action.result = Method.EvaluateManually(
-				@variables
-				action.method
-			)
-			
-		for action in @parallel.actions
-			return if Q.isPending action.result
-			return if action.result?.increment is 0
-			
-		@parallel.deferred.resolve()
-			
 	actions: ->
 		
 		parallel: (actions) ->
 			
 			deferred = Q.defer()
 			
-			@parallel =
-				deferred: deferred
-				actions: []
-			
-			promisesOrResults = for action in actions
-				@parallel.actions.push
-					method: action.Method
+			ticker = f: (skipFirstCheck = false) =>
 				
-			@tickParallel true
+				for action in actions
+					unless skipFirstCheck
+						continue if Q.isPromise action.result
+						continue if action.result?.increment ? 1
+					
+					action.result = Method.EvaluateManually(
+						@variables
+						action.Method
+					)
+					
+					continue if Q.isPending action.result
+					continue if action.result?.increment is 0
+
+				for action in actions
+					return if Q.isPending action.result
+					return if action.result?.increment is 0
+					
+				deferred.resolve()
+			
+			ticker.f true
+			
+			@entity.addTicker ticker
 			
 			deferred.promise
 		
@@ -187,6 +183,4 @@ module.exports = Behavior = class extends Trait
 			
 			@evaluateRules() if @entity.evaluatingRules()
 			
-			if @entity.executingRoutine()
-				@tickParallel()
-				@executeRoutine()
+			@executeRoutine() if @entity.executingRoutine()
