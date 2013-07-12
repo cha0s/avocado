@@ -43,7 +43,7 @@ module.exports = class extends Trait
 			timeout /= 1000
 			
 			ticker = f: =>
-			
+				
 				@entity.move hypotenuse = Vector.hypotenuse(
 					destination
 					@entity.position()

@@ -113,10 +113,7 @@ module.exports = Existence = class extends Trait
 			
 		setY: (y) -> @entity.setPosition [@state.position[0], y]
 			
-		signal: ->
-			@entity.emit.apply @entity, arguments
-			
-			increment: 1
+		signal: -> @entity.emit.apply @entity, arguments
 	
 	handler: ->
 		
