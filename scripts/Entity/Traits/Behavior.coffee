@@ -1,7 +1,8 @@
 
 _ = require 'Utility/underscore'
+Deferred = require 'Utility/Deferred'
 Method = require 'Entity/Traits/Behavior/Method'
-Q = require 'Utility/Q'
+Q = require 'Utility/kew'
 Trait = require 'Entity/Traits/Trait'
 
 module.exports = Behavior = class extends Trait
@@ -77,7 +78,7 @@ module.exports = Behavior = class extends Trait
 		
 		@entity.on 'tickerAdded.BehaviorTrait', (ticker) =>
 			@tickers.push ticker
-		
+			
 		promiseOrValue = Method.EvaluateManually(
 			@variables
 			@routine['actions'][actionIndex].Method
@@ -85,31 +86,38 @@ module.exports = Behavior = class extends Trait
 		
 		fulfill = (result) =>
 			
-			@releaseAsync()
-			
 			actionIndex += result?.increment ? 1
 			if actionIndex >= @routine['actions'].length
 				actionIndex = 0
 				
 				@entity.emit 'finishedRoutine', @routine
-				
+			
 			@entity.setActionIndex actionIndex
-
+			
 		if Q.isPromise promiseOrValue
 			promiseOrValue.then(fulfill).done()
 		else
 			fulfill promiseOrValue
+			
+		return
 		
 	properties: ->
 		
-		actionIndex: {}
+		actionIndex:
+			set: (actionIndex) ->
+				oldActionIndex = @state.actionIndex
+				@state.actionIndex = actionIndex
+				
+				@releaseAsync()
+				
+				unless oldActionIndex is @state.actionIndex
+					@entity.emit 'actionIndexChanged', oldActionIndex
+				
 		behaving: {}
 		evaluatingRules: {}
 		executingRoutine: {}
 		routineIndex:
 			set: (routineIndex, actionIndex = 0) ->
-				
-				@releaseAsync()
 				
 				@routine = @routines[@state.routineIndex = routineIndex]
 				@entity.setActionIndex actionIndex
@@ -121,7 +129,7 @@ module.exports = Behavior = class extends Trait
 				Q.defer().promise
 	
 	releaseAsync: ->
-	
+		
 		@routinePromiseLock = false
 		
 		@entity.removeTicker ticker for ticker in @tickers
@@ -132,34 +140,14 @@ module.exports = Behavior = class extends Trait
 		
 		parallel: (actions) ->
 			
-			deferred = Q.defer()
-			
-			ticker = f: (skipFirstCheck = false) =>
+			promises = for action in actions
 				
-				for action in actions
-					unless skipFirstCheck
-						continue if Q.isPromise action.result
-						continue if action.result?.increment ? 1
-					
-					action.result = Method.EvaluateManually(
-						@variables
-						action.Method
-					)
-					
-					continue if Q.isPending action.result
-					continue if action.result?.increment is 0
-
-				for action in actions
-					return if Q.isPending action.result
-					return if action.result?.increment is 0
-					
-				deferred.resolve()
+				Method.EvaluateManually(
+					@variables
+					action.Method
+				)
 			
-			ticker.f true
-			
-			@entity.addTicker ticker
-			
-			deferred.promise
+			Q.allAsap promises
 		
 		setRoutineIndexByName: (routineName, actionIndex = 0) ->
 			return if @routine?['name'] is routineName
@@ -184,3 +172,5 @@ module.exports = Behavior = class extends Trait
 			@evaluateRules() if @entity.evaluatingRules()
 			
 			@executeRoutine() if @entity.executingRoutine()
+			
+			return

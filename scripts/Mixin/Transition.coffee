@@ -23,7 +23,7 @@ Timing = require 'Timing'
 
 Mixin = require 'Mixin/Mixin'
 PrivateScope = require 'Utility/PrivateScope'
-Q = require 'Utility/Q'
+Q = require 'Utility/kew'
 String = require 'Extension/String'
 
 TransitionResult = class
@@ -82,7 +82,7 @@ TransitionResult = class
 			# Set up the transition object.
 			@deferred = Q.defer()
 			_public.promise = @deferred.promise
-				
+			
 			@elapsed = 0
 			@duration = @speed / 1000
 			@interval = null
@@ -100,7 +100,7 @@ TransitionResult = class
 		# Immediately stop the transition. This will leave the object in
 		# its current state; potentially partially transitioned.				
 		stopTransition: ->
-			
+		
 			# Let any listeners know that the transition is complete.
 			@deferred.notify [@elapsed, @duration]
 			@deferred.resolve()

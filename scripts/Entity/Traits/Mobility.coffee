@@ -1,7 +1,7 @@
 
 Timing = require 'Timing'
 
-Q = require 'Utility/Q'
+Q = require 'Utility/kew'
 String = require 'Extension/String'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
@@ -61,7 +61,7 @@ module.exports = class extends Trait
 							entityPosition[i] = destination[i]
 				
 				@entity.setPosition entityPosition
-				deferred.resolve() if Vector.equals(
+				return deferred.resolve() if Vector.equals(
 					destination
 					entityPosition
 				)
@@ -71,4 +71,4 @@ module.exports = class extends Trait
 			
 			@entity.addTicker ticker
 			
-			deferred.promise
+			deferred.promise.then => @entity.removeTicker ticker

@@ -2,8 +2,11 @@
 Timing = require 'Timing'
 
 _ = require 'Utility/underscore'
+Deferred = require 'Utility/Deferred'
 Mixin = require 'Mixin/Mixin'
+Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
+Ticker = require 'Timing/Ticker'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
 
@@ -115,6 +118,19 @@ module.exports = Existence = class extends Trait
 			
 		signal: -> @entity.emit.apply @entity, arguments
 	
+		waitMs:
+			
+			f: (ms) ->
+				
+				deferred = Q.defer()
+				
+				ticker = new Ticker.InBand()
+				ticker.setFrequency ms
+				ticker.on 'tick', -> deferred.resolve()
+				@entity.addTicker f: -> ticker.tick()
+				
+				deferred.promise
+		
 	handler: ->
 		
 		ticker: ->

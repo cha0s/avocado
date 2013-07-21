@@ -1,6 +1,5 @@
 
 _ = require 'Utility/underscore'
-Q = require 'Utility/Q'
 
 module.exports =
 	
@@ -17,14 +16,6 @@ module.exports =
 			name: 'Do nothing'
 			renderer: -> 'do nothing'
 			f: ->
-		
-		waitMs: (ms) ->
-			deferred = Q.defer()
-			setTimeout(
-				-> deferred.resolve()
-				ms
-			)
-			deferred.promise
 		
 	values: ->
 	

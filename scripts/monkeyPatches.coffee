@@ -1,40 +1,70 @@
 
 _ = require 'Utility/underscore'
 
-Q = require 'Utility/Q'
+kew = require 'Utility/kew'
+When = require 'Utility/when'
+Q = require 'Utility/Q-kris'
 
-Q.asap = (promiseOrValue, fulfilled, rejected, progressed) ->
-	
-	if Q.isPromise promiseOrValue
-		
-		Q.when promiseOrValue, fulfilled, rejected, progressed
-		
-	else
-		
-		fulfilled ?= _.identity
-		Q.resolve fulfilled promiseOrValue
+kew.when = (value) ->
+	defer = kew.defer()
+	setInterval(
+		-> defer.resolve value
+		0
+	)
+	defer.promise
 
-Q.allAsap = (promisesOrValues, fulfilled, rejected) ->
+defer = When.defer
+When.defer = ->
+	deferred = defer()
 	
-	deferred = Q.defer()
-	
-	if _.some promisesOrValues, Q.isPromise
+	deferred.makeNodeResolver ?= ->
+		(error, args...) ->
+			return deferred.reject error if error?
+			deferred.resolve.apply deferred, args
+			
+	deferred
+
+for lib in [kew, When, Q]
+
+	do (lib) ->
 		
-		promises = for promiseOrValue in promisesOrValues
-			Q.asap promiseOrValue
+		lib.asap = (promiseOrValue, fulfilled, rejected, progressed) ->
+			
+			if lib.isPromise promiseOrValue
+				
+				promiseOrValue.then fulfilled, rejected, progressed
+				
+			else
+				
+				(fulfilled ? _.identity) promiseOrValue
 		
-		fulfilled ?= _.identity
-		rejected ?= _.identity
-		
-		Q.all(
-			promises
-		).then(
-			(results) -> deferred.resolve fulfilled results
-			(error) -> deferred.reject rejected error
-		)
-		
-	else
-		
-		deferred.resolve fulfilled (value for value in promisesOrValues)
-	
-	deferred.promise
+		lib.allAsap = (promisesOrValues, fulfilled, rejected) ->
+			
+			if _.some promisesOrValues, lib.isPromise
+				
+				promises = _.filter(
+					promisesOrValues
+					(promiseOrValue) -> lib.isPromise promiseOrValue
+				)
+				
+				fulfilled ?= _.identity
+				rejected ?= _.identity
+				
+				lib.all(
+					promises
+				).then(
+					->
+						fulfilled _.map(
+							promisesOrValues
+							(promiseOrValue) ->
+								if lib.isPromise promiseOrValue
+									promiseOrValue.valueOf()
+								else
+									promiseOrValue
+						)
+					(error) -> rejected error
+				)
+				
+			else
+				
+				(fulfilled ? _.identity) (value for value in promisesOrValues)

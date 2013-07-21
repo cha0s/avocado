@@ -122,8 +122,13 @@ module.exports = EventEmitter = class
 		undefined
 		
 	# Notify ALL the listeners!
-	emit: (name, args...) ->
+	emit: (name) ->
 		return if not @events_[name]?
+		
+		args = if arguments.length > 1
+			arg for arg, i in arguments when i > 0
+		else
+			[]
 		
 		for callback of @events_[name]
 			spec = @events_[name][callback]

@@ -1,3 +1,7 @@
+
+require 'Timing/TimingService'
+require 'Timing/Counter'
+
 require 'CoreService'
 
 require 'Graphics/GraphicsService'
@@ -9,6 +13,3 @@ require 'Graphics/Window'
 
 require 'Sound/Music'
 require 'Sound/Sample'
-
-require 'Timing/TimingService'
-require 'Timing/Counter'

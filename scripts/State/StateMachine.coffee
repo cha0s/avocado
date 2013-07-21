@@ -18,7 +18,7 @@ Q = require 'Utility/Q'
 module.exports = StateMachine = class
 	
 	constructor: ->
-		PrivateScope.call @, Private
+		PrivateScope.call @, Private, 'stateMachineScope'
 		
 		# Emits:
 		# 
@@ -30,17 +30,26 @@ module.exports = StateMachine = class
 	
 	# ##### currentStateInstance
 	# Returns a reference to the current state instance.
-	currentStateInstance: -> @private().instance
+	currentStateInstance: ->
+		
+		_private = @stateMachineScope Private
+		_private.instance
 	
 	# ##### tick
 	# Handle state transitions and invoke the current state (if any)'s tick
 	# method.
-	tick: -> @private().tick()
+	tick: ->
+		
+		_private = @stateMachineScope Private
+		_private.tick()
 	
 	# ##### transitionToState
 	# Transition to a *name*d state, passing *args* to its initialize/enter
 	# method.
-	transitionToState: (name, args) -> @private().transitionTo name, args
+	transitionToState: (name, args) ->
+		
+		_private = @stateMachineScope Private
+		_private.transitionTo name, args
 
 	# #### Private
 	# Implementation details follow...
@@ -62,7 +71,7 @@ module.exports = StateMachine = class
 			@leave name
 			_public.emit 'stateLeft', @name
 			
-			Q.asap(
+			promise = Q.asap(
 			
 				# If the State is already loaded and cached, fulfill the
 				# initialization immediately.
@@ -78,13 +87,15 @@ module.exports = StateMachine = class
 					
 				=>
 					_public.emit 'stateInitialized', name
-					Q.asap(
+					initPromise = Q.asap(
 						@instanceCache[name].enter args, @name
 						=>
 							_public.emit 'stateEntered', name
 							@instance = @instanceCache[@name = name]
-					).done()
-			).done()
+					)
+					initPromise.done() if Q.isPromise initPromise
+			)
+			promise.done() if Q.isPromise promise
 			
 		leave: (next) ->
 			@instance?.leave next
@@ -97,8 +108,3 @@ module.exports = StateMachine = class
 		transitionTo: (name, args) ->
 			return if @transition?
 			@transition = name: name, args: args
-			
-		public: -> @getScope()
-	
-	private: -> @getScope Private
-	

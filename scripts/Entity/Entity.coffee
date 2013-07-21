@@ -2,6 +2,8 @@
 # Specifies objects in the game engine. Entities are essentially just
 # compositions of (subclassed) [`Trait`](./Traits/Trait.html) objects.
 
+Timing = require 'Timing'
+
 _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
@@ -11,6 +13,7 @@ Mixin = require 'Mixin/Mixin'
 PrivateScope = require 'Utility/PrivateScope'
 Q = require 'Utility/Q'
 String = require 'Extension/String'
+Ticker = require 'Timing/Ticker'
 Transition = require 'Mixin/Transition'
 
 module.exports = Entity = class
@@ -35,7 +38,7 @@ module.exports = Entity = class
 		# All entities require an Existence trait. The assumption here is that
 		# Existence::initializeTrait() returns an immediate value (not a
 		# promise).
-		@extendTraits([type: 'Existence']).done()
+		@extendTraits [type: 'Existence']
 		
 	Mixin.apply null, [@::].concat mixins
 	
@@ -125,14 +128,19 @@ module.exports = Entity = class
 			O.uri = uri
 			
 			entity = new Entity()
-			objectPromise = entity.fromObject O
 			
-			if traitExtensions.length
-				objectPromise.then (entity) ->
-					entity.extendTraits(traitExtensions).then ->
+			Q.asap(
+				entity.fromObject O
+				(entity) ->
+				
+					if traitExtensions.length
+						Q.asap(
+							entity.extendTraits traitExtensions
+							(entity) -> entity
+						)
+					else
 						entity
-			else
-				objectPromise
+			)
 		
 	@traitModule: (traitName) ->
 		
@@ -155,11 +163,37 @@ module.exports = Entity = class
 			@traits = {}
 			@uri = null
 		
-		addTicker: (ticker) ->
+		addTicker: (ticker, holder) ->
 			
 			_public = @public()
 			
+			# Normalize the handler object.
+			unless ticker.f
+				f = ticker
+				ticker = f: f
+
+			ticker.f = _.bind ticker.f, holder if holder?
+			ticker.holder = holder
+			ticker.weight ?= 0
+			ticker.ticker = new Ticker.InBand()
+			
+			frequency = ticker.frequency ? 16.6
+			frequencySeconds = 0.0166
+			
+			ticker.ticker.setFrequency frequency
+			ticker.ticker.on 'tick', ->
+				
+				tickElapsed = Timing.TimingService.tickElapsed()
+				Timing.TimingService.setTickElapsed frequencySeconds
+				
+				ticker.f()
+			
+				Timing.TimingService.setTickElapsed tickElapsed
+				
 			@tickers.push ticker
+			
+			# Sort by weight.
+			@tickers = @tickers.sort (l, r) -> l.weight - r.weight
 			
 			_public.emit 'tickerAdded', ticker
 			
@@ -225,8 +259,8 @@ module.exports = Entity = class
 			# Add the handlers associated with this trait.
 			if handler = trait['handler']?()
 				
-				if handler['ticker']?
-					addHandlerToList handler['ticker'], @tickers
+				if (ticker = handler['ticker'])?
+					@addTicker ticker, trait
 				
 				if handler['renderer']?
 					
@@ -244,9 +278,6 @@ module.exports = Entity = class
 							
 			# Cache hooks to make lookups more efficient.
 			trait['hookCache'] = trait['hooks']()
-			
-			# Sort all the tickers and renderers by weight.
-			@tickers = @tickers.sort (l, r) -> l.weight - r.weight
 			
 			@renderers[key] = @renderers[key].sort(
 				(l, r) -> l.weight - r.weight
@@ -299,24 +330,31 @@ module.exports = Entity = class
 			@uri = O.uri
 			
 			# Add traits asynchronously.
-			_public.extendTraits(traits).then =>
-				
-				@originalTraits = JSON.parse JSON.stringify @traits
-				_public
+			Q.asap(
+				_public.extendTraits traits
+				=>
+					@originalTraits = JSON.parse JSON.stringify @traits
+					_public
+			)
 	
 		# Check whether this Entity has a trait.
 		hasTrait: (traitName) -> @traits[traitName]?
 		
 		# Invoke a hook with the specified arguments. Returns an array of responses
 		# from hook implementations.
-		invoke: (hook, args...) ->
+		invoke: (hook) ->
+		
+			args = if arguments.length > 1
+				arg for arg, i in arguments when i > 0
+			else
+				[]
+		
 			for type, trait of @traits
 				continue if not trait['hookCache'][hook]?
 				continue unless results = trait['hookCache'][hook].apply(
 					trait, args
 				)
 				results
-	
 			
 		lfo: ->
 			
@@ -353,6 +391,7 @@ module.exports = Entity = class
 			delete @[index] for index of trait['values']()
 		
 			# Remove the handlers.
+			# TODO this is broken since the ticker change
 			@tickers = _.filter @tickers, (e) -> e.trait.type isnt type
 	
 			@renderers[key] = _.filter(
@@ -387,7 +426,8 @@ module.exports = Entity = class
 			
 			_public = @public()
 			
-			ticker.f() for ticker in @tickers
+			for ticker, i in @tickers when i < @tickers.length
+				ticker.ticker.tick()
 			
 			_public.emit 'tick'
 			return

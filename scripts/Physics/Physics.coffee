@@ -1,6 +1,7 @@
 
 CANNON = require 'Physics/cannon'
 Config = require 'Config'
+Ticker = require 'Timing/Ticker'
 
 slippery = new CANNON.Material 'slippery'
 
@@ -20,6 +21,11 @@ module.exports = Physics = class
 	constructor: (
 		gravity = new CANNON.Vec3 0, 0, -9.82
 	) ->
+		
+		@_ticker = new Ticker.InBand()
+		
+		@_ticker.setFrequency 16.6
+		@_ticker.on 'tick', => @_world.step 0.0166
 		
 		@_walls = []
 		
@@ -98,5 +104,5 @@ module.exports = Physics = class
 	removeBody: (body) -> @_world.remove body
 		
 	tick: ->
-	
-		@_world.step 1 / Config.ticksPerSecondTarget	
+		
+		@_ticker.tick()
