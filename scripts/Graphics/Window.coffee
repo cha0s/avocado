@@ -7,99 +7,14 @@ Timing = require 'Timing'
 
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
-PrivateScope = require 'Utility/PrivateScope'
 Property = require 'Mixin/Property'
 Vector = require 'Extension/Vector'
 
 Window = Graphics.Window
 
-Window.mixins = [
-	EventEmitter
-	Property 'inputReceiver', null
-]
-
-Mixin.apply null, [Window::].concat Window.mixins
-
-forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-	Window::, call, (-> Private), 'windowScope'
-)
-		
-# Window creation constants.
-# 
-# * <code>Window.FlagsDefault</code>: ***(default)*** Nothing special.
-# * <code>Window.FlagsFullscreen</code>: Create a fullscreen window.
-# ***NOTE:*** May not be supported on all platforms.
-Window.FlagsDefault = 0
-Window.FlagsFullscreen = 1
-
-# Mouse and keycode constants.
-Window.Mouse = Object.freeze Window.Mouse
-Window.KeyCode = Object.freeze Window.KeyCode
-
-Window.new = (size, flags) ->
+WindowMixin = class
 	
-	_window = new Window()
-
-	mixin.call _window for mixin in Graphics.Window.mixins
-	PrivateScope.call _window, Private, 'windowScope'
-	
-	_window.setSize size if size?
-	_window.setFlags flags if flags?
-	
-	_window
-
-# Show the window.
-Window::display = -> @['%display']()
-
-# The height of the window.
-Window::height = -> @size()[1]
-
-forwardCallToPrivate 'playerTickMovement'
-
-# Poll for events sent to this window.
-forwardCallToPrivate 'pollEvents'
-
-forwardCallToPrivate 'registerPlayerMovement'
-
-# Render an Image onto this window.
-Window::render = (image, rectangle = [0, 0, 0, 0]) ->
-	return unless image?
-	
-	@['%render'] image, rectangle
-
-# Set the window parameters.
-Window::setFlags = (flags = Window.FlagsDefault) ->
-	return unless flags?
-	
-	@['%setFlags'] flags
-
-# Set the window parameters.
-Window::setSize = (size) ->
-	return unless size?
-	
-	@['%setSize'] size
-
-# Set whether the mouse is visible while hovering over the window.
-Window::setMouseVisibility = (visibility) ->
-	return unless visibility?
-	
-	@['%setMouseVisibility'] visibility
-
-# Set the window title.
-Window::setWindowTitle = (window, iconified = window) ->
-	return unless window?
-	
-	@['%setWindowTitle'] window, iconified
-
-# The size of the window.
-Window::size = -> @['%size']()
-
-# The width of the window.
-Window::width = -> @size()[0]
-
-Private = class
-	
-	constructor: (_public) ->
+	constructor: ->
 		
 		for inputEvent in [
 			'keyDown', 'keyUp'
@@ -109,13 +24,12 @@ Private = class
 			'quit'
 		]
 			
-			do (inputEvent) ->
-			
-				_public.on(
+			do (inputEvent) =>
+				@on(
 					inputEvent
-					->
+					=>
 						
-						return unless (inputReceiver = _public.inputReceiver())?
+						return unless (inputReceiver = @inputReceiver())?
 						return unless inputReceiver.emit?
 						
 						args = ['inputEvent', inputEvent]
@@ -126,16 +40,16 @@ Private = class
 		
 		# We want to store how much a player is moving either with the
 		# arrow keys or the joystick/gamepad.
-		@movement = {}
-		@keyCodeMap = {}
-		@stickIndexMap = {}
+		@_movement = {}
+		@_keyCodeMap = {}
+		@_stickIndexMap = {}
 		
 		# Joystick movement.
-		_public.on 'joyAxis.Avocado', ({stickIndex, axis, value}) =>
+		@on 'joyAxis.Avocado', ({stickIndex, axis, value}) =>
 			return if axis > 1
 			
-			return unless (player = @stickIndexMap[stickIndex])?
-			return unless m = @movement[player]
+			return unless (player = @_stickIndexMap[stickIndex])?
+			return unless m = @_movement[player]
 			
 			if value > 0
 				m.joyState[if axis is 0 then 1 else 2] = Math.abs value
@@ -150,20 +64,20 @@ Private = class
 			@registerMovement player
 			
 		# Keyboard movement started.
-		_public.on 'keyDown.Avocado', ({code}) =>
+		@on 'keyDown.Avocado', ({code}) =>
 			
-			return unless (player = @keyCodeMap[code])?
-			return unless m = @movement[player]
+			return unless (player = @_keyCodeMap[code])?
+			return unless m = @_movement[player]
 			
 			m.keyState[m.keyCodes.indexOf code] = 1
 			
 			@registerMovement player
 			
 		# Keyboard movement stopped.
-		_public.on 'keyUp.Avocado', ({code}) =>
+		@on 'keyUp.Avocado', ({code}) =>
 		
-			return unless (player = @keyCodeMap[code])?
-			return unless m = @movement[player]
+			return unless (player = @_keyCodeMap[code])?
+			return unless m = @_movement[player]
 		
 			m.keyState[m.keyCodes.indexOf code] = 0
 			
@@ -171,76 +85,75 @@ Private = class
 		
 		# Mouse dragging is a bit of a higher-level concept. We'll
 		# implement it using the low-level API.
-		@buttons = {}
-		@dragStartLocation = {}
-		@mouseLocation = [0, 0]
+		@_buttons = {}
+		@_dragStartLocation = {}
+		@_mouseLocation = [0, 0]
 		
 		Mouse = Graphics.Window.Mouse
 		
 		# Start dragging when a button is clicked.
-		_public.on 'mouseButtonDown.Avocado', ({button}) =>
+		@on 'mouseButtonDown.Avocado', ({button}) =>
 			switch button
 				when Mouse.ButtonLeft, Mouse.ButtonMiddle, Mouse.ButtonRight
-					@dragStartLocation[button] = @mouseLocation
-					@buttons[button] = true
+					@_dragStartLocation[button] = @_mouseLocation
+					@_buttons[button] = true
 				
 		# Stop dragging when a button is released.
-		_public.on 'mouseButtonUp.Avocado', ({button}) =>
+		@on 'mouseButtonUp.Avocado', ({button}) =>
 			switch button
 				when Mouse.ButtonLeft, Mouse.ButtonMiddle, Mouse.ButtonRight
-					delete @buttons[button]
-					delete @dragStartLocation[button]
+					delete @_buttons[button]
+					delete @_dragStartLocation[button]
 		
 		# When the mouse moves,
-		_public.on 'mouseMove.Avocado', ({x, y}) =>
-			@mouseLocation = [x, y]
+		@on 'mouseMove.Avocado', ({x, y}) =>
+			@_mouseLocation = [x, y]
 			
 			# Check if any buttons are being held down
-			keys = Object.keys @buttons
+			keys = Object.keys @_buttons
 			if keys.length > 0
 				
 				# If so, send a mouseDrag event for each of them.
 				for key in keys
-					_public.emit(
+					@emit(
 						'mouseDrag'
-							position: @mouseLocation
+							position: @_mouseLocation
 							button: parseInt key
 							relative: Vector.sub(
-								@mouseLocation
-								@dragStartLocation[key]
+								@_mouseLocation
+								@_dragStartLocation[key]
 							)
 					)
 
 	# Get a unit movement vector for a player.
 	playerTickMovement: (player) ->
 		
-		return [0, 0] unless @movement[player]?
+		return [0, 0] unless @_movement[player]?
 		
-		@movement[player].unit
+		@_movement[player].unit
 	
+	# Poll for events sent to this window.
 	pollEvents: ->
 		
-		_public = @public()
+		@['%pollEvents']()
 		
-		_public['%pollEvents']()
-		
-		return unless (inputReceiver = _public.inputReceiver())?
+		return unless (inputReceiver = @inputReceiver())?
 		return unless inputReceiver.emit?
 		
-		for player of @movement
+		for player of @_movement
 		
 			inputReceiver.emit(
 				'inputEvent'
 				'unitMovement'
 				player: player
-				movement: _public.playerTickMovement player
+				movement: @playerTickMovement player
 			)
 	
 	# We'll store any movement that comes in, combining keyboard and
 	# joystick movement, making sure that combined they never exceed 1.
 	registerMovement: (player) ->
 		
-		m = @movement[player]
+		m = @_movement[player]
 		m.unit = [
 			Math.max(
 				Math.min(
@@ -278,12 +191,84 @@ Private = class
 		
 		# Map the key code and joystick index to the player so we can look 'em up
 		# quick when a key code or joystick movement comes in.
-		@keyCodeMap[keyCode] = player for keyCode in keyCodes
-		@stickIndexMap[stickIndex] = player
-		@movement[player] =
+		@_keyCodeMap[keyCode] = player for keyCode in keyCodes
+		@_stickIndexMap[stickIndex] = player
+		@_movement[player] =
 			unit: [0, 0]
 			keyCodes: keyCodes
 			keyState: [0, 0, 0, 0]
 			stickIndex: stickIndex
 			joyState: [0, 0, 0, 0]
 
+mixins = [
+	EventEmitter
+	Property 'inputReceiver', null
+	WindowMixin
+]
+
+Mixin.apply null, [Window::].concat mixins
+
+# Window creation constants.
+# 
+# * <code>Window.FlagsDefault</code>: ***(default)*** Nothing special.
+# * <code>Window.FlagsFullscreen</code>: Create a fullscreen window.
+# ***NOTE:*** May not be supported on all platforms.
+Window.FlagsDefault = 0
+Window.FlagsFullscreen = 1
+
+# Mouse and keycode constants.
+Window.Mouse = Object.freeze Window.Mouse
+Window.KeyCode = Object.freeze Window.KeyCode
+
+Window.new = (size, flags) ->
+	
+	_window = new Window()
+
+	mixin.call _window for mixin in mixins
+	
+	_window.setSize size if size?
+	_window.setFlags flags if flags?
+	
+	_window
+
+# Show the window.
+Window::display = -> @['%display']()
+
+# The height of the window.
+Window::height = -> @size()[1]
+
+# Render an Image onto this window.
+Window::render = (image, rectangle = [0, 0, 0, 0]) ->
+	return unless image?
+	
+	@['%render'] image, rectangle
+
+# Set the window parameters.
+Window::setFlags = (flags = Window.FlagsDefault) ->
+	return unless flags?
+	
+	@['%setFlags'] flags
+
+# Set the window parameters.
+Window::setSize = (size) ->
+	return unless size?
+	
+	@['%setSize'] size
+
+# Set whether the mouse is visible while hovering over the window.
+Window::setMouseVisibility = (visibility) ->
+	return unless visibility?
+	
+	@['%setMouseVisibility'] visibility
+
+# Set the window title.
+Window::setWindowTitle = (window, iconified = window) ->
+	return unless window?
+	
+	@['%setWindowTitle'] window, iconified
+
+# The size of the window.
+Window::size = -> @['%size']()
+
+# The width of the window.
+Window::width = -> @size()[0]

@@ -10,22 +10,24 @@ slipperyContact = new CANNON.ContactMaterial(
 )
 
 slipperyContact.contactEquationStiffness = 1e8
-slipperyContact.contactEquationRegularizationTime = 3
+slipperyContact.contactEquationRegularizationTime = 2
 slipperyContact.frictionEquationStiffness = 1e8
-slipperyContact.frictionEquationRegularizationTime = 3
+slipperyContact.frictionEquationRegularizationTime = 2
 
-module.exports = Physics = class
+module.exports = Physics = class Physics
 	
 	@PixelsToMetersScale: 1 / 64
-
+	@MetersToPixelsScale: 64
+	@Tps = 50
+	
 	constructor: (
 		gravity = new CANNON.Vec3 0, 0, -9.82
 	) ->
 		
 		@_ticker = new Ticker.InBand()
 		
-		@_ticker.setFrequency 16.6
-		@_ticker.on 'tick', => @_world.step 0.0166
+		@_ticker.setFrequency 1000 / Physics.Tps
+		@_ticker.on 'tick', => @_world.step 1 / Physics.Tps
 		
 		@_walls = []
 		

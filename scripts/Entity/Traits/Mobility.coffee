@@ -69,6 +69,6 @@ module.exports = class extends Trait
 				timeout -= Timing.TimingService.tickElapsed()
 				deferred.resolve() if timeout <= 0
 			
-			@entity.addTicker ticker
+			ticker = @entity.addTicker ticker
 			
 			deferred.promise.then => @entity.removeTicker ticker

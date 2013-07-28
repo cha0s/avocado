@@ -1,7 +1,6 @@
 
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
-PrivateScope = require 'Utility/PrivateScope'
 Property = require 'Mixin/Property'
 Ticker = require 'Timing/Ticker'
 
@@ -15,6 +14,7 @@ module.exports = Animation = (
 	class
 		
 		mixins = [
+			EventEmitter
 			Property 'async', true
 			IndexProperty = Property 'index', 0
 			Property _indexCount, 0
@@ -22,79 +22,54 @@ module.exports = Animation = (
 		]
 		
 		constructor: ->
-			EventEmitter.call this
+			
 			mixin.call this for mixin in mixins
 			
-			PrivateScope.call @, Private, 'timedIndexScope'
+			@_interval = null
+			@_ticker = null
 			
-		Mixin @::, EventEmitter
 		Mixin.apply null, [@::].concat mixins
-		
-		forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-			@::, call, (-> Private), 'timedIndexScope'
-		)
-		
-		forwardCallToPrivate 'setIndex'
-		
-		forwardCallToPrivate 'start'
-	
-		forwardCallToPrivate 'stop'
-	
-		forwardCallToPrivate 'tick'
-					
-		Private = class
 			
-			constructor: (_public) ->
-				
-				@interval = null
-				@ticker = null
-				
-			_tick: ->
-				
-				_public = @public()
-				
-				index = _public.index() + 1
-				_public.setIndex Math.floor index % _public[_indexCount]()
-				_public.emit 'rolledOver' if index >= _public[_indexCount]()
-				
-			setIndex: (index, reset = true) ->
-				
-				_public = @public()
-				
-				IndexProperty::setIndex.call(
-					_public
-					index % _public[_indexCount]()
-				)
-				
-				@ticker.reset() if reset
+		_tick: ->
 			
-			start: ->
-				return if @interval?
-				
-				_public = @public()
-				
-				if _public.async()
-					
-					type = 'OutOfBand'
-					@interval = setInterval (=> _public.tick()), 10
-					
-				else
-					
-					type = 'InBand'
-					@interval = true
+			index = @index() + 1
+			@setIndex Math.floor index % @[_indexCount]()
+			@emit 'rolledOver' if index >= @[_indexCount]()
+			
+		setIndex: (index, reset = true) ->
+			
+			IndexProperty::setIndex.call(
+				@
+				index % @[_indexCount]()
+			)
+			
+			@_ticker.reset() if reset
 		
-				@ticker = new Ticker[type]()
-				@ticker.setFrequency _public[_indexRate]()
+		start: ->
+			return if @_interval?
+			
+			if @async()
 				
-				@ticker.on 'tick', @_tick, @
+				type = 'OutOfBand'
+				@_interval = setInterval (=> @tick()), 10
+				
+			else
+				
+				type = 'InBand'
+				@_interval = true
 	
-			stop: ->
-				return unless @interval?
-				
-				clearInterval @interval if @interval isnt true
-				@interval = null
-				
-				@ticker.off 'tick'
-				@ticker = null
-				
-			tick: -> @ticker?.tick()
+			@_ticker = new Ticker[type]()
+			@_ticker.setFrequency @[_indexRate]()
+			
+			@_ticker.on 'tick', @_tick, @
+
+		stop: ->
+			return unless @_interval?
+			
+			clearInterval @_interval if @_interval isnt true
+			@_interval = null
+			
+			@_ticker.off 'tick'
+			@_ticker = null
+			
+		tick: -> @_ticker?.tick()

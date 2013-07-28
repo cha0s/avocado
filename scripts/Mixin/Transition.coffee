@@ -22,166 +22,125 @@
 Timing = require 'Timing'
 
 Mixin = require 'Mixin/Mixin'
-PrivateScope = require 'Utility/PrivateScope'
 Q = require 'Utility/kew'
 String = require 'Extension/String'
 
-TransitionResult = class
+TransitionResult = class TransitionResult
 	
-	constructor: (object, props, speed, easing) ->
-		_private = PrivateScope.call @, Private, 'transitionResultScope'
+	constructor: (@_object, @_props, speed, easing) ->
 		
-		_private.construct object, props, speed, easing
+		# Speed might not get passed. If it doesn't, default to 100
+		# milliseconds.
+		@_speed = if 'number' is typeof speed
+			speed
+		else
+			100
 	
-	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call, (-> Private), 'transitionResultScope'
-	)
-	
-	elapsedSinceLast: -> throw new Error(
-		'Transition::elapsedSinceLast() is a pure virtual function!'
-	)
-	
-	forwardCallToPrivate 'skipTransition'
-	
-	forwardCallToPrivate 'stopTransition'
-	
-	forwardCallToPrivate 'tick'
-	
-	Private = class
+		# If easing isn't passed in as a function, attempt to look it up
+		# as a string key into Transition.easing. If that fails, then
+		# default to 'easeOutQuad'.
+		@_easing = if 'function' isnt typeof easing
+			Transition.easing[easing] ? Transition.easing['easeOutQuad']
+		else
+			easing
 		
-		construct: (@object, @props, speed, easing) ->
-			
-			_public = @public()
-			
-			# Speed might not get passed. If it doesn't, default to 100
-			# milliseconds.
-			@speed = if 'number' is typeof speed
-				speed
-			else
-				100
+		@_original = {}
+		@_change = {}
+		@_method = {}
 		
-			# If easing isn't passed in as a function, attempt to look it up
-			# as a string key into Transition.easing. If that fails, then
-			# default to 'easeOutQuad'.
-			@easing = if 'function' isnt typeof easing
-				Transition.easing[easing] ? Transition.easing['easeOutQuad']
-			else
-				easing
+		for i, prop of @_props
+			value = @_object[i]()
 			
-			@original = {}
-			@change = {}
-			@method = {}
-			
-			for i, prop of @props
-				value = @object[i]()
-				
-				@original[i] = value
-				@change[i] = prop - value
-				@method[i] = String.setterName i
-			
-			# Set up the transition object.
-			@deferred = Q.defer()
-			_public.promise = @deferred.promise
-			
-			@elapsed = 0
-			@duration = @speed / 1000
-			@interval = null
-			@self = this
+			@_original[i] = value
+			@_change[i] = prop - value
+			@_method[i] = String.setterName i
+		
+		# Set up the transition object.
+		@_deferred = Q.defer()
+		@promise = @_deferred.promise
+		
+		@_elapsed = 0
+		@_duration = @_speed / 1000
 
-		# Immediately finish the transition. This will leave the object
-		# in the fully transitioned state.
-		skipTransition: ->
-		
-			# Just trick it into thinking the time passed and do one last
-			# tick.
-			@elapsed = @duration
-			@tick()
+	# Immediately finish the transition. This will leave the object
+	# in the fully transitioned state.
+	skipTransition: ->
+	
+		# Just trick it into thinking the time passed and do one last
+		# tick.
+		@_elapsed = @_duration
+		@tick()
 
-		# Immediately stop the transition. This will leave the object in
-		# its current state; potentially partially transitioned.				
-		stopTransition: ->
-		
-			# Let any listeners know that the transition is complete.
-			@deferred.notify [@elapsed, @duration]
-			@deferred.resolve()
+	# Immediately stop the transition. This will leave the object in
+	# its current state; potentially partially transitioned.				
+	stopTransition: ->
+	
+		# Let any listeners know that the transition is complete.
+		@_deferred.notify [@_elapsed, @_duration]
+		@_deferred.resolve()
 
-		# Tick callback. Called repeatedly while this transition is
-		# running.
-		tick: ->
+	# Tick callback. Called repeatedly while this transition is
+	# running.
+	tick: ->
+		
+		# Update the transition's elapsed time.
+		@_elapsed += @elapsedSinceLast()
+		
+		# If we've overshot the duration, we'll fix it up here, so
+		# things never transition too far (through the end point).
+		if @_elapsed >= @_duration
+			@_elapsed = @_duration
 			
-			_public = @public()
-			
-			# Update the transition's elapsed time.
-			@elapsed += _public.elapsedSinceLast()
-			
-			# If we've overshot the duration, we'll fix it up here, so
-			# things never transition too far (through the end point).
-			if @elapsed >= @duration
-				@elapsed = @duration
-				
-				for i of @change
-					if @change[i]
-						@object[@method[i]] @props[i]
-						
-			else
-			
-				# Do easing for each property that actually changed.
-				for i of @change
-					if @change[i]
-						@object[@method[i]] @easing(
-							@elapsed,
-							@original[i],
-							@change[i],
-							@duration
-						)
-			
-			# Stop if we're done.
-			if @elapsed is @duration
-				_public.stopTransition()
-			else
-				@deferred.notify [@elapsed, @duration]
+			for i of @_change
+				if @_change[i]
+					@_object[@_method[i]] @_props[i]
+					
+		else
+		
+			# Do easing for each property that actually changed.
+			for i of @_change
+				if @_change[i]
+					@_object[@_method[i]] @_easing(
+						@_elapsed,
+						@_original[i],
+						@_change[i],
+						@_duration
+					)
+		
+		# Stop if we're done.
+		if @_elapsed is @_duration
+			@stopTransition()
+		else
+			@_deferred.notify [@_elapsed, @_duration]
 
 module.exports = Transition = class					
 
-	TransitionResultOutOfBand = class extends TransitionResult
+	TransitionResultOutOfBand = class TransitionResultOutOfBand extends TransitionResult
 	
 		constructor: ->
 			super
 			
-			_private = PrivateScope.call @, Private, 'outOfBandTransitionScope'
-			_private.startInterval()
-		
+			@_last = Timing.TimingService.elapsed()
+			@_interval = null
+			
+			@_startInterval()
+			
 		elapsedSinceLast: ->
 			
-			_private = @outOfBandTransitionScope Private
-			_private.elapsedSinceLast()
+			elapsed = Timing.TimingService.elapsed() - @_last
+			@_last = Timing.TimingService.elapsed()
+			elapsed
+			
+		startInterval: (result) ->
+			
+			@_interval = setInterval (-> @tick()), 10
 		
 		stopTransition: ->
 			super
-			
-			_private = @outOfBandTransitionScope Private
-			_private.stopTransition()
 		
-		Private = class
-			
-			constructor: -> @last = Timing.TimingService.elapsed()
-				
-			elapsedSinceLast: ->
-				
-				elapsed = Timing.TimingService.elapsed() - @last
-				@last = Timing.TimingService.elapsed()
-				elapsed
-				
-			startInterval: (result) ->
-				
-				_public = @public()
-				@interval = setInterval (-> _public.tick()), 10
-			
-			stopTransition: ->
-			
-				# Stop the tick loop.
-				clearInterval @interval
-			
+			# Stop the tick loop.
+			clearInterval @_interval
+		
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.
 	transition: (
@@ -198,7 +157,7 @@ Transition.OutOfBand = Transition
 
 Transition.InBand = class					
 
-	TransitionResultInBand = class extends TransitionResult
+	TransitionResultInBand = class TransitionResultInBand extends TransitionResult
 	
 		elapsedSinceLast: -> Timing.TimingService.tickElapsed()
 	

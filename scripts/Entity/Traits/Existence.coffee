@@ -2,7 +2,6 @@
 Timing = require 'Timing'
 
 _ = require 'Utility/underscore'
-Deferred = require 'Utility/Deferred'
 Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'

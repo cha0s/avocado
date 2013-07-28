@@ -6,7 +6,6 @@ _ = require 'Utility/underscore'
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
 Q = require 'Utility/Q'
-PrivateScope = require 'Utility/PrivateScope'
 Property = require 'Mixin/Property'
 Rectangle = require 'Extension/Rectangle'
 String = require 'Extension/String'
@@ -15,9 +14,15 @@ TimedIndex = require 'Mixin/TimedIndex'
 Vector = require 'Extension/Vector'
 VectorMixin = require 'Mixin/Vector'
 
-module.exports = Animation = class
+module.exports = Animation = class Animation
+	
+	@load: (uri) ->
+		Core.CoreService.readJsonResource(uri).then (O) ->
+			O.uri = uri
+			(new Animation()).fromObject O
 	
 	mixins = [
+		EventEmitter
 		Property 'alpha', 1
 		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
 		DirectionProperty = Property 'direction', 0
@@ -31,22 +36,29 @@ module.exports = Animation = class
 	]
 	
 	constructor: ->
-		EventEmitter.call this
-		mixin.call this for mixin in mixins
 		
-		PrivateScope.call @, Private, 'animationScope'
+		mixin.call @ for mixin in mixins
 		
-	Mixin @::, EventEmitter
+		@_interval = null
+		@_sprite = new Graphics.Sprite()
+		@_ticker = null
+		
+		@on 'alphaChanged', => @_sprite.setAlpha @alpha()
+		@on 'imageChanged', => @_sprite.setSource @image()
+		@on 'positionChanged', => @_sprite.setPosition @position()
+		@on 'blendModeChanged', => @_sprite.setBlendMode @blendMode()
+#		@on 'scaleChanged', => @_sprite.setScale @scale()
+		@on(
+			[
+				'directionChanged'
+				'frameSizeChanged'
+				'imageChanged'
+				'indexChanged'
+			]
+			=> @_sprite.setSourceRectangle @sourceRectangle()
+		)
+	
 	Mixin.apply null, [@::].concat mixins
-	
-	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call, (-> Private), 'animationScope'
-	)
-	
-	@load: (uri) ->
-		Core.CoreService.readJsonResource(uri).then (O) ->
-			O.uri = uri
-			(new Animation()).fromObject O
 	
 	fromObject: (O) ->
 		
@@ -63,6 +75,41 @@ module.exports = Animation = class
 			
 			this
 			
+	clampDirection: (direction) ->
+		
+		return 0 if @directionCount() is 1
+		
+		direction = Math.min 7, Math.max direction, 0
+		direction = {
+			4: 1
+			5: 1
+			6: 3
+			7: 3
+		}[direction] if @directionCount() is 4 and direction > 3
+		
+		direction
+	
+	render: (
+		destination
+		index
+	) ->
+		
+		return unless @frameCount() > 0
+		return unless @image()?
+		
+		if (index ?= @index()) isnt @index()
+			@_sprite.setSourceRectangle @sourceRectangle index
+		
+		@_sprite.setScale @scale()
+			
+		@_sprite.renderTo destination
+		
+	setDirection: (direction) ->
+		DirectionProperty::setDirection.call(
+			@
+			@clampDirection direction
+		)
+	
 	setImage: (
 		image
 		frameSize
@@ -82,9 +129,15 @@ module.exports = Animation = class
 	
 		return
 		
-	forwardCallToPrivate 'render'
-
-	forwardCallToPrivate 'setDirection'
+	sourceRectangle: (index) ->
+		
+		Rectangle.compose(
+			Vector.mul @frameSize(), [
+				(index ? @index()) % @frameCount()
+				@direction()
+			]
+			@frameSize()
+		)
 	
 	toJSON: ->
 		
@@ -96,75 +149,3 @@ module.exports = Animation = class
 		frameCount: @frameCount()
 		frameSize: @frameSize()
 		imageUri: imageUri
-		
-	Private = class
-		
-		constructor: (_public) ->
-			
-			@interval = null
-			@sprite = new Graphics.Sprite()
-			@ticker = null
-			
-			_public.on 'alphaChanged', => @sprite.setAlpha _public.alpha()
-			_public.on 'imageChanged', => @sprite.setSource _public.image()
-			_public.on 'positionChanged', => @sprite.setPosition _public.position()
-			_public.on 'blendModeChanged', => @sprite.setBlendMode _public.blendMode()
-			_public.on 'scaleChanged', => @sprite.setScale _public.scale()
-			_public.on(
-				[
-					'directionChanged'
-					'frameSizeChanged'
-					'imageChanged'
-					'indexChanged'
-				]
-				=> @sprite.setSourceRectangle @sourceRectangle()
-			)
-			
-		clampDirection: (direction) ->
-			
-			_public = @public()
-			
-			return 0 if _public.directionCount() is 1
-			
-			direction = Math.min 7, Math.max direction, 0
-			direction = {
-				4: 1
-				5: 1
-				6: 3
-				7: 3
-			}[direction] if _public.directionCount() is 4 and direction > 3
-			
-			direction
-		
-		render: (
-			destination
-			index
-		) ->
-			
-			_public = @public()
-			
-			return unless _public.frameCount() > 0
-			return unless _public.image()?
-			
-			if (index ?= _public.index()) isnt _public.index()
-				@sprite.setSourceRectangle @sourceRectangle index
-				
-			@sprite.renderTo destination
-			
-		setDirection: (direction) ->
-			DirectionProperty::setDirection.call(
-				@public()
-				@clampDirection direction
-			)
-		
-		sourceRectangle: (index) ->
-			
-			_public = @public()
-			
-			Rectangle.compose(
-				Vector.mul _public.frameSize(), [
-					(index ? _public.index()) % _public.frameCount()
-					_public.direction()
-				]
-				_public.frameSize()
-			)

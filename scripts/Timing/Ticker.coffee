@@ -3,94 +3,61 @@ Timing = require 'Timing'
 
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
-PrivateScope = require 'Utility/PrivateScope'
 Property = require 'Mixin/Property'
 
-module.exports = Ticker = class
+module.exports = Ticker = class Ticker
 
-	constructor: ->
-		EventEmitter.call this
-		property.call this for property in properties
-		
-		PrivateScope.call @, Private, 'tickerScope'
-	
-	Mixin @::, EventEmitter
-
-	properties = [
+	mixins = [
+		EventEmitter
 		Property 'frequency', 0
 	]
-	Mixin.apply null, [@::].concat properties
 	
-	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call, (-> Private), 'tickerScope'
-	)
-	
-	elapsedSinceLast: -> throw new Error(
-		'Ticker::elapsedSinceLast() is a pure virtual function!'
-	)
-	
-	forwardCallToPrivate 'remaining'
-	
-	forwardCallToPrivate 'reset'
-	
-	forwardCallToPrivate 'tick'
-	
-	Private = class
-	
-		constructor: -> @remainder = 0
+	constructor: ->
 		
-		remaining: -> 1 - @remainder / @public().frequency()
+		mixin.call this for mixin in mixins
 		
-		reset: -> @remainder = 0
+		@_remainder = 0
+	
+	Mixin.apply null, [@::].concat mixins
+	
+	remaining: -> 1 - @_remainder / @frequency()
+	
+	reset: -> @_remainder = 0
 
-		tick: ->
+	tick: ->
+		
+		return if (frequency = @frequency()) is 0
+		elapsed = @elapsedSinceLast()
+		
+		ticks = 0
+		
+		@_remainder += elapsed
+		if @_remainder >= frequency
+			ticks = Math.floor @_remainder / frequency
+			@_remainder -= ticks * frequency
+		
+		@emit 'tick' for i in [0...ticks]
 			
-			_public = @public()
-			
-			return if (frequency = _public.frequency()) is 0
-			elapsed = _public.elapsedSinceLast()
-			
-			ticks = 0
-			
-			@remainder += elapsed
-			if @remainder >= frequency
-				ticks = Math.floor @remainder / frequency
-				@remainder -= ticks * frequency
-			
-			_public.emit 'tick' for i in [0...ticks]
-				
-			return
+		return
 
-Ticker.InBand = class extends Ticker
+Ticker.InBand = class TickerInBand extends Ticker
 	
 	elapsedSinceLast: -> Timing.TimingService.tickElapsed() * 1000
 					
-Ticker.OutOfBand = class extends Ticker					
+Ticker.OutOfBand = class TickerOutOfBand extends Ticker					
 	
 	constructor: ->
 		super
 		
-		PrivateScope.call @, Private, 'outOfBandTickerScope'
-	
+		@_last = Timing.TimingService.elapsed()
+		
 	elapsedSinceLast: ->
 		
-		_private = @outOfBandTickerScope Private
-		_private.elapsedSinceLast()
+		elapsed = (Timing.TimingService.elapsed() - @_last) * 1000
+		@_last = Timing.TimingService.elapsed()
+		elapsed
 	
 	reset: ->
 		super
 		
-		_private = @outOfBandTickerScope Private
-		_private.reset()
-	
-	Private = class
-		
-		constructor: -> @last = Timing.TimingService.elapsed()
-			
-		elapsedSinceLast: ->
-			
-			elapsed = (Timing.TimingService.elapsed() - @last) * 1000
-			@last = Timing.TimingService.elapsed()
-			elapsed
-		
-		reset: -> @last = Timing.TimingService.elapsed()
+		@_last = Timing.TimingService.elapsed()

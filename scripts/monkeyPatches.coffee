@@ -7,7 +7,7 @@ Q = require 'Utility/Q-kris'
 
 kew.when = (value) ->
 	defer = kew.defer()
-	setInterval(
+	setTimeout(
 		-> defer.resolve value
 		0
 	)

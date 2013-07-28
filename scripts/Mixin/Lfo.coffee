@@ -4,7 +4,6 @@ Timing = require 'Timing'
 _ = require 'Utility/underscore'
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
-PrivateScope = require 'Utility/PrivateScope'
 Property = require 'Mixin/Property'
 Q = require 'Utility/kew'
 String = require 'Extension/String'
@@ -40,259 +39,185 @@ ModulatedProperty = class
 		Transition.InBand
 	]
 	
-	constructor: (object, key, spec) ->
+	constructor: (
+		@_object, @_key
+		{frequency, location, magnitude, median, modulators}
+	) ->
+		
+		@_median = median
 		
 		mixin.call this for mixin in mixins
-		PrivateScope.call(
-			@
-			_.bind Private, null, object, key, spec
-			'modulatedPropertyScope'
-		)
+		
+		@on 'magnitudeChanged', => @_magnitude2 = @magnitude() * 2
+		
+		@setFrequency frequency
+		@setLocation location ? 0
+		@setMagnitude magnitude
+		
+		@_min = @_median - magnitude if @_median?
+		
+		modulatorFunction = (modulator) ->
+			
+			if _.isString modulator
+				
+				if Modulator[modulator]?
+					Modulator[modulator]
+				else
+					console.warn "Invalid modulator: #{modulator}"
+					Modulator.Flat
+			else
+				
+				if _.isFunction modulator
+					modulator
+				else
+					console.warn "Invalid modulator: #{modulator}"
+					Modulator.Flat
+				
+		@_modulators = for modulator in modulators
+		
+			if _.isObject modulator
+				
+				if modulator.f?
+					
+					modulatorFunction(modulator.f) modulator
+					
+				else
+				
+					[key] = Object.keys modulator
+					modulatorFunction(key) modulator[key]
+			
+			else
+				
+				modulatorFunction(modulator)()
+			
+		@_setKey = String.setterName @_key
+		
+		@_transitions = []
 	
 	Mixin.apply null, [@::].concat mixins
-	
-	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call, (-> Private), 'modulatedPropertyScope'
-	)
-	
-	forwardCallToPrivate 'tick'
-	
-	forwardCallToPrivate 'transition'
-	
-	Private = class
-	
-		constructor: (
-			@object, @key
-			{frequency, location, magnitude, @median, modulators}
-			_public
-		) ->
+		
+	tick: (elapsed) ->
+		
+		transition.tick() for transition in @_transitions
+		
+		frequency = @frequency()
+		location = @location()
+		
+		location += elapsed
+		if location > frequency
+			location -= frequency
 			
-			_public.on 'magnitudeChanged', =>
-				@magnitude2 = _public.magnitude() * 2
+		@setLocation location
+		
+		min = if @_median?
+			@_min
+		else
+			@_object[@_key]()
+		
+		value = _.reduce(
+			@_modulators
+			(l, r) -> l + r location / frequency
+			0
+		) / @_modulators.length
+		
+		@_object[@_setKey] min + value * @_magnitude2
+		
+	transition: ->
+		
+		transition = Transition.InBand::transition.apply @, arguments
+		
+		@_transitions.push transition
+		
+		transition.promise.then =>
 			
-			_public.setFrequency frequency
-			_public.setLocation location ? 0
-			_public.setMagnitude magnitude
+			@_transitions.splice(
+				@_transitions.indexOf transition
+				1
+			)
 			
-			@min = @median - magnitude if @median?
-			
-			modulatorFunction = (modulator) ->
-				
-				if _.isString modulator
-					
-					if Modulator[modulator]?
-						Modulator[modulator]
-					else
-						console.warn "Invalid modulator: #{modulator}"
-						Modulator.Flat
-				else
-					
-					if _.isFunction modulator
-						modulator
-					else
-						console.warn "Invalid modulator: #{modulator}"
-						Modulator.Flat
-					
-			
-			@modulators = for modulator in modulators
-			
-				if _.isObject modulator
-					
-					if modulator.f?
-						
-						modulatorFunction(modulator.f) modulator
-						
-					else
-					
-						[key] = Object.keys modulator
-						modulatorFunction(key) modulator[key]
-				
-				else
-					
-					modulatorFunction(modulator)()
-				
-			@setKey = String.setterName @key
-			
-			@transitions = []
-			
-		tick: (elapsed) ->
-			
-			_public = @public()
-			
-			transition.tick() for transition in @transitions
-			
-			frequency = _public.frequency()
-			location = _public.location()
-			
-			location += elapsed
-			if location > frequency
-				location -= frequency
-				
-			_public.setLocation location
-			
-			min = if @median?
-				@min
-			else
-				@object[@key]()
-			
-			value = _.reduce(
-				@modulators
-				(l, r) => l + r location / frequency
-				0
-			) / @modulators.length
-			
-			@object[@setKey] min + value * @magnitude2
-			
-		transition: ->
-			
-			_public = @public()
-			
-			transition = Transition.InBand::transition.apply _public, arguments
-			
-			@transitions.push transition
-			
-			transition.promise.then =>
-				
-				@transitions.splice(
-					@transitions.indexOf transition
-					1
-				)
-				
-			transition
-	
+		transition
+
 LfoResult = class
-	
-	constructor: (object, properties, duration) ->
+
+	constructor: (object, properties, @_duration = 0) ->
 		
-		_private = PrivateScope.call this, Private, 'lfoResultScope'
-		
-		_private.construct object, properties, duration
+		@_deferred = null
+		@_elapsed = 0
+		@_isRunning = false
+		@_object = {}
+		@_properties = {}
 		
 		@start()
 		
-	forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-		@::, call, (-> Private), 'lfoResultScope'
-	)
-	
-	forwardCallToPrivate 'property'
-	
-	forwardCallToPrivate 'start'
-	
-	forwardCallToPrivate 'stop'
-	
-	forwardCallToPrivate 'tick'
-	
-	Private = class
+		@_duration /= 1000
 		
-		constructor: ->
-			
-			@deferred = null
-			@duration = 0
-			@elapsed = 0
-			@isRunning = false
-			@object = {}
-			@properties = {}
-			
-		construct: (object, properties, @duration = 0) ->
-			
-			_public = @public()
-			
-			@duration /= 1000
-			
-			if @duration > 0
-				@deferred = Q.defer()
-				_public.promise = @deferred.promise
-			
-			for key, spec of properties
-				@properties[key] = new ModulatedProperty object, key, spec
+		if @_duration > 0
+			@_deferred = Q.defer()
+			@promise = @_deferred.promise
 		
-		property: (key) -> @properties[key]
-			
-		start: ->
-			
-			@elapsed = 0
-			@isRunning = true
+		for key, spec of properties
+			@_properties[key] = new ModulatedProperty object, key, spec
+	
+	property: (key) -> @_properties[key]
 		
-		stop: -> @isRunning = false
+	start: ->
 		
-		tick: ->
-			return unless @isRunning
+		@_elapsed = 0
+		@_isRunning = true
+	
+	stop: -> @_isRunning = false
+	
+	tick: ->
+		return unless @_isRunning
+		
+		elapsed = @elapsedSinceLast()
+		
+		finished = false
+		
+		if @_duration > 0
 			
-			_public = @public()
+			if @_duration <= @_elapsed += elapsed
+				
+				finished = true
+				
+				elapsed = @_elapsed - @_duration
+				@_elapsed = @_duration
+		
+		property.tick elapsed for key, property of @_properties
 			
-			elapsed = _public.elapsedSinceLast()
+		if @_duration > 0
 			
-			finished = false
+			@_deferred.notify [@_elapsed, @_duration]
 			
-			if @duration > 0
-				
-				if @duration <= @elapsed += elapsed
-					
-					finished = true
-					
-					elapsed = @elapsed - @duration
-					@elapsed = @duration
+			if finished
+				@_deferred.resolve()
+				@stop()
 			
-			property.tick elapsed for key, property of @properties
-				
-			if @duration > 0
-				
-				@deferred.notify [@elapsed, @duration]
-				
-				if finished
-					@deferred.resolve()
-					_public.stop()
-				
-			return
+		return
 
 module.exports = Lfo = class					
 
 	LfoResultOutOfBand = class extends LfoResult
 	
-		constructor: ->
+		elapsedSinceLast: ->
+			
+			elapsed = Timing.TimingService.elapsed() - @_last
+			@_last = Timing.TimingService.elapsed()
+			elapsed
+			
+		start: (result) ->
 			super
 			
-			PrivateScope.call @, Private, 'lfoResultOutOfBandScope'
+			@_last = Timing.TimingService.elapsed()
+			@_interval = setInterval(
+				=> @tick()
+				10
+			)
 		
-		forwardCallToPrivate = (call) => PrivateScope.forwardCall(
-			@::, call, (-> Private), 'lfoResultOutOfBandScope'
-		)
-		
-		forwardCallToPrivate 'elapsedSinceLast'
-		
-		forwardCallToPrivate 'start'
-		
-		forwardCallToPrivate 'stop'
-		
-		tick: ->
-		
-		Private = class
+		stop: ->
+			super
 			
-			elapsedSinceLast: ->
-				
-				elapsed = Timing.TimingService.elapsed() - @last
-				@last = Timing.TimingService.elapsed()
-				elapsed
-				
-			start: (result) ->
-				
-				_public = @public()
-				
-				LfoResult::start.call _public
-				
-				@last = Timing.TimingService.elapsed()
-				@interval = setInterval(
-					-> LfoResult::tick.call _public
-					10
-				)
-			
-			stop: ->
-			
-				_public = @public()
-				
-				LfoResult::stop.call _public
-				
-				clearInterval @interval
+			clearInterval @_interval
 			
 	lfo: (properties, duration) ->
 		

@@ -127,9 +127,9 @@ module.exports = Visibility = class extends Trait
 			@animation = animation
 			@metadata = @state.animations[qualifiedAnimationIndex]
 		
-		scaleChanged: ->
-			for i, animation of @animations
-				animation.setScale @state.scale
+#		scaleChanged: ->
+#			for i, animation of @animations
+#				animation.setScale @state.scale
 		
 		isMovingChanged: ->
 			
@@ -174,21 +174,11 @@ module.exports = Visibility = class extends Trait
 				
 				alpha = @animation?.alpha()
 				@animation?.setAlpha alpha * .5 if @flashing
+				@animation?.setScale @state.scale
 				
 				@animation?.render destination
 				
 				@animation?.setAlpha alpha
-				
-			ui: (destination, camera) ->
-				return unless @state.isVisible
-				
-				if Debug.isDebugging()
-				
-					destination.drawCircle(
-						Vector.sub @entity.position(), camera
-						@entity.width() / 2
-						255, 255, 255, .5
-					)
 
 	toJSON: ->
 		

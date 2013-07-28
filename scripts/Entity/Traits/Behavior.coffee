@@ -1,6 +1,5 @@
 
 _ = require 'Utility/underscore'
-Deferred = require 'Utility/Deferred'
 Method = require 'Entity/Traits/Behavior/Method'
 Q = require 'Utility/kew'
 Trait = require 'Entity/Traits/Trait'
@@ -131,7 +130,6 @@ module.exports = Behavior = class extends Trait
 	releaseAsync: ->
 		
 		@routinePromiseLock = false
-		
 		@entity.removeTicker ticker for ticker in @tickers
 		@tickers = []
 		@entity.off 'tickerAdded.BehaviorTrait'

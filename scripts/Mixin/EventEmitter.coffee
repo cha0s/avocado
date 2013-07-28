@@ -3,19 +3,16 @@
 # events.
 
 _ = require 'Utility/underscore'
+Debug = require 'Debug'
 Mixin = require 'Mixin/Mixin'
 
 module.exports = EventEmitter = class
 
-	# Keeping track of events registered against this object.
-	@::events_ = {}
-	@::namespaces_ = {}
-	
 	# Make space for the events and event emitters.
 	constructor: ->
 		
-		@events_ = {}
-		@namespaces_ = {}
+		@_events = {}
+		@_namespaces = {}
 	
 	# Helper function for **on** and **off**. Parse the incoming (possibly)
 	# namespaced event name, and return an object.
@@ -33,37 +30,38 @@ module.exports = EventEmitter = class
 		namespace: namespace
 		event: name
 
-	_on: (eventName, f, that = this) ->
-		info = parseEventName eventName
-		
-		(@events_[info.event] ?= {})[f] =
-			f: f
-			that: that
-			namespace: info.namespace
-			
-		(@namespaces_[info.namespace] ?= {})[f] =
-			event: info.event
-			
-		undefined
-		
 	# Add listeners to an object. *eventName* is a (possibly) namespaced event
 	# to listen for. *f* is a function to be called when the event fires, and
 	# *that*, if specified, is the 'this' variable in the callback. 'this'
 	# defaults to the object upon which the event listener is registered.
 	on: (eventNamesOrEventName, f, that = this) ->
+		
 		eventNames = if _.isArray eventNamesOrEventName
 			eventNamesOrEventName
 		else
 			[eventNamesOrEventName]
-		@_on eventName, f, that for eventName in eventNames
+		
+		
+		for eventName in eventNames
+			info = parseEventName eventName
+			
+			(@_events[info.event] ?= {})[f] =
+				f: f
+				that: that
+				namespace: info.namespace
+				
+			(@_namespaces[info.namespace] ?= {})[f] =
+				event: info.event
+			
+		return
 		
 	once: (eventName, f, that = this) ->
 		@on eventName, f, that
 		
 		info = parseEventName eventName
-		@events_[info.event][f]['once'] = true
+		@_events[info.event][f]['once'] = true
 		
-		undefined
+		return
 		
 	# Remove listeners from an object.
 	# 
@@ -91,47 +89,54 @@ module.exports = EventEmitter = class
 		
 		# If we're given the function, our job is easy.
 		if 'function' is typeof f
-			return if not @events_[info.event]?
+			return if not @_events[info.event]?
 			
-			delete @events_[info.event][f]
-			delete @namespaces_[info.namespace][f]
+			delete @_events[info.event][f]
+			delete @_namespaces[info.namespace][f]
 			
 			return
 		
 		# No namespace? Remove every matching event.
 		if '' is info.namespace
-			for f of @events_[info.event]
-				delete @namespaces_[@events_[info.event][f].namespace][f]
-				delete @events_[info.event][f]
+			for f of @_events[info.event]
+				delete @_namespaces[@_events[info.event][f].namespace][f]
+				delete @_events[info.event][f]
 			return
 	
 		# Namespaced event? Remove it.
 		if info.event
-			for f of @events_[info.event]
-				if info.namespace != @events_[info.event][f].namespace
+			for f of @_events[info.event]
+				if info.namespace != @_events[info.event][f].namespace
 					continue
-				delete @namespaces_[info.namespace][f]
-				delete @events_[info.event][f]
+				delete @_namespaces[info.namespace][f]
+				delete @_events[info.event][f]
 			return
 		
 		# Only a namespace? Remove all events associated with it.
-		for f of @namespaces_[info.namespace]
-			delete @events_[@namespaces_[info.namespace][f].event][f]
-			delete @namespaces_[info.namespace][f]
+		for f of @_namespaces[info.namespace]
+			delete @_events[@_namespaces[info.namespace][f].event][f]
+			delete @_namespaces[info.namespace][f]
 		
 		undefined
 		
 	# Notify ALL the listeners!
 	emit: (name) ->
-		return if not @events_[name]?
+		return if not @_events[name]?
+		
+#		v = Debug.variables()
+#		v['emit'] ?= {}
+#		v['emit'][name] ?= {}
+#		className = /(\w+)\(/.exec(@constructor.toString())[1]
+#		v['emit'][name][className] ?= 0
+#		v['emit'][name][className] += 1
 		
 		args = if arguments.length > 1
 			arg for arg, i in arguments when i > 0
 		else
 			[]
 		
-		for callback of @events_[name]
-			spec = @events_[name][callback]
+		for callback of @_events[name]
+			spec = @_events[name][callback]
 			
 			f = spec.f
 			@off "#{name}.#{spec.namespace}", f if spec.once
