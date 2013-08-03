@@ -311,13 +311,6 @@ module.exports = Entity = class Entity
 		trait.setVariables variables for type, trait of @_traits
 		return
 		
-	# Called every engine tick.
-	tick: ->
-		
-		ticker.tick() for frequency, {ticker} of tickers
-		
-		return
-		
 	# Initialize an Entity from a POD object.
 	# Emit a JSON representation of the entity.
 	toJSON: ->
