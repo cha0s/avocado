@@ -440,7 +440,31 @@ module.exports = Entity = class Entity
 	
 	# Load an entity by URI.
 	@load: (uri, traitExtensions = []) ->
-	
+		
+		extendTraits = (current, extended) ->
+		
+			currentTraits = traitArrayToObject(
+				JSON.parse JSON.stringify current
+			)
+			extendedTraits = traitArrayToObject(
+				JSON.parse JSON.stringify extended
+			)
+			
+			traitTypes = _.uniq _.flatten [
+				_.keys currentTraits
+				_.keys extendedTraits
+			]
+			
+			for traitType in traitTypes
+				
+				state = _.extend(
+					extendedTraits[traitType] ? {}
+					currentTraits[traitType] ? {}
+				)
+				
+				type: traitType
+				state: state unless _.isEmpty state
+
 		loadObject = (uri) ->
 	
 			CoreService.readJsonResource(uri).then (O) ->
@@ -450,25 +474,7 @@ module.exports = Entity = class Entity
 				if parent?
 					
 					loadObject(parent).then (O) ->
-						
-						childTraits = traitArrayToObject traits
-						parentTraits = traitArrayToObject O.traits
-						
-						traitTypes = _.uniq _.flatten [
-							_.keys childTraits
-							_.keys parentTraits
-						]
-						
-						O.traits = for traitType in traitTypes
-							
-							state = _.extend(
-								parentTraits[traitType] ? {}
-								childTraits[traitType] ? {}
-							)
-							
-							type: traitType
-							state: state unless _.isEmpty state
-							
+						O.traits = extendTraits traits, O.traits
 						O
 				else
 					
@@ -476,21 +482,9 @@ module.exports = Entity = class Entity
 		
 		loadObject(uri).then (O) ->
 			O.uri = uri
+			O.traits = extendTraits O.traits, traitExtensions
 			
-			entity = new Entity()
-			
-			Q.asap(
-				entity.fromObject O
-				(entity) ->
-				
-					if traitExtensions.length
-						Q.asap(
-							entity.extendTraits traitExtensions
-							(entity) -> entity
-						)
-					else
-						entity
-			)
+			(new Entity()).fromObject O
 		
 	@tick: -> FrequencyContext.tick()
 		
