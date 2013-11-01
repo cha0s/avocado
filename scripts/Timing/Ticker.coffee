@@ -12,11 +12,12 @@ module.exports = Ticker = class Ticker
 		Property 'frequency', 0
 	]
 	
-	constructor: ->
+	constructor: (frequency = 0) ->
 		
 		mixin.call this for mixin in mixins
 		
 		@_remainder = 0
+		@setFrequency frequency
 	
 	Mixin.apply null, [@::].concat mixins
 	
