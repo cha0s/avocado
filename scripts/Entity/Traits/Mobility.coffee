@@ -36,39 +36,42 @@ module.exports = class extends Trait
 			
 			@entity.forceMove vector, @entity.movingSpeed()
 
-		moveToward: (destination, timeout = Infinity) ->
+		moveToward:
 			
-			deferred = Q.defer()
-			
-			timeout /= 1000
-			
-			ticker = f: =>
+			frequency: 1000 / 60
+			f: (destination, timeout = Infinity) ->
 				
-				@entity.move hypotenuse = Vector.hypotenuse(
-					destination
-					@entity.position()
-				)
+				deferred = Q.defer()
 				
-				entityPosition = @entity.position()
-				for i in [0, 1] when hypotenuse[i] isnt 0
+				timeout /= 1000
+				
+				ticker = f: =>
 					
-					if hypotenuse[i] < 0
-						if entityPosition[i] < destination[i]
-							entityPosition[i] = destination[i]
+					@entity.move hypotenuse = Vector.hypotenuse(
+						destination
+						@entity.position()
+					)
 					
-					if hypotenuse[i] > 0
-						if entityPosition[i] > destination[i]
-							entityPosition[i] = destination[i]
+					entityPosition = @entity.position()
+					for i in [0, 1] when hypotenuse[i] isnt 0
+						
+						if hypotenuse[i] < 0
+							if entityPosition[i] < destination[i]
+								entityPosition[i] = destination[i]
+						
+						if hypotenuse[i] > 0
+							if entityPosition[i] > destination[i]
+								entityPosition[i] = destination[i]
+					
+					@entity.setPosition entityPosition
+					return deferred.resolve() if Vector.equals(
+						destination
+						entityPosition
+					)
+					
+					timeout -= Timing.TimingService.tickElapsed()
+					deferred.resolve() if timeout <= 0
 				
-				@entity.setPosition entityPosition
-				return deferred.resolve() if Vector.equals(
-					destination
-					entityPosition
-				)
+				ticker = @entity.addTicker ticker
 				
-				timeout -= Timing.TimingService.tickElapsed()
-				deferred.resolve() if timeout <= 0
-			
-			ticker = @entity.addTicker ticker
-			
-			deferred.promise.then => @entity.removeTicker ticker
+				deferred.promise.then => @entity.removeTicker ticker
