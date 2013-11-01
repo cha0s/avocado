@@ -186,11 +186,6 @@ module.exports = Room = class Room
 			@removeEntity entity for entity in @_entitiesDestroyed
 			@_entitiesDestroyed = []
 		
-		Entity.tick()
-		
-#		for entity in @_entities
-#			entity.tick()
-		
 		@physics().tick()
 
 	tileIndexFromPosition: (position, layerIndex = 0) ->

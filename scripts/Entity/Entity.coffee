@@ -16,8 +16,81 @@ Ticker = require 'Timing/Ticker'
 Transition = require 'Mixin/Transition'
 uuid = require 'Utility/uuid'
 
-tickers = {}
+# Entities provide an interface for registering 'tickers'. A ticker is a
+# function which repeats on an interval, such as the function that updates an
+# entity's current animation, as in the Visibility trait.
+# 
+# Tickers are pooled in frequency contexts. Frequency contexts are lists of
+# tickers, keyed by the frequency of their interval. For instance, if an entity
+# has 3 tickers set to run every 50 ms, and 2 tickers set to run every 30 ms,
+# there will only be two frequency contexts created, keyed on 50 and 30,
+# respectively. This allows us to have many tickers registered on the same
+# frequency, without allocating a Timing/Ticker for each ticker.
+class FrequencyContext
+	
+	contexts = {}
+	
+	constructor: (frequency) ->
+		contexts[frequency] = this
+		
+		@_frequencySeconds = frequency / 1000
+		@_list = {}
+		@_ticker = new Ticker.InBand frequency
+		
+		@_ticker.on 'tick', @onTick, @
+	
+	# TODO, insert in place, don't concat and sort, that's inefficient.
+	addTicker: (uuid, ticker) ->
+		@_list[uuid] = (
+			@_list[uuid] ?= []
+		).concat([
+			ticker
+		]).sort (l, r) -> l.weight - r.weight
+		
+	onTick: ->
+	
+		# Remember and hack the tick elapsed time so that the ticker can trust
+		# it.
+		tickElapsed = Timing.TimingService.tickElapsed()
+		Timing.TimingService.setTickElapsed @_frequencySeconds
+		
+		# For each entity (uuid):
+		for _uuid, tickers of @_list
+			continue unless tickers?
+			
+			# Run all the tickers. The when condition is weird, but it will
+			# prevent race conditions from tickers being removed within their
+			# own tick.
+			ticker.f() for ticker, i in tickers when i < tickers.length
+		
+		# Reset the tick elapsed time to the real value.
+		Timing.TimingService.setTickElapsed tickElapsed
+		
+	removeEntity: (uuid) -> @_list[uuid] = null
+	
+	removeTicker: (uuid, ticker) ->
+		return unless @_list[uuid]?
+		return if -1 is index = @_list[uuid].indexOf ticker
+		return @removeEntity uuid if @_list[uuid].length is 1
+		
+		@_list[uuid].splice index, 1
+	
+	tick: -> @_ticker.tick()
 
+	@findOrCreate: (frequency) ->
+		if contexts[frequency]?
+			contexts[frequency]
+		else
+			new FrequencyContext frequency
+	
+	@removeEntity: (uuid) ->
+		context.removeEntity uuid for frequency, context of contexts
+	
+	@removeTicker: (uuid, ticker) ->
+		context.removeTicker uuid, ticker for frequency, context of contexts
+	
+	@tick: -> context.tick() for frequency, context of contexts
+	
 module.exports = Entity = class Entity
 	
 	# #### Mixins
@@ -37,14 +110,12 @@ module.exports = Entity = class Entity
 		
 		@_originalTraits = {}
 		@_renderers = {}
-		@_tickers = {}
 		@_traits = {}
 		@_uri = null
 		@_uuid = uuid.v4()
 		
 		@on 'isDestroyedChanged', (wasDestroyed = true) ->
-			unless wasDestroyed
-				delete list[@_uuid] for frequency, {list} of tickers
+			FrequencyContext.removeEntity @_uuid unless wasDestroyed
 	
 		# All entities require an Existence trait. The assumption here is that
 		# Existence::initializeTrait() returns an immediate value (not a
@@ -53,53 +124,18 @@ module.exports = Entity = class Entity
 		
 	Mixin.apply null, [@::].concat mixins
 	
+	# Add a ticker to this entity.
 	addTicker: (ticker) ->
 		
-		ticker = @_normalizeHandler ticker
+		ticker = normalizeTickerSpec ticker
 		
-		frequency = ticker.frequency ?= 16.6
-		
-		unless tickers[frequency]?
-			tickers[frequency] =
-				list: {}
-				ticker: new Ticker.InBand()
-		
-			tickers[frequency].ticker.setFrequency frequency
-			frequencySeconds = frequency / 1000
-			
-			tickers[frequency].ticker.on 'tick', ->
-				
-				tickElapsed = Timing.TimingService.tickElapsed()
-				Timing.TimingService.setTickElapsed frequencySeconds
-				
-				for _uuid in Object.keys tickers[frequency].list
-					_tickers = tickers[frequency].list[_uuid]
-					
-					continue unless _tickers?
-					
-					for _ticker, i in _tickers when i < _tickers.length
-						_ticker.f()
-				
-				Timing.TimingService.setTickElapsed tickElapsed
-		
-		list = (tickers[frequency].list[@_uuid] ?= []).concat [ticker]
-		tickers[frequency].list[@_uuid] = list.sort (l, r) ->
-			l.weight - r.weight
+		context = FrequencyContext.findOrCreate ticker.frequency
+		context.addTicker @_uuid, ticker
 		
 		@emit 'tickerAdded', ticker
 		
 		ticker
 		
-	_normalizeHandler: (handler) ->
-		
-		unless handler.f?
-			f = handler
-			handler = f: f
-
-		handler.weight ?= 0
-		
-		handler
-	
 	_addTrait: (traitInfo) ->
 		
 		# Instantiate and insert the Trait.
@@ -148,7 +184,7 @@ module.exports = Entity = class Entity
 			
 			if (ticker = handler['ticker'])?
 				
-				ticker = @_normalizeHandler ticker
+				ticker = normalizeTickerSpec ticker
 				ticker.f = _.bind ticker.f, trait
 				
 				@addTicker ticker
@@ -161,7 +197,7 @@ module.exports = Entity = class Entity
 					handler['renderer']
 				
 				for key, spec of renderers
-					renderer = @_normalizeHandler spec
+					renderer = normalizeRendererSpec spec
 					renderer.trait = trait
 					renderer.f = _.bind renderer.f, trait
 					
@@ -261,13 +297,7 @@ module.exports = Entity = class Entity
 			
 		lfo
 		
-	removeTicker: (ticker) ->
-		
-		for frequency, {list} of tickers
-			list = list[@_uuid]
-			continue unless list?
-			continue if -1 is index = list.indexOf ticker
-			list.splice index, 1
+	removeTicker: (ticker) -> FrequencyContext.removeTicker @_uuid, ticker
 	
 	# Remove a Trait from this Entity.
 	removeTrait: (type) ->
@@ -462,9 +492,7 @@ module.exports = Entity = class Entity
 						entity
 			)
 		
-	@tick: ->
-	
-		ticker.tick() for frequency, {ticker} of tickers
+	@tick: -> FrequencyContext.tick()
 		
 	@traitModule: (traitName) ->
 		
@@ -474,3 +502,31 @@ module.exports = Entity = class Entity
 			Trait.moduleMap[traitName]
 		else
 			traitName
+
+	# A handler (a renderer or a ticker) has two forms of specification. The
+	# more advanced form of this specification allows setting the function and
+	# the handler in a specification object. The simpler case is simply a
+	# function, in which case, the object specification is created around the
+	# function, with sane defaults.
+	normalizeHandlerSpec = (handler) ->
+		
+		unless handler.f?
+			f = handler
+			handler = f: f
+	
+		handler.weight ?= 0
+		
+		handler
+	
+	# A ticker specification implements a frequency default over the base
+	# handler.
+	normalizeTickerSpec = (ticker) ->
+		
+		ticker = normalizeHandlerSpec ticker
+		
+		ticker.frequency ?= 1000 / 120
+		
+		ticker
+			
+	# A renderer specification implements no extension over the base handler.
+	normalizeRendererSpec = normalizeHandlerSpec
