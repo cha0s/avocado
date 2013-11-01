@@ -46,14 +46,16 @@ WindowMixin = class
 		
 		# Joystick movement.
 		@on 'joyAxis.Avocado', ({stickIndex, axis, value}) =>
-			return if axis > 1
-			
+		
+			axisMap = 0: 0, 1: 1, 6: 0, 7: 1
+			return unless (axis = axisMap[axis])?
+				
 			return unless (player = @_stickIndexMap[stickIndex])?
 			return unless m = @_movement[player]
 			
-			if value > 0
+			if value > .3
 				m.joyState[if axis is 0 then 1 else 2] = Math.abs value
-			else if value < 0
+			else if value < -.3
 				m.joyState[if axis is 0 then 3 else 0] = Math.abs value
 			else
 				if axis is 0
