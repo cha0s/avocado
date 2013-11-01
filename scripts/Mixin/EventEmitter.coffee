@@ -46,7 +46,7 @@ module.exports = EventEmitter = class
 			info = parseEventName eventName
 			
 			(@_events[info.event] ?= {})[f] =
-				f: f
+				f: _.bind f, that 
 				that: that
 				namespace: info.namespace
 				
@@ -140,7 +140,20 @@ module.exports = EventEmitter = class
 			
 			f = spec.f
 			@off "#{name}.#{spec.namespace}", f if spec.once
-			f.apply spec.that, args
+			
+			switch args.length
+				when 0
+					f()
+				when 1
+					f args[0]
+				when 2
+					f args[0], args[1]
+				when 3
+					f args[0], args[1], args[2]
+				when 4
+					f args[0], args[1], args[2], args[3]
+				else
+					f.apply spec.that, args
 
 		undefined
 
