@@ -18,7 +18,7 @@ module.exports = Physics = class Physics
 	
 	@PixelsToMetersScale: 1 / 64
 	@MetersToPixelsScale: 64
-	@Tps = 50
+	@Tps = 60
 	
 	constructor: (
 		gravity = new CANNON.Vec3 0, 0, -9.82
