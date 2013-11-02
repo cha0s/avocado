@@ -518,7 +518,7 @@ module.exports = Entity = class Entity
 		
 		ticker = normalizeHandlerSpec ticker
 		
-		ticker.frequency ?= 1000 / 120
+		ticker.frequency ?= 1000 / 60
 		
 		ticker
 			
