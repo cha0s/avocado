@@ -16,18 +16,14 @@ slipperyContact.frictionEquationRegularizationTime = 2
 
 module.exports = Physics = class Physics
 	
-	@PixelsToMetersScale: 1 / 64
-	@MetersToPixelsScale: 64
-	@Tps = 60
-	
 	constructor: (
 		gravity = new CANNON.Vec3 0, 0, -9.82
 	) ->
 		
 		@_ticker = new Ticker.InBand()
 		
-		@_ticker.setFrequency 1000 / Physics.Tps
-		@_ticker.on 'tick', => @_world.step 1 / Physics.Tps
+		@_ticker.setFrequency 1000 / Config.Physics.Tps
+		@_ticker.on 'tick', => @_world.step 1 / Config.Physics.Tps
 		
 		@_walls = []
 		
@@ -71,7 +67,7 @@ module.exports = Physics = class Physics
 		rightWall.quaternion.setFromAxisAngle(
 			new CANNON.Vec3(0, 1, 0), -Math.PI / 2
 		)
-		rightWall.position.set (size[0] * Physics.PixelsToMetersScale), 0, 0
+		rightWall.position.set (size[0] * Config.Physics.PixelsToMetersScale), 0, 0
 		
 		topWall = @_addWall()
 		topWall.quaternion.setFromAxisAngle(
@@ -83,7 +79,7 @@ module.exports = Physics = class Physics
 		bottomWall.quaternion.setFromAxisAngle(
 			new CANNON.Vec3(1, 0, 0), Math.PI / 2
 		)
-		bottomWall.position.set 0, (size[1] * Physics.PixelsToMetersScale), 0
+		bottomWall.position.set 0, (size[1] * Config.Physics.PixelsToMetersScale), 0
 
 		return
 		

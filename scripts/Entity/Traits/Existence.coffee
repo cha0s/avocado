@@ -86,11 +86,9 @@ module.exports = Existence = class extends Trait
 		forceMove: (vector, force) ->
 			return if @entity.immovable()
 			
-			magnitude = Timing.TimingService.tickElapsed() * force
-			
 			moveInvocations = @entity.invoke(
 				'moveRequest'
-				vector, magnitude
+				vector, force
 			)
 			
 			# If no one cared about movement, we'll just do naive movement.
@@ -98,7 +96,10 @@ module.exports = Existence = class extends Trait
 				
 				@entity.setPosition Vector.add(
 					[@entity.x(), @entity.y()]
-					Vector.scale vector, magnitude
+					Vector.scale(
+						vector
+						Timing.TimingService.tickElapsed() * force
+					)
 				)
 				
 		setHeight: (height) -> @entity.setSize [@state.size[0], height]

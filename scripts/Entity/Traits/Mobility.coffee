@@ -1,6 +1,7 @@
 
 Timing = require 'Timing'
 
+Config = require 'Config'
 Q = require 'Utility/kew'
 String = require 'Extension/String'
 Trait = require 'Entity/Traits/Trait'
@@ -38,7 +39,7 @@ module.exports = class extends Trait
 
 		moveToward:
 			
-			frequency: 1000 / 60
+			frequency: 1000 / Config.Physics.Tps
 			f: (destination, timeout = Infinity) ->
 				
 				deferred = Q.defer()

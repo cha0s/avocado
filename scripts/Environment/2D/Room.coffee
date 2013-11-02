@@ -45,7 +45,7 @@ module.exports = Room = class Room
 		
 		return if _.contains @_entities, entity
 		
-		entity.setTraitVariables room: @
+		entity.setTraitVariables room: @, physics: @physics()
 		@_entities.push entity
 		
 		@emit 'entityAdded', entity
