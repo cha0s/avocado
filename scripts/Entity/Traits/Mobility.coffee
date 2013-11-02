@@ -74,4 +74,8 @@ module.exports = class extends Trait
 				
 				ticker = @entity.addTicker ticker
 				
-				deferred.promise.then => @entity.removeTicker ticker
+				deferred.promise.then =>
+					@entity.removeTicker ticker
+					
+					@entity.setIsMoving false
+					
