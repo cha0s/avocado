@@ -1,11 +1,11 @@
 
 _ = require 'Utility/underscore'
+Config = require 'Config'
 Debug = require 'Debug'
 Entity = require 'Entity/Entity'
 EventEmitter = require 'Mixin/EventEmitter'
 Image = require('Graphics').Image
 Mixin = require 'Mixin/Mixin'
-Physics = require 'Physics/Physics'
 Property = require 'Mixin/Property'
 Q = require 'Utility/Q'
 Rectangle = require 'Extension/Rectangle'
@@ -15,6 +15,8 @@ VectorMixin = require 'Mixin/Vector'
 module.exports = Room = class Room
 	
 	@defaultLayerCount: 5
+	
+	Physics = require "Physics/#{Config.Physics.Engine}"
 	
 	mixins = [
 		EventEmitter
