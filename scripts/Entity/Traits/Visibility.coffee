@@ -47,7 +47,7 @@ module.exports = Visibility = class extends Trait
 					animation.setAsync false
 					animation.start()
 			
-		Q.all animationPromises
+		Q.all(animationPromises).then => @entity.emit 'animationIndexChanged'
 	
 	properties: ->
 		
@@ -117,7 +117,6 @@ module.exports = Visibility = class extends Trait
 				animation.setAlpha @state.alpha
 		
 		animationIndexChanged: ->
-			
 			qualifiedAnimationIndex = qualifyWithPrefix @state.animationIndex
 			
 			unless (animation = @animations[qualifiedAnimationIndex])?

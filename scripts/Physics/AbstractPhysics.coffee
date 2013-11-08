@@ -18,9 +18,7 @@ module.exports = class AbstractPhysics
 		
 	addFloor: ->
 	
-	addCylinder: (entity, radius, height = 1, mass = 1) ->
-	
-	addSphere: (entity, radius, mass = 1) ->
+	addBody: (entity, shapeList) ->
 	
 	removeBody: (body) ->
 		
@@ -38,6 +36,8 @@ module.exports = class AbstractPhysics
 				-Config.Physics.MetersToPixelsScale
 			]
 		)
+		
+	@mass: (body) ->
 		
 	@position: (body) ->
 	

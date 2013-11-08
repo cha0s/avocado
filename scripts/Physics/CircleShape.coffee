@@ -34,9 +34,9 @@ module.exports = class extends Shape
 	fromObject: (O) ->
 		super
 		
-		@setRadius O.radius
-		@setStartAngle O.startAngle
-		@setEndAngle O.endAngle
+		@setRadius O.radius if O.radius?
+		@setStartAngle O.startAngle if O.startAngle?
+		@setEndAngle O.endAngle if O.endAngle?
 		
 		this
 	
@@ -45,7 +45,7 @@ module.exports = class extends Shape
 		destination.drawCircle(
 			Vector.add position, Vector.projected @position(), direction
 			@radius()
-			255, 255, 255, .25
+			255, 255, 255, .5
 		)
 	
 	toJSON: ->

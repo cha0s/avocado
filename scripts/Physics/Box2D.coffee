@@ -30,41 +30,21 @@ contactListener = new b2ContactListener
 
 contactListener.BeginContact = (contact) ->
 	
-	l = contact.GetFixtureA().GetBody().GetUserData()
-	r = contact.GetFixtureB().GetBody().GetUserData()
+	lf = contact.GetFixtureA()
+	return unless ldata = lf.GetUserData()
+	le = ldata.entity
+	ls = ldata.shape
 	
-	return unless l instanceof Entity and r instanceof Entity
+	rf = contact.GetFixtureB()
+	return unless rdata = rf.GetUserData()
+	re = rdata.entity
+	rs = rdata.shape
 	
-	l.setIsTouching r
-	r.setIsTouching l
+	return unless le instanceof Entity and re instanceof Entity
 	
-contactListener.EndContact = (contact) ->
+	le.emit 'intersected', re, rs, ls
+	re.emit 'intersected', le, ls, rs
 	
-	l = contact.GetFixtureA().GetBody().GetUserData()
-	r = contact.GetFixtureB().GetBody().GetUserData()
-	
-	return unless l instanceof Entity and r instanceof Entity
-	
-	l.unsetIsTouching r
-	r.unsetIsTouching l
-	
-contactFilter = new b2ContactFilter
-
-ShouldCollide = contactFilter.ShouldCollide
-
-contactFilter.ShouldCollide = (fixtureA, fixtureB) ->
-	
-	return false unless ShouldCollide.call this, fixtureA, fixtureB
-	
-	l = fixtureA.GetBody().GetUserData()
-	r = fixtureB.GetBody().GetUserData()
-	
-	return true unless l instanceof Entity and r instanceof Entity
-	
-	return true unless l.isInMainParty() and r.isInMainParty()
-	
-	return false
-
 module.exports = class Box2D extends (require 'Physics/AbstractPhysics')
 	
 	constructor: (
@@ -77,35 +57,52 @@ module.exports = class Box2D extends (require 'Physics/AbstractPhysics')
 			true
 		)
 		
-#		@_world.SetContactListener contactListener
-#		@_world.SetContactFilter contactFilter
+		@_world.SetContactListener contactListener
 		
 	addFloor: ->
 	
-	addSphere: (entity, radius, mass = 1) ->
-
+	addBody: (entity, shapeList) ->
+		
 		bodyDef = new b2BodyDef()
-		bodyDef.type = if mass is 0
+		bodyDef.type = if entity.immovable()
 			b2Body.b2_staticBody
 		else
 			b2Body.b2_dynamicBody
 		
 		body = @_world.CreateBody bodyDef
 		
-		circle = new b2CircleShape()
-		circle.SetRadius radius
+		for shape in shapeList.shapes()
+			
+			fixtureDef = new b2FixtureDef()
+			
+			switch shape.type()
+				
+				when 'CircleShape'
+					
+					circle = new b2CircleShape()
+					circle.SetRadius Box2D.toScalar shape.radius()
+					fixtureDef.shape = circle
+					
+#				when 'RectangleShape'
+#				
+#					box = new b2PolygonShape()
+#					box.SetAsBox @state.radius / Physics.PixelsPerMeter, @state.radius / Physics.PixelsPerMeter 
+					
+			fixtureDef.density = shape.density()
+			fixtureDef.friction = 0
+			
+			fixture = body.CreateFixture fixtureDef
+			fixture.SetUserData(
+				shape: shape
+				entity: entity
+			)
 		
-		fixtureDef = new b2FixtureDef()
-		fixtureDef.shape = circle
-		fixtureDef.density = mass
-		fixtureDef.friction = 0
-		
-		body.CreateFixture fixtureDef
-		body.SetUserData entity
+		body.SetUserData(
+			entity: entity
+			shapeList: shapeList
+		)
 		
 		body
-	
-	addCylinder: (entity, radius, height = 1, mass = 1) ->
 	
 	removeBody: (body) -> @_world.DestroyBody body
 	
@@ -165,7 +162,9 @@ module.exports = class Box2D extends (require 'Physics/AbstractPhysics')
 		return
 
 	step: -> @_world.Step 1 / Config.Physics.Tps, 8, 3
-		
+	
+	@mass: (body) -> body.GetMass()
+	
 	@position: (body) ->
 		{x, y} = body.GetPosition()
 		[x, y]

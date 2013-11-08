@@ -172,7 +172,12 @@ module.exports = Entity = class Entity
 		# Bind the actions and values associated with this trait.
 		for type in ['actions', 'values']
 			for index, meta of trait[type]()
+				
+				if @[index]?
+					throw new Error "Duplicate #{type} registered against #{trait.type}: #{index} (originally from #{@[index].type})"
+				
 				@[index] = _.bind meta.f ? meta, trait
+				@[index].type = trait.type
 		
 		# Refresh the signals associated with this trait.
 		@off ".#{trait.type}Trait"

@@ -48,21 +48,15 @@ module.exports = class Cannon extends (require 'Physics/AbstractPhysics')
 		@_walls.push wall
 		wall
 		
-	addSphere: (entity, radius, mass = 1) ->
+	addBody: (entity, shapeList) ->
+		
+	addSphere: (entity, position, radius, mass = 1) ->
 	
 		sphereShape = new CANNON.Sphere radius
 		sphereBody = new CANNON.RigidBody mass, sphereShape, slippery
 		@_world.add sphereBody
 		
 		sphereBody
-	
-	addCylinder: (entity, radius, height = 1, mass = 1) ->
-	
-		cylinderShape = new CANNON.Cylinder radius, radius, height, 10
-		cylinderBody = new CANNON.RigidBody mass, cylinderShape
-		@_world.add cylinderBody
-		
-		cylinderBody
 	
 	removeBody: (body) -> @_world.remove body
 

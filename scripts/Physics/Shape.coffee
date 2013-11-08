@@ -11,8 +11,12 @@ module.exports = class
 	mixins = [
 		VectorMixin 'position', 'x', 'y'
 		Property 'type', 'Shape'
+		Property 'density', 0
+		Property 'isHarmful', false
 		EventEmitter
 	]
+	
+	Mixin.apply null, [@::].concat mixins
 	
 	constructor: ->
 	
@@ -22,7 +26,9 @@ module.exports = class
 	
 	fromObject: (O) ->
 		
-		@setPosition O.position
+		@setPosition O.position if O.position?
+		@setIsHarmful O.isHarmful if O.isHarmful?
+		@setMass O.mass if O.mass?
 		
 		this
 	
@@ -30,5 +36,3 @@ module.exports = class
 		
 		type: @type()
 		position: @position()
-	
-	Mixin.apply null, [@::].concat mixins

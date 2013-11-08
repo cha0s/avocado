@@ -5,7 +5,7 @@ Property = require 'Mixin/Property'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
 
-module.exports = class
+module.exports = class ShapeList
 	
 	mixins = [
 		Property 'direction', 0
@@ -17,22 +17,20 @@ module.exports = class
 		
 		mixin.call this for mixin in mixins
 		
-		@_shapeList = []
+		@_shapes = []
 		
 	Mixin.apply null, [@::].concat mixins
 	
-	add: (shape) ->
-		
-		@_shapeList.push shape
+	addShape: (shape) -> @_shapes.push shape
 		
 	aabb: (translated = true) ->
 		
-		return [0, 0, 0, 0] if @_shapeList.length is 0
+		return [0, 0, 0, 0] if @_shapes.length is 0
 		
 		min = [Infinity, Infinity]
 		max = [-Infinity, -Infinity]
 		
-		for shape in @_shapeList
+		for shape in @_shapes
 			
 			aabb = shape.aabb @direction()
 			
@@ -48,26 +46,26 @@ module.exports = class
 	
 	fromObject: (O) ->
 	
-		@_shapeList = []
+		@_shapes = []
 		
 		for shape in O.shapes
 			ShapeType = require "Physics/#{shape.type}"
-			@add (new ShapeType()).fromObject shape
+			@addShape (new ShapeType()).fromObject shape
 			
 		return
 		
 	intersects: (shapeList) ->
 		
-		return false if @_shapeList.length is 0
+		return false if @_shapes.length is 0
 		
 		return false unless Rectangle.intersects(
 			@aabb()
 			shapeList.aabb()
 		)
 		
-		for shape in @_shapeList
+		for shape in @_shapes
 			
-			for otherShape in shapeList._shapeList
+			for otherShape in shapeList._shapes
 				
 				if Rectangle.intersects(
 					Rectangle.translated(
@@ -81,7 +79,10 @@ module.exports = class
 				
 				)
 					
-					return true
+					return (
+						self: shape
+						other: otherShape
+					)
 
 		false
 		
@@ -95,14 +96,14 @@ module.exports = class
 			255, 0, 255, .25
 		)
 		
-		for shape in @_shapeList
+		for shape in @_shapes
 			
 			destination.drawLineBox(
 				Rectangle.translated(
 					shape.aabb @direction()
 					Vector.sub @position(), camera
 				)
-				255, 255, 0, .25
+				255, 255, 0, .5
 			)
 			
 			shape.render(
@@ -113,9 +114,11 @@ module.exports = class
 		
 	removeAtIndex: (index) ->
 		
-		@_shapeList[index].off 'aabbChanged'
-		@_shapeList.splice index, 1
+		@_shapes[index].off 'aabbChanged'
+		@_shapes.splice index, 1
+		
+	shapes: -> @_shapes
 		
 	toJSON: ->
 		
-		shapes: shape.toJSON() for shape in @shapeList
+		shapes: shape.toJSON() for shape in @_shapes

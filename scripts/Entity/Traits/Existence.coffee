@@ -43,8 +43,7 @@ module.exports = Existence = class extends Trait
 		isDestroyed: {}
 		name: {}
 		offset: 
-			set: (offset) ->
-				@state.offset = Vector.copy offset
+			set: (offset) -> @state.offset = Vector.copy offset
 			eq: (l, r) -> Vector.equals l, r
 		position:
 			set: (position) -> @state.position = Vector.copy position
