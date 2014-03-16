@@ -105,7 +105,6 @@ module.exports = Entity = class Entity
 	]
 	
 	constructor: ->
-
 		mixin.call @ for mixin in mixins
 		
 		@_originalTraits = {}
@@ -132,7 +131,7 @@ module.exports = Entity = class Entity
 		context = FrequencyContext.findOrCreate ticker.frequency
 		context.addTicker @_uuid, ticker
 		
-		@emit 'tickerAdded', ticker
+		@emit 'tickerAdded', ticker unless ticker.noEmit
 		
 		ticker
 		
@@ -524,6 +523,7 @@ module.exports = Entity = class Entity
 		ticker = normalizeHandlerSpec ticker
 		
 		ticker.frequency ?= 1000 / 60
+		ticker.noEmit ?= false
 		
 		ticker
 			
