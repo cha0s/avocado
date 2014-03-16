@@ -39,7 +39,6 @@ module.exports = class extends Trait
 
 		moveToward:
 			
-			frequency: 1000 / Config.Physics.Tps
 			f: (destination, timeout = Infinity) ->
 				
 				deferred = Q.defer()
