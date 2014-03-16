@@ -5,7 +5,7 @@ _ = require 'Utility/underscore'
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
-Q = require 'Utility/kew'
+Promise = require 'Utility/bluebird'
 String = require 'Extension/String'
 Ticker = require 'Timing/Ticker'
 Transition = require 'Mixin/Transition'
@@ -152,7 +152,7 @@ LfoResult = class
 		@_duration /= 1000
 		
 		if @_duration > 0
-			@_deferred = Q.defer()
+			@_deferred = Promise.defer()
 			@promise = @_deferred.promise
 		
 		for key, spec of properties
@@ -187,7 +187,7 @@ LfoResult = class
 			
 		if @_duration > 0
 			
-			@_deferred.notify [@_elapsed, @_duration]
+			@_deferred.progress [@_elapsed, @_duration]
 			
 			if finished
 				@_deferred.resolve()

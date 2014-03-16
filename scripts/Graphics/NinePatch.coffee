@@ -2,7 +2,7 @@
 Graphics = require 'Graphics'
 
 CoreService = require('Core').CoreService
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
 

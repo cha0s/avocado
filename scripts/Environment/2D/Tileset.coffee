@@ -3,7 +3,7 @@ Core = require 'Core'
 Graphics = require 'Graphics'
 
 Debug = require 'Debug'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
 
@@ -29,12 +29,12 @@ module.exports = Tileset = class
 		@["#{i}_"] = O[i] for i of O
 		
 		imagePromise = if O.image?
-			Q.resolve O.image
+			Promise.resolve O.image
 		else
 			Graphics.Image.load O.imageUri ? O.uri.replace '.tileset.json', '.png'
 		imagePromise.then (@image_) => @setImage @image_
 		
-		Q.when(imagePromise).then => this
+		Promise.when(imagePromise).then => this
 		
 	toJSON: ->
 		

@@ -2,7 +2,7 @@
 _ = require 'Utility/underscore'
 Animation = require 'Graphics/Animation'
 Debug = require 'Debug'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 Ticker = require 'Timing/Ticker'
 Trait = require 'Entity/Traits/Trait'
@@ -47,7 +47,7 @@ module.exports = Visibility = class extends Trait
 					animation.setAsync false
 					animation.start()
 			
-		Q.all(animationPromises).then => @entity.emit 'animationIndexChanged'
+		Promise.all(animationPromises).then => @entity.emit 'animationIndexChanged'
 	
 	properties: ->
 		
@@ -85,7 +85,7 @@ module.exports = Visibility = class extends Trait
 		
 		playAnimation: (plays = 1, reset = true) ->
 			
-			deferred = Q.defer()
+			deferred = Promise.defer()
 			
 			unless @animation?
 				deferred.resolve()

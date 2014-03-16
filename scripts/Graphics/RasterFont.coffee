@@ -1,7 +1,7 @@
 
 Graphics = require 'Graphics'
 
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
 

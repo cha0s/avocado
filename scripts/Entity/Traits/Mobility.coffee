@@ -2,7 +2,7 @@
 Timing = require 'Timing'
 
 Config = require 'Config'
-Q = require 'Utility/kew'
+Promise = require 'Utility/bluebird'
 String = require 'Extension/String'
 Trait = require 'Entity/Traits/Trait'
 Vector = require 'Extension/Vector'
@@ -41,7 +41,7 @@ module.exports = class extends Trait
 			
 			f: (destination, timeout = Infinity) ->
 				
-				deferred = Q.defer()
+				deferred = Promise.defer()
 				
 				timeout /= 1000
 				

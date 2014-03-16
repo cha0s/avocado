@@ -1,5 +1,5 @@
 _ = require 'Utility/underscore'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 
 module.exports = class
 

@@ -4,7 +4,7 @@ EventEmitter = require 'Mixin/EventEmitter'
 Method = require 'Entity/Traits/Behavior/Method'
 Mixin = require 'Mixin/Mixin'
 ObjectExt = require 'Extension/Object'
-Q = require 'Utility/kew'
+Promise = require 'Utility/bluebird'
 Trait = require 'Entity/Traits/Trait'
 
 class Actions
@@ -29,7 +29,7 @@ class Actions
 	
 	runOnEntity: ->
 	
-		deferred = Q.defer()
+		deferred = Promise.defer()
 		
 		@entity.addTicker @entityTicker = noEmit: true, f: =>
 			return if @locked
@@ -60,8 +60,8 @@ class Actions
 			
 			@entity.off 'tickerAdded', listener
 			
-			if Q.isPromise promiseOrValue
-				promiseOrValue.then(methodCompleted).done()
+			if Promise.is promiseOrValue
+				promiseOrValue.done methodCompleted
 			else
 				methodCompleted promiseOrValue
 				
@@ -109,7 +109,7 @@ module.exports = Behavior = class extends Trait
 			rule = new Rule()
 			rule.fromObject ruleO
 		
-		Q.all(rulePromises).then (@rules) =>
+		Promise.all(rulePromises).then (@rules) =>
 	
 	setVariables: (variables) -> _.extend @variables, variables
 	
@@ -180,7 +180,7 @@ module.exports = Behavior = class extends Trait
 					action.Method
 				)
 			
-			Q.allAsap promises
+			Promise.allAsap promises
 		
 	values: ->
 		

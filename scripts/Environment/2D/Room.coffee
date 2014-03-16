@@ -7,7 +7,7 @@ EventEmitter = require 'Mixin/EventEmitter'
 Image = require('Graphics').Image
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
 VectorMixin = require 'Mixin/Vector'
@@ -105,7 +105,7 @@ module.exports = Room = class Room
 			promises = for entityO in O.entities
 				Entity.load entityO.uri, entityO.traits ? []
 			
-			Q.all(promises).then (entities) =>
+			Promise.all(promises).then (entities) =>
 				@_entities = []
 				@addEntity entity for entity in entities
 			
@@ -118,7 +118,7 @@ module.exports = Room = class Room
 			promises = for layerO in O.layers
 				(new Room.TileLayer()).fromObject layerO
 			
-			Q.all(promises).then (layers) => @_layers = layers
+			Promise.all(promises).then (layers) => @_layers = layers
 			
 			promises
 		else
@@ -130,7 +130,7 @@ module.exports = Room = class Room
 			Room.Tileset.load O.tilesetUri
 		else
 			O.tileset
-		Q.when(tilesetPromise).then (tileset) =>
+		Promise.when(tilesetPromise).then (tileset) =>
 			@setTileset tileset
 		
 		promises = [
@@ -140,7 +140,7 @@ module.exports = Room = class Room
 			layerPromises
 		)		
 		
-		Q.all(promises).then =>
+		Promise.all(promises).then =>
 			@setSize O.size
 			@
 

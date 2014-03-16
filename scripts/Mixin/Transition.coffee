@@ -22,7 +22,7 @@
 Timing = require 'Timing'
 
 Mixin = require 'Mixin/Mixin'
-Q = require 'Utility/kew'
+Promise = require 'Utility/bluebird'
 String = require 'Extension/String'
 
 TransitionResult = class TransitionResult
@@ -56,7 +56,7 @@ TransitionResult = class TransitionResult
 			@_method[i] = String.setterName i
 		
 		# Set up the transition object.
-		@_deferred = Q.defer()
+		@_deferred = Promise.defer()
 		@promise = @_deferred.promise
 		
 		@_elapsed = 0
@@ -76,7 +76,7 @@ TransitionResult = class TransitionResult
 	stopTransition: ->
 	
 		# Let any listeners know that the transition is complete.
-		@_deferred.notify [@_elapsed, @_duration]
+		@_deferred.progress [@_elapsed, @_duration]
 		@_deferred.resolve()
 
 	# Tick callback. Called repeatedly while this transition is
@@ -111,7 +111,7 @@ TransitionResult = class TransitionResult
 		if @_elapsed is @_duration
 			@stopTransition()
 		else
-			@_deferred.notify [@_elapsed, @_duration]
+			@_deferred.progress [@_elapsed, @_duration]
 
 module.exports = Transition = class					
 

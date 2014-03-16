@@ -3,16 +3,16 @@
 # **Image** handles image resource management. 
 
 Image = require('Graphics').Image
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 
 # Load an image at the specified URI.
 Image.load = (uri) ->
 
 	unless uri?
-		return Q.reject new Error 'Attempted to load Image with a null URI.'
+		return Promise.reject new Error 'Attempted to load Image with a null URI.'
 	
-	deferred = Q.defer()
-	Image['%load'] uri, deferred.makeNodeResolver()
+	deferred = Promise.defer()
+	Image['%load'] uri, deferred.callback
 	deferred.promise
 
 # Get the height of the image.	

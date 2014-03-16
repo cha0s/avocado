@@ -2,7 +2,7 @@
 _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 
 module.exports = Environment = class
 	
@@ -30,7 +30,7 @@ module.exports = Environment = class
 			@addRoom room
 			room.fromObject roomO
 			
-		Q.all(roomPromises).then => this
+		Promise.all(roomPromises).then => this
 			
 	addRoom: (room) -> @rooms_.push room
 	room: (index) -> @rooms_[index]

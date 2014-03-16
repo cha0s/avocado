@@ -4,7 +4,7 @@
 _ = require 'Utility/underscore'
 Graphics = require 'Graphics'
 Packer = require 'Utility/Packer'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 Vector = require 'Extension/Vector'
 
@@ -35,7 +35,7 @@ module.exports = TileLayer = class
 		else
 			(0 for i in [0...Vector.area @size_])
 		
-		Q.resolve this
+		Promise.resolve this
 	
 	toJSON: ->
 		

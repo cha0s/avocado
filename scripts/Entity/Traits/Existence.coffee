@@ -3,7 +3,7 @@ Timing = require 'Timing'
 
 _ = require 'Utility/underscore'
 Mixin = require 'Mixin/Mixin'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 Ticker = require 'Timing/Ticker'
 Trait = require 'Entity/Traits/Trait'
@@ -121,7 +121,7 @@ module.exports = Existence = class extends Trait
 			
 			f: (ms) ->
 				
-				deferred = Q.defer()
+				deferred = Promise.defer()
 				
 				ticker = new Ticker.InBand()
 				ticker.setFrequency ms

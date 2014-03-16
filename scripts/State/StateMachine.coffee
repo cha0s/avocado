@@ -8,7 +8,7 @@
 # [the AbstractState interface documentation](./AbstractState.html).
 EventEmitter = require 'Mixin/EventEmitter'
 Mixin = require 'Mixin/Mixin'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 
 # #### Construction
 # 
@@ -43,7 +43,7 @@ module.exports = StateMachine = class
 		@leave name
 		@emit 'stateLeft', @name
 		
-		promise = Q.asap(
+		promise = Promise.asap(
 		
 			# If the State is already loaded and cached, fulfill the
 			# initialization immediately.
@@ -59,15 +59,15 @@ module.exports = StateMachine = class
 				
 			=>
 				@emit 'stateInitialized', name
-				initPromise = Q.asap(
+				initPromise = Promise.asap(
 					@_instanceCache[name].enter args, @name
 					=>
 						@emit 'stateEntered', name
 						@_instance = @_instanceCache[@_name = name]
 				)
-				initPromise.done() if Q.isPromise initPromise
+				initPromise.done() if Promise.is initPromise
 		)
-		promise.done() if Q.isPromise promise
+		promise.done() if Promise.is promise
 		
 	leave: (next) ->
 		@_instance?.leave next

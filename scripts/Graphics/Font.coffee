@@ -1,6 +1,6 @@
 
 Font = require('Graphics').Font
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
 
 Font.FontStyle_Regular   = 0
@@ -12,10 +12,10 @@ Font.FontStyle_Underline = 4
 Font.load = (uri) ->
 
 	unless uri?
-		return Q.reject new Error 'Attempted to load Font with a null URI.'
+		return Promise.reject new Error 'Attempted to load Font with a null URI.'
 	
-	deferred = Q.defer()
-	Font['%load'] uri, deferred.makeNodeResolver()
+	deferred = Promise.defer()
+	Font['%load'] uri, deferred.callback
 	deferred.promise
 
 Font::render = (

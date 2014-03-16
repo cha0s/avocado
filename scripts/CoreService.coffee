@@ -5,7 +5,7 @@
 
 Core = require 'Core'
 Debug = require 'Debug'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
  
 Core.CoreService.writeStderr = Core.CoreService['%writeStderr']
 
@@ -16,11 +16,11 @@ Core.CoreService.readResource = (uri, useCache = true) ->
 	
 	return resourceCache[uri] if useCache and resourceCache[uri]?
 	
-	deferred = Q.defer()
+	deferred = Promise.defer()
 	
 	resourceCache[uri] = deferred.promise if useCache
 		
-	Core.CoreService['%readResource'] uri, deferred.makeNodeResolver()
+	Core.CoreService['%readResource'] uri, deferred.callback
 	
 	deferred.promise
 

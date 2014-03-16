@@ -1,5 +1,5 @@
 
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 
 Evaluators = {}
 for elementName in ['Condition', 'Method', 'Value']
@@ -18,7 +18,7 @@ module.exports = Rule = class
 		@condition = O.C.concat()
 		@actions = O.A.concat()
 		
-		Q.resolve this
+		Promise.resolve this
 	
 	evaluate: (variables) ->
 		

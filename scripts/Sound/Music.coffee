@@ -4,7 +4,7 @@
 # fading, and more.
 
 Music = require('Sound').Music
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 
 # Music playing constants.
 # 
@@ -16,10 +16,10 @@ Music.LoopForever = -1
 Music.load = (uri) ->
 
 	unless uri?
-		return Q.reject new Error 'Attempted to load Music with a null URI.'
+		return Promise.reject new Error 'Attempted to load Music with a null URI.'
 	
-	deferred = Q.defer()
-	@['%load'] uri, deferred.makeNodeResolver()
+	deferred = Promise.defer()
+	@['%load'] uri, deferred.callback
 	deferred.promise
 	
 # Fade in the music for the specified number of milliseconds, and loop for the

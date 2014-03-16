@@ -10,7 +10,7 @@ Debug = require 'Debug'
 EventEmitter = require 'Mixin/EventEmitter'
 Lfo = require 'Mixin/Lfo'
 Mixin = require 'Mixin/Mixin'
-Q = require 'Utility/Q'
+Promise = require 'Utility/bluebird'
 String = require 'Extension/String'
 Ticker = require 'Timing/Ticker'
 Transition = require 'Mixin/Transition'
@@ -243,7 +243,7 @@ module.exports = Entity = class Entity
 				
 				@_addTrait trait
 			
-		Q.allAsap(
+		Promise.allAsap(
 			_.map traits, (trait) -> trait.initializeTrait()
 			=>
 				trait.resetTrait() for type, trait of @_traits
@@ -257,7 +257,7 @@ module.exports = Entity = class Entity
 		@_uri = O.uri
 		
 		# Add traits asynchronously.
-		Q.asap(
+		Promise.asap(
 			@extendTraits traits
 			=>
 				@_originalTraits = JSON.parse JSON.stringify @_traits
