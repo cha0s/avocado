@@ -125,8 +125,10 @@ module.exports = Existence = class extends Trait
 				
 				ticker = new Ticker.InBand()
 				ticker.setFrequency ms
-				ticker.on 'tick', -> deferred.resolve()
-				@entity.addTicker f: -> ticker.tick()
+				@entity.addTicker waitTicker = f: -> ticker.tick()
+				ticker.on 'tick', =>
+					@entity.removeTicker waitTicker
+					deferred.resolve()
 				
 				deferred.promise
 		
