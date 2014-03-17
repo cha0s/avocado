@@ -17,10 +17,10 @@ describe 'Entity', ->
 		
 		entity = null
 		
-		beforeEach (done) ->
+		beforeEach ->
 			
 			entity = new Entity()
-			entity.extendTraits([type: 'Test']).then -> done()
+			entity.extendTraits [type: 'Test']
 			
 		it "can reset traits", ->
 			
@@ -62,46 +62,25 @@ describe 'Entity', ->
 			entity.setTraitVariables blah: 69
 			expect(entity.blah()).toBe 69
 			
-		it "can specify a trait dependency tree", (done) ->
+		it "can specify a trait dependency tree", ->
 
 			entity = new Entity()
-			entity.extendTraits([
-				type: 'Dependency2'
-			]).then ->
+			entity.extendTraits [type: 'Dependency2']
 				
-				expect(entity.foo).toBeDefined()
-				
-				done()
+			expect(entity.foo).toBeDefined()
 			
-		it "can override trait loading", (done) ->
+		it "can override trait loading", ->
 		
 			Trait.moduleMap['Override'] = 'Test'
 
 			entity = new Entity()
-			entity.extendTraits([
-				type: 'Override'
-			]).then ->
+			entity.extendTraits [type: 'Override']
 				
-				expect(entity.foo).toBeDefined()
-				
-				done()
+			expect(entity.foo).toBeDefined()
 			
 	describe 'regressions', ->
 	
-		it "doesn't crash when calling done() on the promise returned from fromObject()", ->
-			
-			expect(->
-				(new Entity()).fromObject(
-					traits: [
-						type: 'Existence'
-						state:
-							directionCount: 4
-							size: [8, 8]				
-					]
-				).done()
-			).not.toThrow()
-
-		it "calls resetTrait() for all traits every time traits are extended", (done) ->
+		it "calls resetTrait() for all traits every time traits are extended", ->
 			
 			Existence = require 'Entity/Traits/Existence'
 			Test = require 'Entity/Traits/Test'
@@ -116,21 +95,19 @@ describe 'Entity', ->
 			test2Reset = Test2::resetTrait = jasmine.createSpy()
 			
 			entity = new Entity()
-			entity.extendTraits([
+			entity.extendTraits [
 				type: 'Test'
 			,
 				type: 'Test2'
-			]).then ->
+			]
 				
-				expect(existenceReset.calls.length).toEqual 2
-				expect(testReset.calls.length).toEqual 1
-				expect(test2Reset.calls.length).toEqual 1
-				
-				Existence::resetTrait = originalExistenceReset
-				Test::resetTrait = originalTestReset
-				Test2::resetTrait = originalTest2Reset
-				
-				done()
+			expect(existenceReset.calls.length).toEqual 2
+			expect(testReset.calls.length).toEqual 1
+			expect(test2Reset.calls.length).toEqual 1
+			
+			Existence::resetTrait = originalExistenceReset
+			Test::resetTrait = originalTestReset
+			Test2::resetTrait = originalTest2Reset
 
 		it "undefined state defaults should throw an exception as early as possible", ->
 			

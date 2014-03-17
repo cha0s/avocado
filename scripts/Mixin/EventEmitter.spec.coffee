@@ -20,6 +20,7 @@ describe 'EventEmitter', ->
 		
 		O = {}
 		Mixin O, EventEmitter
+		EventEmitter.call O
 	
 	it "can listen to signals on event name", ->
 		
