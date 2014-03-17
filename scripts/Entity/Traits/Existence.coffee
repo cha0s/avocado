@@ -2,6 +2,7 @@
 Timing = require 'Timing'
 
 _ = require 'Utility/underscore'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Promise = require 'Utility/bluebird'
 Rectangle = require 'Extension/Rectangle'
@@ -115,7 +116,7 @@ module.exports = Existence = class extends Trait
 			
 		setY: (y) -> @entity.setPosition [@state.position[0], y]
 			
-		signal: -> @entity.emit.apply @entity, arguments
+		signal: -> FunctionExt.fastApply @entity.emit, arguments, @entity
 	
 		waitMs:
 			

@@ -6,6 +6,7 @@ Graphics = require 'Graphics'
 Timing = require 'Timing'
 
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
 Vector = require 'Extension/Vector'
@@ -35,7 +36,9 @@ WindowMixin = class
 						args = ['inputEvent', inputEvent]
 						args.push argument for argument in arguments
 						
-						inputReceiver.emit.apply inputReceiver, args
+						FunctionExt.fastApply(
+							inputReceiver.emit, args, inputReceiver
+						)
 				)
 		
 		# We want to store how much a player is moving either with the
@@ -208,7 +211,7 @@ mixins = [
 	WindowMixin
 ]
 
-Mixin.apply null, [Window::].concat mixins
+FunctionExt.fastApply Mixin, [Window::].concat mixins
 
 # Window creation constants.
 # 

@@ -1,4 +1,6 @@
 
+ArrayExt = require 'Extension/Array'
+FunctionExt = require 'Extension/Function'
 Promise = require 'Utility/bluebird'
 
 Evaluators = {}
@@ -24,7 +26,7 @@ module.exports = Rule = class
 		
 		args = [variables].concat @condition
 		
-		unless Evaluators.Condition.apply Evaluators.Condition, args
+		unless FunctionExt.fastApply Evaluators.Condition, args
 			return false
 		
 		Rule.Evaluate action, variables for action in @actions
@@ -36,6 +38,6 @@ Rule.Evaluate = (E, variables) ->
 	[key] = Object.keys E
 	
 	args = [variables]
-	args.push.apply args, E[key]
+	ArrayExt.fastArrayPush args, E[key]
 	
-	Evaluators[key].apply Evaluators[key], args
+	FunctionExt.fastApply Evaluators[key], args

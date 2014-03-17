@@ -1,5 +1,6 @@
 
 _ = require 'Utility/underscore'
+FunctionExt = require 'Extension/Function'
 String = require 'Extension/String'
 
 module.exports = PrivateScope = (Class, method = 'getScope') ->
@@ -19,7 +20,7 @@ PrivateScope.forwardCall = (
 ) ->
 	owner[call] = ->
 		_private = @[method] Private()
-		_private[call].apply _private, arguments
+		FunctionExt.fastApply _private[call], arguments, _private
 
 PrivateScope.forwardProperty = (
 	owner

@@ -39,7 +39,12 @@ module.exports = TileLayer = class
 	
 	toJSON: ->
 		
-		tileIndices = if 0 isnt Math.max.apply Math, @tileIndices_
+		nonZero = do ->
+			for tileIndex in @tileIndices_
+				return true if tileIndex > 0
+			false
+		
+		tileIndices = if nonZero
 			Packer.pack @tileIndices_
 		else
 			null

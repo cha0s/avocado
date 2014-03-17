@@ -1,4 +1,7 @@
 
+ArrayExt = require 'Extension/Array'
+FunctionExt = require 'Extension/Function'
+
 exports.Evaluate = (variables, selector, argLists = []) ->
 	[variable, selector...] = selector.split ':'
 	
@@ -14,7 +17,7 @@ exports.Evaluate = (variables, selector, argLists = []) ->
 		
 		args = for arg in argLists[step - 1]
 			Evaluate arg, variables
-		O.apply holder, args
+		FunctionExt.fastApply O, args, holder
 	
 	while step < selector.length
 		O = O[selector[step++]]
@@ -23,7 +26,7 @@ exports.Evaluate = (variables, selector, argLists = []) ->
 	invoke()
 
 exports.EvaluateManually = (variables, Method) ->
-	exports.Evaluate.apply exports.Evaluate, [variables].concat Method
+	FunctionExt.fastApply exports.Evaluate, [variables].concat Method
 
 Evaluators = Method: exports.Evaluate
 for elementName in ['Value']
@@ -36,6 +39,6 @@ Evaluate = (E, variables) ->
 	return E unless evaluate = Evaluators[key]
 	
 	args = [variables]
-	args.push.apply args, E[key]
+	ArrayExt.fastPushArray args, E[key]
 	
-	evaluate.apply Evaluators[key], args
+	FunctionExt.fastApply evaluate, args

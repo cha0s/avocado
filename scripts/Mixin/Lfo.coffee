@@ -125,7 +125,9 @@ ModulatedProperty = class
 		
 	transition: ->
 		
-		transition = Transition.InBand::transition.apply @, arguments
+		transition = FunctionExt.fastApply(
+			Transition.InBand::transition, arguments, this
+		)
 		
 		@_transitions.push transition
 		

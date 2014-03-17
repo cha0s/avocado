@@ -164,7 +164,7 @@ module.exports = Entity = class Entity
 				setter = meta.set ? (value) -> @state[key] = value
 				@[String.setterName key] = (value) =>
 					oldValue = trait.state[key]
-					setter.apply trait, arguments
+					FunctionExt.fastApply setter, arguments, trait
 					@emit "#{key}Changed", oldValue unless eq oldValue, trait.state[key]
 					
 		# Bind the actions and values associated with this trait.
@@ -277,16 +277,14 @@ module.exports = Entity = class Entity
 	
 		for type, trait of @_traits
 			continue if not trait['hookCache'][hook]?
-			continue unless results = trait['hookCache'][hook].apply(
-				trait, args
+			continue unless results = FunctionExt.fastApply(
+				trait['hookCache'][hook], args, trait
 			)
 			results
 		
 	lfo: ->
 		
-		lfo = Lfo.InBand::lfo.apply(
-			@, arguments
-		)
+		lfo = FunctionExt.fastApply Lfo.InBand::lfo, arguments, this
 		
 		return lfo unless lfo.promise?
 		
@@ -432,8 +430,8 @@ module.exports = Entity = class Entity
 		
 	transition: ->
 		
-		transition = Transition.InBand::transition.apply(
-			@, arguments
+		transition = FunctionExt.fastApply(
+			Transition.InBand::transition, arguments, this
 		)
 		
 		ticker =

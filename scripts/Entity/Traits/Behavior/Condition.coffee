@@ -1,4 +1,7 @@
 
+ArrayExt = require 'Extension/Array'
+FunctionExt = require 'Extension/Function'
+
 comparisons =
 
 	'is':
@@ -62,11 +65,10 @@ exports.Evaluate = (variables, op) ->
 	
 	args.unshift variables
 	
-	c = comparisons[op].f
-	c.apply c, args
+	FunctionExt.fastApply comparisons[op].f, args
 
 exports.EvaluateManually = (variables, Condition) ->
-	exports.Evaluate.apply exports.Evaluate, [variables].concat Condition
+	FunctionExt.fastApply exports.Evaluate, [variables].concat Condition
 
 Evaluators = Condition: exports.Evaluate
 for elementName in ['Method', 'Value']
@@ -78,6 +80,6 @@ Evaluate = (E, variables) ->
 	[key] = Object.keys E
 	
 	args = [variables]
-	args.push.apply args, E[key]
+	ArrayExt.fastPushArray args, E[key]
 	
-	Evaluators[key].apply Evaluators[key], args
+	FunctionExt.fastApply Evaluators[key], args
