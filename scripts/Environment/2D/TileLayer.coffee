@@ -39,7 +39,7 @@ module.exports = TileLayer = class
 	
 	toJSON: ->
 		
-		nonZero = do ->
+		nonZero = do =>
 			for tileIndex in @tileIndices_
 				return true if tileIndex > 0
 			false
