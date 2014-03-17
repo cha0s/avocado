@@ -2,6 +2,8 @@
 _ = require 'Utility/underscore'
 Promise = require 'Utility/bluebird'
 
+#Promise.longStackTraces()
+
 Promise.asap = (promiseOrValue, fulfilled, rejected, progressed) ->
 	
 	if Promise.is promiseOrValue
