@@ -131,8 +131,6 @@ module.exports = Entity = class Entity
 		context = FrequencyContext.findOrCreate ticker.frequency
 		context.addTicker @_uuid, ticker
 		
-		@emit 'tickerAdded', ticker unless ticker.noEmit
-		
 		ticker
 		
 	_addTrait: (traitInfo) ->
@@ -537,7 +535,6 @@ module.exports = Entity = class Entity
 		ticker = normalizeHandlerSpec ticker
 		
 		ticker.frequency ?= 1000 / 60
-		ticker.noEmit ?= false
 		
 		ticker
 			

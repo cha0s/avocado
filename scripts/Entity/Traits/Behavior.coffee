@@ -29,11 +29,9 @@ class Actions
 	
 		deferred = Promise.defer()
 		
-		@entityTicker = @entity.addTicker noEmit: true, f: =>
+		@entityTicker = @entity.addTicker f: =>
 			return if @pendingAction?
 	
-			listener = (ticker) => @tickers.push ticker
-			
 			methodCompleted = (result) =>
 				return if result?.canceled
 				
@@ -46,16 +44,10 @@ class Actions
 					
 					deferred.resolve()
 					
-
-			# Catch any tickers added.
-			@entity.on 'tickerAdded', listener
-			
 			@pendingAction = Method.EvaluateManually(
 				@variables
 				@actions[@index].Method
 			)
-			
-			@entity.off 'tickerAdded', listener
 			
 			if Promise.is @pendingAction
 				@pendingAction.done methodCompleted
