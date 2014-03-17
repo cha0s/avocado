@@ -99,6 +99,16 @@ describe 'EventEmitter', ->
 		O.emit 'removeListenerName'
 		expect(spy.removeListenerName.calls.length).toEqual 1
 	
+	it "can pass data to callbacks", ->
+		
+		data = null
+		callback = -> data = arguments[0]
+		
+		O.on 'passData', callback
+		O.emit 'passData', 420
+		
+		expect(data).toEqual 420
+
 	describe 'regressions', ->
 			
 		it "can listen to namespaced signals only once", ->
