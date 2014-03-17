@@ -1,4 +1,5 @@
 
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
 Shape = require 'Physics/Shape'
@@ -58,4 +59,4 @@ module.exports = class extends Shape
 		
 		O
 	
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins

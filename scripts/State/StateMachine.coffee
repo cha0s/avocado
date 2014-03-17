@@ -7,6 +7,7 @@
 # is within a state for virtually its entire execution lifetime. See
 # [the AbstractState interface documentation](./AbstractState.html).
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Promise = require 'Utility/bluebird'
 
@@ -29,7 +30,7 @@ module.exports = StateMachine = class
 		@_instance = null
 		@_instanceCache = {}
 		
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	# ##### currentStateInstance
 	# Returns a reference to the current state instance.

@@ -1,6 +1,7 @@
 
 _ = require 'Utility/underscore'
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Method = require 'Entity/Traits/Behavior/Method'
 Mixin = require 'Mixin/Mixin'
 ObjectExt = require 'Extension/Object'
@@ -21,7 +22,7 @@ class Actions
 		@pendingAction = null
 		@tickers = []
 		
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	removeEntityTicker: -> @entity.removeTicker @entityTicker
 	

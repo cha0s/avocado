@@ -1,5 +1,6 @@
 
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
 Rectangle = require 'Extension/Rectangle'
@@ -16,7 +17,7 @@ module.exports = class
 		EventEmitter
 	]
 	
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	constructor: ->
 	

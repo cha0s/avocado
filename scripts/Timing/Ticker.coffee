@@ -2,6 +2,7 @@
 Timing = require 'Timing'
 
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
 
@@ -19,7 +20,7 @@ module.exports = Ticker = class Ticker
 		@_remainder = 0
 		@setFrequency frequency
 	
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	remaining: -> 1 - @_remainder / @frequency()
 	

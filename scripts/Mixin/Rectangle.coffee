@@ -1,4 +1,5 @@
 
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Rectangle = require 'Extension/Rectangle'
 String = require 'Extension/String'
@@ -21,15 +22,15 @@ module.exports = RectangleMixin = (
 	
 	class
 		
-		constructor: ->
-			property.call this for property in properties
-			
-		properties = [
+		mixins = [
 			PositionProperty = VectorMixin position, x, y
 			SizeProperty = VectorMixin size, width, height
 		]
 		
-		Mixin.apply null, [@::].concat properties
+		constructor: ->
+			mixin.call @ for mixin in mixins
+			
+		FunctionExt.fastApply Mixin, [@::].concat mixins
 		
 		@::[rectangle] = -> Rectangle.compose @[position](), @[size]()
 		@::[_setRectangle] = (_rectangle) ->

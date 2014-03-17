@@ -3,6 +3,7 @@ Timing = require 'Timing'
 
 _ = require 'Utility/underscore'
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
 Promise = require 'Utility/bluebird'
@@ -94,7 +95,7 @@ ModulatedProperty = class
 		
 		@_transitions = []
 	
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 		
 	tick: (elapsed) ->
 		

@@ -1,4 +1,5 @@
 
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
 String = require 'Extension/String'
@@ -16,15 +17,15 @@ module.exports = VectorMixin = (
 	
 	class
 	
-		constructor: ->
-			property.call this for property in properties
-		
-		properties = [
+		mixins = [
 			XProperty = Property x, 0
 			YProperty = Property y, 0
 		]
 		
-		Mixin.apply null, [@::].concat properties
+		constructor: ->
+			mixin.call @ for mixin in mixins
+		
+		FunctionExt.fastApply Mixin, [@::].concat mixins
 		
 		@::[vector] = -> [@[x](), @[y]()]
 		@::[_setVector] = (_vector) ->

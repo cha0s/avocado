@@ -8,6 +8,7 @@ _ = require 'Utility/underscore'
 CoreService = require('Core').CoreService
 Debug = require 'Debug'
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Lfo = require 'Mixin/Lfo'
 Mixin = require 'Mixin/Mixin'
 Promise = require 'Utility/bluebird'
@@ -121,7 +122,7 @@ module.exports = Entity = class Entity
 		# promise).
 		@extendTraits [type: 'Existence']
 		
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	# Add a ticker to this entity.
 	addTicker: (ticker) ->

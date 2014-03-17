@@ -4,6 +4,7 @@ Config = require 'Config'
 Debug = require 'Debug'
 Entity = require 'Entity/Entity'
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Image = require('Graphics').Image
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
@@ -41,7 +42,7 @@ module.exports = Room = class Room
 		@on 'sizeChanged', => @_recomputeTotalSize()
 		@on 'tilesetChanged', => @_recomputeTotalSize()
 		
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 		
 	addEntity: (entity) ->
 		

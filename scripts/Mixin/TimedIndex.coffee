@@ -1,5 +1,6 @@
 
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Property = require 'Mixin/Property'
 Ticker = require 'Timing/Ticker'
@@ -28,7 +29,7 @@ module.exports = Animation = (
 			@_interval = null
 			@_ticker = null
 			
-		Mixin.apply null, [@::].concat mixins
+		FunctionExt.fastApply Mixin, [@::].concat mixins
 			
 		_tick: ->
 			

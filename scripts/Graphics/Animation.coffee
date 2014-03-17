@@ -4,6 +4,7 @@ Graphics = require 'Graphics'
 
 _ = require 'Utility/underscore'
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 Promise = require 'Utility/bluebird'
 Property = require 'Mixin/Property'
@@ -58,7 +59,7 @@ module.exports = Animation = class Animation
 			=> @_sprite.setSourceRectangle @sourceRectangle()
 		)
 	
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	fromObject: (O) ->
 		

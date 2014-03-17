@@ -9,6 +9,7 @@ Graphics = require 'Graphics'
 
 Cps = require 'Timing/Cps' 
 EventEmitter = require 'Mixin/EventEmitter'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 StateMachine = require 'State/StateMachine'
 Timing = require 'Timing'
@@ -62,7 +63,7 @@ module.exports = Main = class Main
 		# Enter the 'Initial' state. This is implemented by your game.
 		@transitionToState 'Initial'
 
-	Mixin.apply null, [@::].concat mixins
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	# ##### begin
 	# 
