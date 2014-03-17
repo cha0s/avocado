@@ -1,10 +1,10 @@
 
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Rectangle = require 'Extension/Rectangle'
-String = require 'Extension/String'
-Vector = require 'Extension/Vector'
-VectorMixin = require 'Mixin/Vector'
+FunctionExt = require '../Extension/Function'
+Mixin = require './Mixin'
+Rectangle = require '../Extension/Rectangle'
+String = require '../Extension/String'
+Vector = require '../Extension/Vector'
+VectorMixin = require './Vector'
 
 module.exports = RectangleMixin = (
 	rectangle = 'rectangle'

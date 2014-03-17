@@ -1,6 +1,6 @@
 
-Entity = require 'Entity/Entity'
-Trait = require 'Entity/Traits/Trait'
+Entity = require './Entity'
+Trait = require './Traits/Trait'
 
 describe 'Entity', ->
 	
@@ -82,7 +82,7 @@ describe 'Entity', ->
 	
 		it "calls resetTrait() for all traits every time traits are extended", ->
 			
-			Existence = require 'Entity/Traits/Existence'
+			Existence = require './Traits/Existence'
 			Test = require 'Entity/Traits/Test'
 			Test2 = require 'Entity/Traits/Test2'
 			

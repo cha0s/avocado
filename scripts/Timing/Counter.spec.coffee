@@ -1,5 +1,5 @@
 
-require 'Timing/Counter'
+require './Counter'
 
 describe 'Counter', ->
 	

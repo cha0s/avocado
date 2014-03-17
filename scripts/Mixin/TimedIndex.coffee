@@ -1,9 +1,9 @@
 
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-Ticker = require 'Timing/Ticker'
+EventEmitter = require './EventEmitter'
+FunctionExt = require '../Extension/Function'
+Mixin = require './Mixin'
+Property = require './Property'
+Ticker = require '../Timing/Ticker'
 
 module.exports = Animation = (
 	indexName = 'index'

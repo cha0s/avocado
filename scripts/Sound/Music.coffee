@@ -3,8 +3,8 @@
 # **Music** allows playing looped music and volume adjustment, timed
 # fading, and more.
 
-Music = require('Sound').Music
-Promise = require 'Utility/bluebird'
+{Music} = require 'Sound'
+Promise = require '../Utility/bluebird'
 
 # Music playing constants.
 # 

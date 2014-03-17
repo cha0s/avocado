@@ -1,5 +1,5 @@
 
-Rectangle = require 'Extension/Rectangle'
+Rectangle = require './Rectangle'
 
 describe 'Rectangle', ->
 	

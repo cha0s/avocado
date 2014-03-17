@@ -2,8 +2,8 @@
 
 # **Image** handles image resource management. 
 
-Image = require('Graphics').Image
-Promise = require 'Utility/bluebird'
+{Image} = require 'Graphics'
+Promise = require '../Utility/bluebird'
 
 # Load an image at the specified URI.
 Image.load = (uri) ->

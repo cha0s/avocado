@@ -1,4 +1,4 @@
 
-Shape = require 'Physics/Shape'
+Shape = require './Shape'
 
 module.exports = class extends Shape

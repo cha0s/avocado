@@ -1,5 +1,5 @@
 
-Array = require 'Extension/Array'
+Array = require './Array'
 
 describe 'Array', ->
 	

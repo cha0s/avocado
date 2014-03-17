@@ -1,6 +1,6 @@
 
-Image = require('Graphics').Image
-Tileset = require 'Environment/2D/Tileset'
+{Image} = require 'Graphics'
+Tileset = require './Tileset'
 
 describe 'Tileset', ->
 	

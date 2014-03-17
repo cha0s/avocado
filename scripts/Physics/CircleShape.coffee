@@ -1,9 +1,9 @@
 
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-Shape = require 'Physics/Shape'
-Vector = require 'Extension/Vector'
+FunctionExt = require '../Extension/Function'
+Mixin = require '../Mixin/Mixin'
+Property = require '../Mixin/Property'
+Shape = require './Shape'
+Vector = require '../Extension/Vector'
 
 module.exports = class extends Shape
 	

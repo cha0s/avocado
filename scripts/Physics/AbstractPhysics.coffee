@@ -1,7 +1,7 @@
 
-Config = require 'Config'
-Ticker = require 'Timing/Ticker'
-Vector = require 'Extension/Vector'
+Config = require '../Config'
+Ticker = require '../Timing/Ticker'
+Vector = require '../Extension/Vector'
 
 module.exports = class AbstractPhysics
 	

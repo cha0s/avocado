@@ -21,9 +21,9 @@
 
 Timing = require 'Timing'
 
-Mixin = require 'Mixin/Mixin'
-Promise = require 'Utility/bluebird'
-String = require 'Extension/String'
+Mixin = require './Mixin'
+Promise = require '../Utility/bluebird'
+String = require '../Extension/String'
 
 TransitionResult = class TransitionResult
 	

@@ -1,6 +1,6 @@
 
-_ = require 'Utility/underscore'
-Promise = require 'Utility/bluebird'
+_ = require './Utility/underscore'
+Promise = require './Utility/bluebird'
 
 #Promise.longStackTraces()
 

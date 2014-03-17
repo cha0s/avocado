@@ -1,11 +1,11 @@
 
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-Rectangle = require 'Extension/Rectangle'
-Vector = require 'Extension/Vector'
-VectorMixin = require 'Mixin/Vector'
+EventEmitter = require '../Mixin/EventEmitter'
+FunctionExt = require '../Extension/Function'
+Mixin = require '../Mixin/Mixin'
+Property = require '../Mixin/Property'
+Rectangle = require '../Extension/Rectangle'
+Vector = require '../Extension/Vector'
+VectorMixin = require '../Mixin/Vector'
 
 module.exports = class
 	

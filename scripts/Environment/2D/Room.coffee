@@ -1,17 +1,17 @@
 
-_ = require 'Utility/underscore'
-Config = require 'Config'
-Debug = require 'Debug'
-Entity = require 'Entity/Entity'
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Image = require('Graphics').Image
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
-Vector = require 'Extension/Vector'
-VectorMixin = require 'Mixin/Vector'
+_ = require '../../Utility/underscore'
+Config = require '../../Config'
+Debug = require '../../Debug'
+Entity = require '../../Entity/Entity'
+EventEmitter = require '../../Mixin/EventEmitter'
+FunctionExt = require '../../Extension/Function'
+{Image} = require 'Graphics'
+Mixin = require '../../Mixin/Mixin'
+Property = require '../../Mixin/Property'
+Promise = require '../../Utility/bluebird'
+Rectangle = require '../../Extension/Rectangle'
+Vector = require '../../Extension/Vector'
+VectorMixin = require '../../Mixin/Vector'
 
 module.exports = Room = class Room
 	
@@ -219,6 +219,6 @@ module.exports = Room = class Room
 		entities: entities
 		tilesetUri: @tileset()?.uri()
 
-Room.TileLayer = require 'Environment/2D/TileLayer'
-Room.Tileset = require 'Environment/2D/Tileset'
+Room.TileLayer = require './TileLayer'
+Room.Tileset = require './Tileset'
 		

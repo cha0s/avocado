@@ -1,10 +1,10 @@
 
 Graphics = require 'Graphics'
 
-CoreService = require('Core').CoreService
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
-Vector = require 'Extension/Vector'
+{CoreService} = require 'Core'
+Promise = require '../Utility/bluebird'
+Rectangle = require '../Extension/Rectangle'
+Vector = require '../Extension/Vector'
 
 module.exports = NinePatch = class
 	

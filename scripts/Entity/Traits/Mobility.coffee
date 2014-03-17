@@ -1,11 +1,11 @@
 
 Timing = require 'Timing'
 
-Config = require 'Config'
-Promise = require 'Utility/bluebird'
-String = require 'Extension/String'
-Trait = require 'Entity/Traits/Trait'
-Vector = require 'Extension/Vector'
+Config = require '../../Config'
+Promise = require '../../Utility/bluebird'
+String = require '../../Extension/String'
+Trait = require './Trait'
+Vector = require '../../Extension/Vector'
 
 module.exports = class extends Trait
 

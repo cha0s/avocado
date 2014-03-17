@@ -1,12 +1,12 @@
 # **TileLayer** represents a 2D tile matrix. It is a glorified array of
 # tile indices which index into a tileset.
 
-_ = require 'Utility/underscore'
+_ = require '../../Utility/underscore'
 Graphics = require 'Graphics'
-Packer = require 'Utility/Packer'
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
-Vector = require 'Extension/Vector'
+Packer = require '../../Utility/Packer'
+Promise = require '../../Utility/bluebird'
+Rectangle = require '../../Extension/Rectangle'
+Vector = require '../../Extension/Vector'
 
 module.exports = TileLayer = class
 	
@@ -228,4 +228,4 @@ module.exports = TileLayer = class
 			start[0] -= area[0]
 			start[1] += 1
 
-TileLayer.Tileset = require 'Environment/2D/Tileset'
+TileLayer.Tileset = require './Tileset'

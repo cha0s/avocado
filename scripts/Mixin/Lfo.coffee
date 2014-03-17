@@ -1,15 +1,15 @@
 
 Timing = require 'Timing'
 
-_ = require 'Utility/underscore'
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-Promise = require 'Utility/bluebird'
-String = require 'Extension/String'
-Ticker = require 'Timing/Ticker'
-Transition = require 'Mixin/Transition'
+_ = require '../Utility/underscore'
+EventEmitter = require './EventEmitter'
+FunctionExt = require '../Extension/Function'
+Mixin = require './Mixin'
+Property = require './Property'
+Promise = require '../Utility/bluebird'
+String = require '../Extension/String'
+Ticker = require '../Timing/Ticker'
+Transition = require './Transition'
 
 Modulator =
 	

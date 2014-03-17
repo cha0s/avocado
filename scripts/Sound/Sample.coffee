@@ -2,8 +2,8 @@
 
 # **Sample** is the representation for a sound effect.
 
-Promise = require 'Utility/bluebird'
-Sample = require('Sound').Sample
+Promise = require '../Utility/bluebird'
+{Sample} = require 'Sound'
 
 # Sample playing constants.
 # 

@@ -7,7 +7,7 @@
 # States will never be destroyed during the lifecycle of the engine. Remember
 # this, as it means that **no child objects will be garbage collected unless
 # you delete them explicitly!**
-Promise = require 'Utility/bluebird'
+Promise = require '../Utility/bluebird'
 
 module.exports = class
 	

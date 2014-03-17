@@ -1,5 +1,5 @@
 
-Vector = require 'Extension/Vector'
+Vector = require './Vector'
 
 module.exports =
 

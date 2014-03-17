@@ -1,8 +1,8 @@
 
-_ = require 'Utility/underscore'
-CoreService = require('Core').CoreService
-Debug = require 'Debug'
-Promise = require 'Utility/bluebird'
+_ = require '../../Utility/underscore'
+{CoreService} = require 'Core'
+Debug = require '../../Debug'
+Promise = require '../../Utility/bluebird'
 
 module.exports = Environment = class
 	
@@ -50,4 +50,4 @@ module.exports = Environment = class
 		name: @name_
 		rooms: @rooms_
 
-Environment.Room = require 'Environment/2D/Room'
+Environment.Room = require './Room'

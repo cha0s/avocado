@@ -1,7 +1,7 @@
 
-Font = require('Graphics').Font
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
+{Font} = require 'Graphics'
+Promise = require '../Utility/bluebird'
+Rectangle = require '../Extension/Rectangle'
 
 Font.FontStyle_Regular   = 0
 Font.FontStyle_Bold      = 1

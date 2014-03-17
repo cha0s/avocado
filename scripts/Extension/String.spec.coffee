@@ -1,5 +1,5 @@
 
-String = require 'Extension/String'
+String = require './String'
 
 describe 'String', ->
 	

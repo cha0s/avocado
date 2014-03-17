@@ -1,6 +1,6 @@
 
-TileLayer = require 'Environment/2D/TileLayer'
-Tileset = require 'Environment/2D/Tileset'
+TileLayer = require './TileLayer'
+Tileset = require './Tileset'
 
 describe 'TileLayer', ->
 	

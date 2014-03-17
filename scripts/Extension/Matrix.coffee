@@ -4,7 +4,7 @@
 # matrix is implemented as an n-element array. Data is stored in row-major
 # order.
 
-_ = require 'Utility/underscore'
+_ = require '../Utility/underscore'
 
 module.exports = Matrix =
 	

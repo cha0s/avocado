@@ -1,9 +1,9 @@
 
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-String = require 'Extension/String'
-Vector = require 'Extension/Vector'
+FunctionExt = require '../Extension/Function'
+Mixin = require './Mixin'
+Property = require './Property'
+String = require '../Extension/String'
+Vector = require '../Extension/Vector'
 
 module.exports = VectorMixin = (
 	vector = 'vector'

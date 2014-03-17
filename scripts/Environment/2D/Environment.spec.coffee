@@ -1,6 +1,6 @@
 
-Environment = require 'Environment/2D/Environment'
-Room = require 'Environment/2D/Room'
+Environment = require './Environment'
+Room = require './Room'
 
 describe 'Environment', ->
 	

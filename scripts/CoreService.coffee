@@ -4,8 +4,8 @@
 # platform).
 
 Core = require 'Core'
-Debug = require 'Debug'
-Promise = require 'Utility/bluebird'
+Debug = require './Debug'
+Promise = require './Utility/bluebird'
  
 Core.CoreService.writeStderr = Core.CoreService['%writeStderr']
 

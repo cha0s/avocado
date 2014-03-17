@@ -1,12 +1,12 @@
 
-_ = require 'Utility/underscore'
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Method = require 'Entity/Traits/Behavior/Method'
-Mixin = require 'Mixin/Mixin'
-ObjectExt = require 'Extension/Object'
-Promise = require 'Utility/bluebird'
-Trait = require 'Entity/Traits/Trait'
+_ = require '../../Utility/underscore'
+EventEmitter = require '../../Mixin/EventEmitter'
+FunctionExt = require '../../Extension/Function'
+Method = require './Behavior/Method'
+Mixin = require '../../Mixin/Mixin'
+ObjectExt = require '../../Extension/Object'
+Promise = require '../../Utility/bluebird'
+Trait = require './Trait'
 
 class Actions
 
@@ -87,8 +87,8 @@ module.exports = Behavior = class extends Trait
 		@rules = []
 		@variables =
 			entity: entity
-			Global: require 'Entity/Traits/Behavior/Global'
-			Vector: require 'Extension/Vector'
+			Global: require './Behavior/Global'
+			Vector: require '../../Extension/Vector'
 	
 	initializeTrait: ->
 		

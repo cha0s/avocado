@@ -2,10 +2,10 @@
 # manage the registration of listeners who listen for the emission of the
 # events.
 
-_ = require 'Utility/underscore'
-Debug = require 'Debug'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
+_ = require '../Utility/underscore'
+Debug = require '../Debug'
+FunctionExt = require '../Extension/Function'
+Mixin = require './Mixin'
 
 module.exports = EventEmitter = class
 

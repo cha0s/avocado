@@ -1,5 +1,5 @@
 
-Matrix = require 'Extension/Matrix'
+Matrix = require './Matrix'
 
 describe 'Matrix', ->
 	

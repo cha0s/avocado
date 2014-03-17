@@ -2,10 +2,10 @@
 Core = require 'Core'
 Graphics = require 'Graphics'
 
-Debug = require 'Debug'
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
-Vector = require 'Extension/Vector'
+Debug = require '../../Debug'
+Promise = require '../../Utility/bluebird'
+Rectangle = require '../../Extension/Rectangle'
+Vector = require '../../Extension/Vector'
 
 module.exports = Tileset = class
 

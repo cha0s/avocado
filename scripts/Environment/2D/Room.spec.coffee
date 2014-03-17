@@ -1,6 +1,6 @@
 
-Entity = require 'Entity/Entity'
-Room = require 'Environment/2D/Room'
+Entity = require '../../Entity/Entity'
+Room = require './Room'
 
 describe 'Room', ->
 	

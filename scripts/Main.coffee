@@ -6,13 +6,13 @@
 # Uses a [`StateMachine`](./State/StateMachine.html) to handle engine states, 
 # and handles fixed-step tick timing.
 Graphics = require 'Graphics'
-
-Cps = require 'Timing/Cps' 
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-StateMachine = require 'State/StateMachine'
 Timing = require 'Timing'
+
+Cps = require './Timing/Cps' 
+EventEmitter = require './Mixin/EventEmitter'
+FunctionExt = require './Extension/Function'
+Mixin = require './Mixin/Mixin'
+StateMachine = require './State/StateMachine'
 
 module.exports = Main = class Main
 	

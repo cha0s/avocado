@@ -5,11 +5,11 @@
 Graphics = require 'Graphics'
 Timing = require 'Timing'
 
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-Vector = require 'Extension/Vector'
+EventEmitter = require '../Mixin/EventEmitter'
+FunctionExt = require '../Extension/Function'
+Mixin = require '../Mixin/Mixin'
+Property = require '../Mixin/Property'
+Vector = require '../Extension/Vector'
 
 Window = Graphics.Window
 

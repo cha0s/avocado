@@ -21,10 +21,10 @@
 			b2FixtureDef: b2FixtureDef
 			b2World: b2World
 	
-} = require 'Physics/box2D'
+} = require './box2D'
 
-Config = require 'Config'
-Entity = require 'Entity/Entity'
+Config = require '../Config'
+Entity = require '../Entity/Entity'
 
 contactListener = new b2ContactListener
 
@@ -45,7 +45,7 @@ contactListener.BeginContact = (contact) ->
 	le.emit 'intersected', re, rs, ls
 	re.emit 'intersected', le, ls, rs
 	
-module.exports = class Box2D extends (require 'Physics/AbstractPhysics')
+module.exports = class Box2D extends (require './AbstractPhysics')
 	
 	constructor: (
 		gravity = 0

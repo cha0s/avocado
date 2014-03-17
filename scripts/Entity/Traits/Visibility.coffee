@@ -1,12 +1,12 @@
 
-_ = require 'Utility/underscore'
-Animation = require 'Graphics/Animation'
-Debug = require 'Debug'
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
-Ticker = require 'Timing/Ticker'
-Trait = require 'Entity/Traits/Trait'
-Vector = require 'Extension/Vector'
+_ = require '../../Utility/underscore'
+Animation = require '../../Graphics/Animation'
+Debug = require '../../Debug'
+Promise = require '../../Utility/bluebird'
+Rectangle = require '../../Extension/Rectangle'
+Ticker = require '../../Timing/Ticker'
+Trait = require './Trait'
+Vector = require '../../Extension/Vector'
 
 module.exports = Visibility = class extends Trait
 	

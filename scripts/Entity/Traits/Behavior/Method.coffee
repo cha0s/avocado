@@ -1,6 +1,6 @@
 
-ArrayExt = require 'Extension/Array'
-FunctionExt = require 'Extension/Function'
+ArrayExt = require '../../../Extension/Array'
+FunctionExt = require '../../../Extension/Function'
 
 exports.Evaluate = (variables, selector, argLists = []) ->
 	[variable, selector...] = selector.split ':'

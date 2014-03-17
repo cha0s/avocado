@@ -1,6 +1,4 @@
 
-_ = require 'Utility/underscore'
-
 # String operations.
 
 # **String** is a utility class to help with string operations.

@@ -1,6 +1,6 @@
 
-ArrayExt = require 'Extension/Array'
-FunctionExt = require 'Extension/Function'
+ArrayExt = require '../../../Extension/Array'
+FunctionExt = require '../../../Extension/Function'
 
 comparisons =
 

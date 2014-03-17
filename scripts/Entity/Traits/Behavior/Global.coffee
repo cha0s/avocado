@@ -1,5 +1,5 @@
 
-_ = require 'Utility/underscore'
+_ = require '../../../Utility/underscore'
 
 module.exports =
 	

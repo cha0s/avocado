@@ -8,7 +8,7 @@
 # must call **Cps**.tick() for at least **frequency** milliseconds to get
 # an accurate reading. Until then, you will read 0.
 
-Ticker = require 'Timing/Ticker'
+Ticker = require './Ticker'
 
 module.exports = class
 	

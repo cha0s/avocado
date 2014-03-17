@@ -1,6 +1,6 @@
 
-CANNON = require 'Physics/cannon'
-Config = require 'Config'
+CANNON = require './cannon'
+Config = require '../Config'
 
 slippery = new CANNON.Material 'slippery'
 
@@ -13,7 +13,7 @@ slipperyContact.contactEquationRegularizationTime = 2
 slipperyContact.frictionEquationStiffness = 1e8
 slipperyContact.frictionEquationRegularizationTime = 2
 
-module.exports = class Cannon extends (require 'Physics/AbstractPhysics')
+module.exports = class Cannon extends (require './AbstractPhysics')
 	
 	constructor: (
 		gravity = -9.82

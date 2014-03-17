@@ -6,7 +6,7 @@
 Graphics = require 'Graphics'
 
 Canvas = Graphics.Canvas
-Promise = require 'Utility/bluebird'
+Promise = require '../Utility/bluebird'
 
 # Calculate the pixel value of two pixels blended together with alpha.
 Canvas.blendPixel = (src, dst, alpha = 1) ->

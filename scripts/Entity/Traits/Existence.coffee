@@ -1,14 +1,14 @@
 
 Timing = require 'Timing'
 
-_ = require 'Utility/underscore'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
-Ticker = require 'Timing/Ticker'
-Trait = require 'Entity/Traits/Trait'
-Vector = require 'Extension/Vector'
+_ = require '../../Utility/underscore'
+FunctionExt = require '../../Extension/Function'
+Mixin = require '../../Mixin/Mixin'
+Promise = require '../../Utility/bluebird'
+Rectangle = require '../../Extension/Rectangle'
+Ticker = require '../../Timing/Ticker'
+Trait = require './Trait'
+Vector = require '../../Extension/Vector'
 
 module.exports = Existence = class extends Trait
 

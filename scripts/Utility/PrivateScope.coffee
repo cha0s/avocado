@@ -1,7 +1,7 @@
 
-_ = require 'Utility/underscore'
-FunctionExt = require 'Extension/Function'
-String = require 'Extension/String'
+_ = require './underscore'
+FunctionExt = require '../Extension/Function'
+String = require '../Extension/String'
 
 module.exports = PrivateScope = (Class, method = 'getScope') ->
 	

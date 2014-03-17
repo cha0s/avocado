@@ -1,8 +1,8 @@
 
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
-String = require 'Extension/String'
+FunctionExt = require '../Extension/Function'
+Mixin = require '../Mixin/Mixin'
+Property = require '../Mixin/Property'
+String = require '../Extension/String'
 
 module.exports = Color = class
 

@@ -3,7 +3,7 @@
 # **Vector** is a utility class to help with vector operations. A vector
 # is implemented as a 2-element array. Element 0 is *x* and element 1 is *y*.
 
-_ = require 'Utility/underscore'
+_ = require '../Utility/underscore'
 
 module.exports = Vector = 
 

@@ -4,18 +4,18 @@
 
 Timing = require 'Timing'
 
-_ = require 'Utility/underscore'
-CoreService = require('Core').CoreService
-Debug = require 'Debug'
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Lfo = require 'Mixin/Lfo'
-Mixin = require 'Mixin/Mixin'
-Promise = require 'Utility/bluebird'
-String = require 'Extension/String'
-Ticker = require 'Timing/Ticker'
-Transition = require 'Mixin/Transition'
-uuid = require 'Utility/uuid'
+_ = require '../Utility/underscore'
+{CoreService} = require 'Core'
+Debug = require '../Debug'
+EventEmitter = require '../Mixin/EventEmitter'
+FunctionExt = require '../Extension/Function'
+Lfo = require '../Mixin/Lfo'
+Mixin = require '../Mixin/Mixin'
+Promise = require '../Utility/bluebird'
+String = require '../Extension/String'
+Ticker = require '../Timing/Ticker'
+Transition = require '../Mixin/Transition'
+uuid = require '../Utility/uuid'
 
 # Entities provide an interface for registering 'tickers'. A ticker is a
 # function which repeats on an interval, such as the function that updates an
@@ -505,7 +505,7 @@ module.exports = Entity = class Entity
 		
 	@traitModule: (traitName) ->
 		
-		Trait = require 'Entity/Traits/Trait'
+		Trait = require './Traits/Trait'
 		
 		if Trait.moduleMap[traitName]
 			Trait.moduleMap[traitName]

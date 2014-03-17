@@ -1,5 +1,5 @@
 
-Entity = require 'Entity/Entity'
+Entity = require '../Entity'
 
 describe 'Existence', ->
 	

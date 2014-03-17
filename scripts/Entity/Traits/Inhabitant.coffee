@@ -1,7 +1,7 @@
 
-Rectangle = require 'Extension/Rectangle'
-Trait = require 'Entity/Traits/Trait'
-Vector = require 'Extension/Vector'
+Rectangle = require '../../Extension/Rectangle'
+Trait = require './Trait'
+Vector = require '../../Extension/Vector'
 
 module.exports = class extends Trait
 	

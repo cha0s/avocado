@@ -1,10 +1,10 @@
 
 Timing = require 'Timing'
 
-EventEmitter = require 'Mixin/EventEmitter'
-FunctionExt = require 'Extension/Function'
-Mixin = require 'Mixin/Mixin'
-Property = require 'Mixin/Property'
+EventEmitter = require '../Mixin/EventEmitter'
+FunctionExt = require '../Extension/Function'
+Mixin = require '../Mixin/Mixin'
+Property = require '../Mixin/Property'
 
 module.exports = Ticker = class Ticker
 

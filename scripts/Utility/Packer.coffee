@@ -1,6 +1,6 @@
 
-base64 = require 'Utility/base64'
-Lzw = require 'Utility/Lzw'
+base64 = require './base64'
+Lzw = require './Lzw'
 
 exports.pack = (O) ->
 	base64.toBase64 JSON.stringify Lzw.compress JSON.stringify O

@@ -1,9 +1,9 @@
 
 Graphics = require 'Graphics'
 
-Promise = require 'Utility/bluebird'
-Rectangle = require 'Extension/Rectangle'
-Vector = require 'Extension/Vector'
+Promise = require '../Utility/bluebird'
+Rectangle = require '../Extension/Rectangle'
+Vector = require '../Extension/Vector'
 
 module.exports = RasterFont = class
 	

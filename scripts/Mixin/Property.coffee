@@ -1,5 +1,5 @@
 
-String = require 'Extension/String'
+String = require '../Extension/String'
 
 module.exports = Property = (key, defaultValue) ->
 	

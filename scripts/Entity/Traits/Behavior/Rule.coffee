@@ -1,7 +1,7 @@
 
-ArrayExt = require 'Extension/Array'
-FunctionExt = require 'Extension/Function'
-Promise = require 'Utility/bluebird'
+ArrayExt = require '../../../Extension/Array'
+FunctionExt = require '../../../Extension/Function'
+Promise = require '../../../Utility/bluebird'
 
 Evaluators = {}
 for elementName in ['Condition', 'Method', 'Value']
