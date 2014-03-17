@@ -4,6 +4,7 @@
 
 _ = require 'Utility/underscore'
 Debug = require 'Debug'
+FunctionExt = require 'Extension/Function'
 Mixin = require 'Mixin/Mixin'
 
 module.exports = EventEmitter = class
@@ -34,7 +35,7 @@ module.exports = EventEmitter = class
 	# to listen for. *f* is a function to be called when the event fires, and
 	# *that*, if specified, is the 'this' variable in the callback. 'this'
 	# defaults to the object upon which the event listener is registered.
-	on: (eventNamesOrEventName, f, that = this) ->
+	on: (eventNamesOrEventName, f, that = null) ->
 		
 		eventNames = if _.isArray eventNamesOrEventName
 			eventNamesOrEventName
@@ -49,13 +50,14 @@ module.exports = EventEmitter = class
 				f: _.bind f, that
 				that: that
 				namespace: info.namespace
+				once: false
 				
 			(@_namespaces[info.namespace] ?= {})[f] =
 				event: info.event
 			
 		return
 		
-	once: (eventName, f, that = this) ->
+	once: (eventName, f, that = null) ->
 		@on eventName, f, that
 		
 		info = parseEventName eventName
@@ -130,31 +132,14 @@ module.exports = EventEmitter = class
 #		v['emit'][name][className] ?= 0
 #		v['emit'][name][className] += 1
 		
-		args = if arguments.length > 1
-			arg for arg, i in arguments when i > 0
-		else
-			[]
+		args = (arg for arg, i in arguments when i > 0)
 		
-		for callback of @_events[name]
-			spec = @_events[name][callback]
+		for callback, {f, namespace, once, that} of @_events[name]
 			
-			f = spec.f
-			@off "#{name}.#{spec.namespace}", callback if spec.once
+			@off "#{name}.#{namespace}", callback if once
 			
-			switch args.length
-				when 0
-					f()
-				when 1
-					f args[0]
-				when 2
-					f args[0], args[1]
-				when 3
-					f args[0], args[1], args[2]
-				when 4
-					f args[0], args[1], args[2], args[3]
-				else
-					f.apply spec.that, args
-
-		undefined
+			FunctionExt.fastApply f, args, that
+			
+		return
 
 EventEmitter.Mixin = (O) -> Mixin O, EventEmitter
