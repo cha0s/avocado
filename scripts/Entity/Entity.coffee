@@ -297,7 +297,14 @@ module.exports = Entity = class Entity
 		
 		ticker = @addTicker ticker
 		
-		lfo.promise.then => @removeTicker ticker
+		removeTicker = => @removeTicker ticker
+		
+		lfo.promise.then(
+			removeTicker
+		).catch Promise.CancellationError, (error) ->
+			removeTicker()
+
+			canceled: true
 			
 		lfo
 		
@@ -436,7 +443,14 @@ module.exports = Entity = class Entity
 		
 		ticker = @addTicker ticker
 		
-		transition.promise.then => @removeTicker ticker
+		removeTicker = => @removeTicker ticker
+		
+		transition.promise.then(
+			removeTicker
+		).catch Promise.CancellationError, (error) ->
+			removeTicker()
+
+			canceled: true
 			
 		transition
 	

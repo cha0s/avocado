@@ -57,7 +57,12 @@ TransitionResult = class TransitionResult
 		
 		# Set up the transition object.
 		@_deferred = Promise.defer()
-		@promise = @_deferred.promise
+		@promise = @_deferred.promise.cancellable().catch(
+			Promise.CancellationError, (error) =>
+				@skipTransition()
+
+				Promise.reject error
+		)
 		
 		@_elapsed = 0
 		@_duration = @_speed / 1000

@@ -18,30 +18,26 @@ class Actions
 		
 		@entityTicker = null
 		@index = 0
-		@locked = false
+		@pendingAction = null
 		@tickers = []
 		
 	Mixin.apply null, [@::].concat mixins
 	
 	removeEntityTicker: -> @entity.removeTicker @entityTicker
 	
-	removeTickers: -> @entity.removeTicker ticker for ticker in @tickers
-	
 	runOnEntity: ->
 	
 		deferred = Promise.defer()
 		
-		@entity.addTicker @entityTicker = noEmit: true, f: =>
-			return if @locked
-			@locked = true
+		@entityTicker = @entity.addTicker noEmit: true, f: =>
+			return if @pendingAction?
 	
 			listener = (ticker) => @tickers.push ticker
 			
 			methodCompleted = (result) =>
+				return if result?.canceled
 				
-				@removeTickers()
-				
-				@locked = false
+				@pendingAction = null
 				
 				if (@index += result?.increment ? 1) >= @actions.length
 					@setIndex 0
@@ -49,21 +45,22 @@ class Actions
 					@removeEntityTicker()
 					
 					deferred.resolve()
-			
+					
+
 			# Catch any tickers added.
 			@entity.on 'tickerAdded', listener
 			
-			promiseOrValue = Method.EvaluateManually(
+			@pendingAction = Method.EvaluateManually(
 				@variables
 				@actions[@index].Method
 			)
 			
 			@entity.off 'tickerAdded', listener
 			
-			if Promise.is promiseOrValue
-				promiseOrValue.done methodCompleted
+			if Promise.is @pendingAction
+				@pendingAction.done methodCompleted
 			else
-				methodCompleted promiseOrValue
+				methodCompleted @pendingAction
 				
 			return
 		
@@ -73,9 +70,10 @@ class Actions
 	
 	stop: ->
 		
-		@locked = false
 		@removeEntityTicker()
-		@removeTickers()
+		
+		@pendingAction?.cancel()
+		@pendingAction = null
 	
 module.exports = Behavior = class extends Trait
 	
@@ -91,6 +89,7 @@ module.exports = Behavior = class extends Trait
 	constructor: (entity, state) ->
 		super
 		
+		@routine = null
 		@routines = {}
 		@rules = []
 		@variables =
@@ -103,7 +102,16 @@ module.exports = Behavior = class extends Trait
 		for name, routine of @routines = ObjectExt.deepCopy @state.routines
 			routine.actions = new Actions routine.actions, @entity, @variables
 		
-		@startExecutingRoutine()
+		
+		for routines in @entity.invoke 'routines'
+			for index, routine of routines
+				continue if @routines[index]?
+				
+				routine.actions = new Actions routine.actions, @entity, @variables
+				@routines[index] = routine
+			
+		@routine = @routines[@state.routineIndex]
+		@entity.startExecutingRoutine() if @state.behaving
 		
 		rulePromises = for ruleO in @state.rules.concat()
 			rule = new Rule()
@@ -118,25 +126,15 @@ module.exports = Behavior = class extends Trait
 		return
 	
 	_executeRoutine: ->
-		return unless (routine = @routines[@state.routineIndex])?
 		
-		(@entity.executeActions routine['actions']).then =>
+		(@entity.executeActions @routine['actions']).then =>
+			
 			@_executeRoutine()
+			
+			return
 			
 		return
 	
-	startExecutingRoutine: ->
-		return unless (routine = @routines[@state.routineIndex])?
-		
-		routine.actions.setIndex 0
-		
-		@_executeRoutine()
-		
-	stopExecutingRoutine: ->
-		return unless @routine?
-		
-		@routine.actions.stop()
-		
 	properties: ->
 		
 		behaving: {}
@@ -145,19 +143,26 @@ module.exports = Behavior = class extends Trait
 		routineIndex:
 			set: (routineIndex, actionIndex = 0) ->
 				
-				@stopExecutingRoutine()
+				@routine = @routines[@state.routineIndex = routineIndex]
 				
-				unless @routines[@state.routineIndex = routineIndex]?
-					throw new Error 'No such routine'
-				
-				@startExecutingRoutine()
-				
-				# Otherwise the action index would increment in the new
-				# routine.
-				increment: 0 
-	
 	actions: ->
 		
+		executeRoutine: -> @entity.executeActions @routine['actions']
+		
+		startExecutingRoutine: ->
+			return unless @routine?
+			
+			@routine.actions.setIndex 0
+			
+			@_executeRoutine()
+			
+			return
+			
+		stopExecutingRoutine: ->
+			return unless @routine?
+			
+			@routine.actions.stop()
+			
 		executeActions: (actions) ->
 			
 			unless actions instanceof Actions
@@ -165,7 +170,7 @@ module.exports = Behavior = class extends Trait
 			
 			actions.runOnEntity()
 			
-		async: (actions) ->
+		async: (actions, count = 1) ->
 			
 			@entity.executeActions actions
 			
@@ -179,9 +184,15 @@ module.exports = Behavior = class extends Trait
 					@variables
 					action.Method
 				)
+				
+			Promise.all(promises).cancellable().catch(
+				Promise.CancellationError, (error) ->
+					for promise, i in promises
+						promise.cancel()
+
+					canceled: true
+			)
 			
-			Promise.allAsap promises
-		
 	values: ->
 		
 		hasRoutine: (routineName) -> @routines[routineName]?

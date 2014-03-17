@@ -74,8 +74,13 @@ module.exports = class extends Trait
 				
 				ticker = @entity.addTicker ticker
 				
-				deferred.promise.then =>
+				removeTicker = =>
 					@entity.removeTicker ticker
-					
 					@entity.setIsMoving false
-					
+				
+				deferred.promise.cancellable().then(
+					removeTicker
+				).catch Promise.CancellationError, (error) ->
+					removeTicker()
+
+					canceled: true

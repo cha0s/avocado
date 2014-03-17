@@ -153,7 +153,13 @@ LfoResult = class
 		
 		if @_duration > 0
 			@_deferred = Promise.defer()
-			@promise = @_deferred.promise
+			@promise = @_deferred.promise.cancellable().catch(
+				Promise.CancellationError, (error) =>
+
+					@stop()
+					Promise.reject error
+					
+			)
 		
 		for key, spec of properties
 			@_properties[key] = new ModulatedProperty object, key, spec
