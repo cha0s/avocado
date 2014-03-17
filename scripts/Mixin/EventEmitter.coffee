@@ -46,7 +46,7 @@ module.exports = EventEmitter = class
 			info = parseEventName eventName
 			
 			(@_events[info.event] ?= {})[f] =
-				f: _.bind f, that 
+				f: _.bind f, that
 				that: that
 				namespace: info.namespace
 				
@@ -139,7 +139,7 @@ module.exports = EventEmitter = class
 			spec = @_events[name][callback]
 			
 			f = spec.f
-			@off "#{name}.#{spec.namespace}", f if spec.once
+			@off "#{name}.#{spec.namespace}", callback if spec.once
 			
 			switch args.length
 				when 0
