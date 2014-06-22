@@ -187,6 +187,17 @@ module.exports = Vector =
 			Math.floor vector[1]
 		]
 
+	# Ceiling both axes of a vector.
+	#
+	#     avocado> Vector.floor [3.14, 4.70]
+	#     [3, 4]
+	ceil: (vector) ->
+		
+		[
+			Math.ceil vector[0]
+			Math.ceil vector[1]
+		]
+
 	# Get the area a vector.
 	#
 	#     avocado> Vector.area [3, 6]

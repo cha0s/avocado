@@ -46,9 +46,37 @@ class Config
 		@_config = {}
 	
 	mergeIn: (config) ->
-		for key, value of config
-			@_config[key] = value
+		
+		merge = (defaults, toMerge) ->
 			
+			merged = {}
+		
+			if defaults and 'object' is typeof defaults
+				
+				for key in Object.keys defaults
+					
+					merged[key] = defaults[key]
+					
+			for key in Object.keys toMerge
+				
+				if 'object' isnt typeof toMerge[key] or not toMerge[key]
+					
+					merged[key] = toMerge[key]
+				
+				else
+					
+					if defaults[key]
+						
+						merged[key] = merge defaults[key], toMerge[key]
+					
+					else
+					
+						merged[key] = toMerge[key]
+						
+			return merged
+			
+		@_config = merge @_config, config
+	
 	# ### .get
 	# 
 	# *Get a value by key.*
@@ -92,5 +120,3 @@ class Config
 module.exports = config = new Config()
 
 config.mergeIn require './defaults'
-
-# TODO: Read from config file

@@ -1,5 +1,5 @@
 
-Vector = require 'avocado/./Vector'
+Vector = require './Vector'
 
 describe 'Vector', ->
 	

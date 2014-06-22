@@ -3,130 +3,163 @@
 # 
 # Execution context. The "main loop" of the Avocado engine.
 # 
-# Uses a [`StateMachine`](./State/StateMachine.html) to handle engine states, 
-# and handles fixed-step tick timing.
+
+if global?
+	
+	util = require 'util'
+	
+	# I am the opposite of a fan of how node-webkit hands all logging to
+	# webkit. 
+	console.error = console.info = console.log = ->
+		
+		for arg, i in arguments
+			
+			process.stderr.write ' ' if i > 0
+			
+			if 'string' is typeof arg
+				process.stderr.write arg
+			else
+				process.stderr.write util.inspect arg
+				
+		process.stderr.write '\n'
+	
+	# Fix PIXI and we can remove these.
+	global.document = window.document
+	global.navigator = window.navigator
+	global.Image = window.Image
+	global.HTMLImageElement = window.HTMLImageElement
+	global.Float32Array = window.Float32Array
+	global.Uint16Array = window.Uint16Array
+
+Promise = require 'avo/vendor/bluebird'
+
+AbstractState = require 'avo/state/abstractState'
+window_ = require 'avo/graphics/window'
 
 config = require 'avo/config'
+fs = require 'avo/fs'
 
-Graphics = require 'avo/graphics'
-Timing = require 'avo/timing'
+timing = require 'avo/timing'
 
-Cps = require 'avo/timing/cps' 
-EventEmitter = require 'avo/mixin/eventEmitter'
-FunctionExt = require 'avo/extension/function'
-Mixin = require 'avo/mixin'
-StateMachine = require 'avo/state/stateMachine'
+require 'avo/monkeyPatches'
 
-module.exports = Main = class Main
-	
-	mixins = [
-	
-		# #### Emits
-		# 
-		# * `beforeTick` - Before the engine ticks.
-		# * `error` - When an error was encountered.
-		# * `quit` - When the engine is shutting down.
-		# * `stateConstructed` - When constructing a state.
-		# * `stateEntered` - When entering a state.
-		# * `stateLeft` - When leaving a state.
-		# * `stateInitialized` - When initializing a state.
-		# * `tick` - When the engine ticks.
-		# 
-		EventEmitter
-	]
-	
-	constructor: ->
+# #### Timing
+# 
+# Timing within the engine is handled in fixed steps. If the engine
+# falls behind the requested ticks per second, multiple fixed steps
+# will occur every tick.
+# 
+# * Keep track of cycles per second.
+# * Keep handles for our tick loop, so we can GC it on quit.
+tickInterval = null
 
-		mixin.call this for mixin in mixins
-		
-		@_stateMachine = new StateMachine()
-		@_stateMachine.on 'stateLeft', (name) => @emit 'stateLeft', name
-		@_stateMachine.on 'stateConstructed', (state) => state.main = @
-		@_stateMachine.on 'stateInitialized', (name) => @emit 'stateInitialized', name
-		@_stateMachine.on 'stateEntered', (name) => @emit 'stateEntered', name
-		
-		# #### Timing
-		# 
-		# Timing within the engine is handled in fixed steps. If the engine
-		# falls behind the requested ticks per second, multiple fixed steps
-		# will occur every tick.
-		# 
-		# * Keep track of cycles per second.
-		# * Keep handles for our tick loop, so we can GC it on quit.
-		@_tickCps = new Cps()
-		@_tickInterval = null
-		
-		# [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
-		@_lastElapsed = 0
-		@_tickFrequency = 1000 / config.get 'ticksPerSecondTarget'
-		@_tickTargetSeconds = 1 / config.get 'ticksPerSecondTarget'
-		@_tickRemainder = 0
-		Timing.TimingService.setTickElapsed @_tickTargetSeconds
-		
-		# Enter the 'initial' state. This is implemented by your game.
-		@transitionToState 'initial'
+# [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
+lastElapsed = 0
+ticksPerSecondTarget = 80
+tickFrequency = 1000 / ticksPerSecondTarget
+tickTargetSeconds = 1 / ticksPerSecondTarget
+tickRemainder = 0
+timing.setTickElapsed tickTargetSeconds
 
-	FunctionExt.fastApply Mixin, [@::].concat mixins
-	
-	# ##### begin
-	# 
-	# Start asynchronous execution. Calling again before calling
-	# `quit()` is a no-op.
-	begin: ->
-		return if @_tickInterval?
-		
-		@_tickInterval = setInterval(
-			=>
-				try
-					@tick()
-				catch error
-					@emit 'error', error
-			@_tickFrequency
-		)
-		
-	# ##### currentStateInstance
-	# 
-	# Returns a reference to the current state instance.
-	currentStateInstance: -> @_stateMachine.currentStateInstance()
-	
-	# ##### quit
-	# 
-	# Stop execution: Clear intervals and emit the `quit` event.
-	# Calling before calling `begin()` is a no-op.
-	quit: ->
-		return unless @_tickInterval?
-		
-		clearInterval @_tickInterval
-		@_tickInterval = null
-		
-		@emit 'quit'
+originalTimestamp = Date.now()
 
-	tick: ->
+tickCallback = ->
+
+	try
 	
-		@emit 'beforeTick'
+		timing.setElapsed elapsed = (Date.now() - originalTimestamp) / 1000
+		tickRemainder += elapsed - lastElapsed
+		lastElapsed = elapsed
+		
+		while tickRemainder > tickTargetSeconds
+			stateInstance?.tick()
+			handleStateTransition()
+		
+			tickRemainder -= tickTargetSeconds
 			
-		elapsed = Timing.TimingService.elapsed()
-		@_tickRemainder += elapsed - @_lastElapsed
-		@_lastElapsed = elapsed
+	catch error
 		
-		while @_tickRemainder > @_tickTargetSeconds
-			@_tickCps.tick()
-			@_stateMachine.tick()
-			@emit 'tick'
-			
-			@_tickRemainder -= @_tickTargetSeconds
-			
-		return
+		handleError error
+
+tickInterval = window.setInterval tickCallback, tickFrequency
+
+renderCallback = ->
 	
-	# ##### tps
-	# 
-	# Returns the ticks per second the engine is achieving.
-	tps: -> @_tickCps.count()
+	try
 	
-	# ##### transitionToState
-	# * `name` - The name of the state.
-	# * `args` - The arguments passed to `State::enter()`.
-	# 
-	# Change state on the next tick.
-	transitionToState: (name, args = {}) ->
-		@_stateMachine.transitionToState name, args
+		stateInstance.render window_.renderer() if stateInstance?.render?
+		renderInterval = window.requestAnimationFrame renderCallback
+
+	catch error
+		
+		handleError error
+		
+renderInterval = window.requestAnimationFrame renderCallback
+
+stateName = ''
+stateTransition = null
+stateInstance = null
+stateInstanceCache = {}
+
+AbstractState::transitionToState = (name, args) ->
+	return if stateTransition?
+	stateTransition = name: name, args: args
+
+handleStateTransition = ->
+	return unless stateTransition?
+	
+	{name, args} = stateTransition
+	stateTransition = null
+	
+	stateInstance?.leave stateName
+	stateInstance = null
+	
+	promise = Promise.asap(
+	
+		# If the State is already loaded and cached, fulfill the
+		# initialization immediately.
+		if stateInstanceCache[name]?
+			true
+			
+		# Otherwise, instantiate and cache.
+		else
+			
+			StateClass = require "state/#{name}"
+			stateInstanceCache[name] = new StateClass()
+			stateInstanceCache[name].initialize()
+			
+		->
+			
+			# Enter the state.
+			Promise.asap(
+				stateInstanceCache[name].enter args, stateName
+				-> stateInstance = stateInstanceCache[stateName = name]
+			)
+	)
+	promise.done() if Promise.is promise
+
+# Read from config file.
+fs.readJsonResource('/config.json').then(
+	(O) -> config.mergeIn O
+	->
+).finally ->
+
+	window_.instantiate()
+	
+	# Enter the 'initial' state. This is implemented by your game.
+	AbstractState::transitionToState 'initial'
+	
+handleError = (error) ->
+	console.log error.stack
+	quit()
+
+window.onerror = (message, filename, lineNumber, _, error) ->
+	handleError error
+	true
+
+AbstractState::quit = quit = ->
+
+	window.clearInterval tickInterval
+	window.cancelAnimationFrame renderInterval
+	
+	window_.close()

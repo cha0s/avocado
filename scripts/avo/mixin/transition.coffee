@@ -19,9 +19,9 @@
 # [jQuery.animate](http://api.jquery.com/animate/), though the API is ***NOT***
 # compatible.
 
-Timing = require 'avo/timing'
+timing = require 'avo/timing'
 
-Mixin = require '.'
+Mixin = require './index'
 Promise = require 'avo/vendor/bluebird'
 String = require 'avo/extension/string'
 
@@ -81,7 +81,7 @@ TransitionResult = class TransitionResult
 	stopTransition: ->
 	
 		# Let any listeners know that the transition is complete.
-		@_deferred.progress [@_elapsed, @_duration]
+#		@_deferred.progress [@_elapsed, @_duration]
 		@_deferred.resolve()
 
 	# Tick callback. Called repeatedly while this transition is
@@ -115,8 +115,8 @@ TransitionResult = class TransitionResult
 		# Stop if we're done.
 		if @_elapsed is @_duration
 			@stopTransition()
-		else
-			@_deferred.progress [@_elapsed, @_duration]
+#		else
+#			@_deferred.progress [@_elapsed, @_duration]
 
 module.exports = Transition = class					
 
@@ -125,26 +125,26 @@ module.exports = Transition = class
 		constructor: ->
 			super
 			
-			@_last = Timing.TimingService.elapsed()
+			@_last = timing.elapsed()
 			@_interval = null
 			
 			@_startInterval()
 			
 		elapsedSinceLast: ->
 			
-			elapsed = Timing.TimingService.elapsed() - @_last
-			@_last = Timing.TimingService.elapsed()
+			elapsed = timing.elapsed() - @_last
+			@_last = timing.elapsed()
 			elapsed
 			
 		startInterval: (result) ->
 			
-			@_interval = setInterval (-> @tick()), 10
+			@_interval = window.setInterval (-> @tick()), 10
 		
 		stopTransition: ->
 			super
 		
 			# Stop the tick loop.
-			clearInterval @_interval
+			window.clearInterval @_interval
 		
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.
@@ -164,7 +164,7 @@ Transition.InBand = class
 
 	TransitionResultInBand = class TransitionResultInBand extends TransitionResult
 	
-		elapsedSinceLast: -> Timing.TimingService.tickElapsed()
+		elapsedSinceLast: -> timing.tickElapsed()
 	
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.

@@ -1,5 +1,5 @@
 
-Rectangle = require 'avocado/./Rectangle'
+Rectangle = require './Rectangle'
 
 describe 'Rectangle', ->
 	

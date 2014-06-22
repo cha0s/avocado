@@ -9,18 +9,25 @@ module.exports = (grunt) ->
 	sourceMapping = grunt.file.expandMapping sourceDirectories, 'js/',
 		rename: (destBase, destPath) ->
 			destBase + destPath.replace /\.coffee$/, ".js"
-			
+	
 	# Don't include test suites
 	for source, index in sourceMapping
 		if source.src[0].match '\.spec\.coffee'
 			delete sourceMapping[index]
 	
+	sourceMappingObject = {}
+	for file in sourceMapping
+		continue unless file?
+		{src, dest} = file
+		
+		sourceMappingObject[dest] = src[0]
+		
 	grunt.initConfig
 		pkg: grunt.file.readJSON 'package.json'
 		
 		coffee:
 			compile:
-				files: sourceMapping
+				files: sourceMappingObject
 			
 		copy:
 			main:
@@ -36,17 +43,20 @@ module.exports = (grunt) ->
 			modules:
 				src: ['js/scripts/**/*.js']
 				dest: 'js/wrapped/'
-				wrapper: (filepath) ->
-					
-					moduleName = filepath.substr 11
-					dirname = path.dirname moduleName
-					extname = path.extname moduleName
-					moduleName = path.join dirname, path.basename moduleName, extname 
-					
-					if moduleName?
-						["requires_['#{moduleName}'] = function(module, exports) {\n\n", '\n};\n']
-					else
-						['', '']
+				options:
+					wrapper: (filepath) ->
+						
+						
+						moduleName = filepath.substr 'js/scripts/'.length
+						dirname = path.dirname moduleName
+						extname = path.extname moduleName
+						
+						moduleName = path.join dirname, path.basename moduleName, extname 
+						
+						if moduleName?
+							["requires_['#{moduleName}'] = function(module, exports, require, __dirname, __filename) {\n\n", '\n};\n']
+						else
+							['', '']
 		
 		concat:
 			self:

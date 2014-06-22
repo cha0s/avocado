@@ -1,5 +1,5 @@
 
-String = require 'avocado/./String'
+String = require './String'
 
 describe 'String', ->
 	

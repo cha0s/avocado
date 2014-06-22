@@ -1,6 +1,6 @@
 
-EventEmitter = require 'avocado/./EventEmitter'
-Mixin = require 'avocado/./Mixin'
+EventEmitter = require './EventEmitter'
+Mixin = require './Mixin'
 
 describe 'EventEmitter', ->
 	

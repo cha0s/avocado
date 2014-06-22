@@ -4,9 +4,9 @@ config = require 'avo/config'
 module.exports = Graphics = require('avo/spii') 'graphics', config.get 'SPI:graphics'
 
 try
-	require('./platform').augment Graphics
+	require('avo/graphics/platform').augment Graphics
 catch error
-	unless "Cannot find module './platform'" is error.message
+	unless "Cannot find module 'avo/graphics/platform'" is error.message
 		throw error
 
 Graphics.proxy = ->

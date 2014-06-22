@@ -1,14 +1,17 @@
 
-Core = require 'avo/core'
-Graphics = require 'avo/graphics'
+#Core = require 'avo/core'
+#Graphics = require 'avo/graphics'
 
 _ = require 'avo/vendor/underscore'
 EventEmitter = require 'avo/mixin/eventEmitter'
+fs = require 'avo/fs'
 FunctionExt = require 'avo/extension/function'
+Image = require 'avo/graphics/image'
 Mixin = require 'avo/mixin'
 Promise = require 'avo/vendor/bluebird'
 Property = require 'avo/mixin/property'
 Rectangle = require 'avo/extension/rectangle'
+Sprite = require 'avo/graphics/sprite'
 String = require 'avo/extension/string'
 Ticker = require 'avo/timing/ticker'
 TimedIndex = require 'avo/mixin/timedIndex'
@@ -18,14 +21,14 @@ VectorMixin = require 'avo/mixin/vector'
 module.exports = Animation = class Animation
 	
 	@load: (uri) ->
-		Core.CoreService.readJsonResource(uri).then (O) ->
+		fs.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			(new Animation()).fromObject O
 	
 	mixins = [
 		EventEmitter
 		Property 'alpha', 1
-		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
+#		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
 		DirectionProperty = Property 'direction', 0
 		Property 'directionCount', 1
 		Property 'frameSize', [0, 0]
@@ -41,13 +44,18 @@ module.exports = Animation = class Animation
 		mixin.call @ for mixin in mixins
 		
 		@_interval = null
-		@_sprite = new Graphics.Sprite()
+		@_sprite = null
 		@_ticker = null
 		
-		@on 'alphaChanged', => @_sprite.setAlpha @alpha()
-		@on 'imageChanged', => @_sprite.setSource @image()
+#		@on 'alphaChanged', => @_sprite.setAlpha @alpha()
+		@on 'imageChanged', =>
+			if @_sprite?
+				@_sprite.setSource @image()
+			else
+				@_sprite = new Sprite @image()
+			
 		@on 'positionChanged', => @_sprite.setPosition @position()
-		@on 'blendModeChanged', => @_sprite.setBlendMode @blendMode()
+#		@on 'blendModeChanged', => @_sprite.setBlendMode @blendMode()
 #		@on 'scaleChanged', => @_sprite.setScale @scale()
 		@on(
 			[
@@ -56,7 +64,8 @@ module.exports = Animation = class Animation
 				'imageChanged'
 				'indexChanged'
 			]
-			=> @_sprite.setSourceRectangle @sourceRectangle()
+			=>
+				@_sprite.setSourceRectangle @sourceRectangle()
 		)
 	
 	FunctionExt.fastApply Mixin, [@::].concat mixins
@@ -70,11 +79,15 @@ module.exports = Animation = class Animation
 		]
 			@[String.setterName property] O[property] if O[property]?
 		
-		Graphics.Image.load(O.imageUri).then (image) =>
+		Image.load(O.imageUri).then (image) =>
 			
 			@setImage image, O.frameSize
 			
 			this
+		
+	addToStage: (stage) ->
+		
+		@_sprite.addToStage stage
 			
 	clampDirection: (direction) ->
 		
@@ -127,7 +140,7 @@ module.exports = Animation = class Animation
 			@image().size()
 			[@frameCount(), @directionCount()]
 		)
-	
+		
 		return
 		
 	sourceRectangle: (index) ->
@@ -139,6 +152,8 @@ module.exports = Animation = class Animation
 			]
 			@frameSize()
 		)
+	
+	sprite: -> @_sprite
 	
 	toJSON: ->
 		

@@ -1,5 +1,5 @@
 
-Matrix = require 'avocado/./Matrix'
+Matrix = require './Matrix'
 
 describe 'Matrix', ->
 	

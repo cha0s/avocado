@@ -1,5 +1,5 @@
 
-Array = require 'avocado/./Array'
+Array = require './Array'
 
 describe 'Array', ->
 	

@@ -24,7 +24,6 @@ Promise.allAsap = (promisesOrValues, fulfilled, rejected, progressed) ->
 		)
 		
 		fulfilled ?= ->
-		rejected ?= ->
 		
 		Promise.all(
 			promises
@@ -32,11 +31,11 @@ Promise.allAsap = (promisesOrValues, fulfilled, rejected, progressed) ->
 			->
 				fulfilled _.map promisesOrValues, (promiseOrValue) ->
 					if Promise.is promiseOrValue
-						promiseOrValue.inspect().value()
+						promiseOrValue.value()
 					else
 						promiseOrValue
 
-			(error) -> rejected error
+			rejected
 		)
 		
 	else

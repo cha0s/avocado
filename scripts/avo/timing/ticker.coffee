@@ -1,5 +1,5 @@
 
-Timing = require 'avo/timing'
+timing = require 'avo/timing'
 
 EventEmitter = require 'avo/mixin/eventEmitter'
 FunctionExt = require 'avo/extension/function'
@@ -44,22 +44,22 @@ module.exports = Ticker = class Ticker
 
 Ticker.InBand = class TickerInBand extends Ticker
 	
-	elapsedSinceLast: -> Timing.TimingService.tickElapsed() * 1000
+	elapsedSinceLast: -> timing.tickElapsed() * 1000
 					
 Ticker.OutOfBand = class TickerOutOfBand extends Ticker					
 	
 	constructor: ->
 		super
 		
-		@_last = Timing.TimingService.elapsed()
+		@_last = timing.elapsed()
 		
 	elapsedSinceLast: ->
 		
-		elapsed = (Timing.TimingService.elapsed() - @_last) * 1000
-		@_last = Timing.TimingService.elapsed()
+		elapsed = (timing.elapsed() - @_last) * 1000
+		@_last = timing.elapsed()
 		elapsed
 	
 	reset: ->
 		super
 		
-		@_last = Timing.TimingService.elapsed()
+		@_last = timing.elapsed()

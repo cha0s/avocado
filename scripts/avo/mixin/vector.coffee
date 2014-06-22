@@ -1,6 +1,6 @@
 
 FunctionExt = require 'avo/extension/function'
-Mixin = require '.'
+Mixin = require './index'
 Property = require './property'
 String = require 'avo/extension/string'
 Vector = require 'avo/extension/vector'

@@ -14,6 +14,8 @@ module.exports = Property = (key, defaultValue) ->
 			
 			oldValue = @["_#{key}"]
 			@["_#{key}"] = value
-			@emit? "#{key}Changed", oldValue if oldValue isnt value
+			
+			if oldValue isnt value
+				@emit? "#{key}Changed", oldValue
 			
 			return

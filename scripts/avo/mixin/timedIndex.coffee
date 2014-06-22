@@ -1,7 +1,7 @@
 
 EventEmitter = require './eventEmitter'
 FunctionExt = require 'avo/extension/function'
-Mixin = require '.'
+Mixin = require './index'
 Property = require './property'
 Ticker = require 'avo/timing/ticker'
 

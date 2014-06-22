@@ -4,7 +4,7 @@
 
 _ = require 'avo/vendor/underscore'
 FunctionExt = require 'avo/extension/function'
-Mixin = require '.'
+Mixin = require './index'
 
 module.exports = EventEmitter = class
 

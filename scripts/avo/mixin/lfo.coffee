@@ -1,10 +1,10 @@
 
-Timing = require 'avo/timing'
+timing = require 'avo/timing'
 
 _ = require 'avo/vendor/underscore'
 EventEmitter = require './eventEmitter'
 FunctionExt = require 'avo/extension/function'
-Mixin = require '.'
+Mixin = require './index'
 Property = require './property'
 Promise = require 'avo/vendor/bluebird'
 String = require 'avo/extension/string'
@@ -144,7 +144,6 @@ LfoResult = class
 
 	constructor: (object, properties, @_duration = 0) ->
 		
-		@_deferred = null
 		@_elapsed = 0
 		@_isRunning = false
 		@_object = {}
@@ -154,15 +153,8 @@ LfoResult = class
 		
 		@_duration /= 1000
 		
-		if @_duration > 0
-			@_deferred = Promise.defer()
-			@promise = @_deferred.promise.cancellable().catch(
-				Promise.CancellationError, (error) =>
-
-					@stop()
-					Promise.reject error
-					
-			)
+		@_deferred = Promise.defer()
+		@promise = @_deferred.promise
 		
 		for key, spec of properties
 			@_properties[key] = new ModulatedProperty object, key, spec
@@ -196,7 +188,7 @@ LfoResult = class
 			
 		if @_duration > 0
 			
-			@_deferred.progress [@_elapsed, @_duration]
+#			@_deferred.progress [@_elapsed, @_duration]
 			
 			if finished
 				@_deferred.resolve()
@@ -210,15 +202,15 @@ module.exports = Lfo = class
 	
 		elapsedSinceLast: ->
 			
-			elapsed = Timing.TimingService.elapsed() - @_last
-			@_last = Timing.TimingService.elapsed()
+			elapsed = timing.elapsed() - @_last
+			@_last = timing.elapsed()
 			elapsed
 			
 		start: (result) ->
 			super
 			
-			@_last = Timing.TimingService.elapsed()
-			@_interval = setInterval(
+			@_last = timing.elapsed()
+			@_interval = window.setInterval(
 				=> @tick()
 				10
 			)
@@ -226,7 +218,7 @@ module.exports = Lfo = class
 		stop: ->
 			super
 			
-			clearInterval @_interval
+			window.clearInterval @_interval
 			
 	lfo: (properties, duration) ->
 		
@@ -238,7 +230,7 @@ Lfo.InBand = class
 
 	LfoResultInBand = class extends LfoResult
 	
-		elapsedSinceLast: -> Timing.TimingService.tickElapsed()
+		elapsedSinceLast: -> timing.tickElapsed()
 	
 	lfo: (properties, duration) ->
 		
