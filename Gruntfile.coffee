@@ -60,7 +60,7 @@ module.exports = (grunt) ->
 						moduleName = path.join dirname, path.basename moduleName, extname 
 						
 						if moduleName?
-							["requires_['#{moduleName}'] = function(module, exports, require, __dirname, __filename) {\n\n", '\n};\n']
+							["__avocadoModules['#{moduleName}'] = function(module, exports, require, __dirname, __filename) {\n", '};\n']
 						else
 							['', '']
 				
