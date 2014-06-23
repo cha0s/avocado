@@ -12,27 +12,15 @@ putting the power and control into your hands. Own your games!
 
 ### Ridiculously portable
 
-Another primary focus of Avocado is providing an environment that will work
-identically across the plethora of environments where JavaScript can run.
+A primary focus of Avocado is providing an environment that will work across
+the plethora of environments where JavaScript can run.
 
-In adition to this, Avocado provides a robust Service Provider architecture,
-allowing the lower level subsystems (like Graphics, Sound, I/O) to be
-implemented closer to the platform where your code will run.
+Avocado can run natively and also in HTML5 capable browsers. See the
+[avocado-baseline](https://github.com/cha0s/avocado-baseline) project to see
+how to get started actually using avocado to make something!
 
-For more platform-specific details, see the related projects below:
+### Hack, hack, hack
 
-* [C++ core/shared functionality](https://github.com/cha0s/avocado-cpp-core)
-* [Qt Service Providers](https://github.com/cha0s/avocado-spi-qt)
-* [SDL Service Providers](https://github.com/cha0s/avocado-spi-sdl)
-* [SFML Service Providers](https://github.com/cha0s/avocado-spi-sfml)
-* [v8 Service Providers](https://github.com/cha0s/avocado-spi-v8)
-* [C++ platform implementation](https://github.com/cha0s/avocado-cpp)
-* [NodeJS platform implementation](https://github.com/cha0s/avocado-node)
-* [Web platform implementation](https://github.com/cha0s/avocado-web)
-
-### What's up, hackers?
-
-Working away on the fundamentals like testing and structure! Better docs will be coming!
-
-I am trying to create issues outlining things I find important, so that can be
-followed to get an idea of what is happening.
+Yes, documentation and testing are at this point essentially nonexistent. This
+is mostly due to the fact that things are moving quickly. I have infrastructure
+in place for both, but I need to get everything synced up. It's on the way!
