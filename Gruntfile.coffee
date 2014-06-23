@@ -2,18 +2,15 @@ path = require 'path'
 
 module.exports = (grunt) ->
 
-	sourceDirectories = [
-		'scripts/**/*.coffee'
-	]
-	
-	sourceMapping = grunt.file.expandMapping sourceDirectories, 'js/',
+	sourceMapping = grunt.file.expandMapping ['src/**/*.coffee'], 'build/',
 		rename: (destBase, destPath) ->
+			
+			destPath = destPath.replace 'src/', 'raw/dev/'
 			destBase + destPath.replace /\.coffee$/, ".js"
-	
+			
 	# Don't include test suites
-	for source, index in sourceMapping
-		if source.src[0].match '\.spec\.coffee'
-			delete sourceMapping[index]
+	sourceMapping = sourceMapping.filter (file) ->
+		not file.src[0].match '\.spec\.coffee'
 	
 	sourceMappingObject = {}
 	for file in sourceMapping
@@ -26,28 +23,44 @@ module.exports = (grunt) ->
 		pkg: grunt.file.readJSON 'package.json'
 		
 		coffee:
-			compile:
+			avocado:
 				files: sourceMappingObject
-			
+		
 		copy:
-			main:
+			avocado:
 				files: [
+					cwd: 'src/'
 					src: [
-						'scripts/**/*.js'
+						'**/*.js'
 					]
-					dest: 'js/'
+					dest: 'build/raw/dev'
 					expand: true
 				]
-				
+		
+		uglify:
+			avocado:
+
+				files: [
+					expand: true
+					cwd: 'build/raw/dev'
+					src: '**/*.js'
+					dest: 'build/raw/production'
+				]
+
 		wrap:
-			modules:
-				src: ['js/scripts/**/*.js']
-				dest: 'js/wrapped/'
+			avocado:
+
+				files: [
+					cwd: 'build/raw/dev/'
+					expand: true
+					src: ['**/*.js']
+					dest: 'build/wrapped/dev/'
+				]
+
 				options:
 					wrapper: (filepath) ->
 						
-						
-						moduleName = filepath.substr 'js/scripts/'.length
+						moduleName = filepath.substr 'build/raw/dev/'.length
 						dirname = path.dirname moduleName
 						extname = path.extname moduleName
 						
@@ -57,26 +70,6 @@ module.exports = (grunt) ->
 							["requires_['#{moduleName}'] = function(module, exports, require, __dirname, __filename) {\n\n", '\n};\n']
 						else
 							['', '']
-		
-		concat:
-			self:
-				src: ['js/wrapped/**/*.js']
-				dest: 'avocado.js'
-		
-		uglify:
-			build:
-				options:
-					report: 'min'
-				files:
-					'avocado.min.js': ['avocado.js']
-				
-		clean:
-			output: ['js']
-			
-		watch:
-			scripts:
-				files: ['scripts/**/*.coffee', 'scripts/**/*.js']
-				tasks: 'default'
 				
 	grunt.loadNpmTasks 'grunt-contrib-clean'
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
@@ -86,6 +79,5 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks 'grunt-contrib-watch'
 	grunt.loadNpmTasks 'grunt-wrap'
 
-	grunt.registerTask 'default', ['coffee', 'copy', 'wrap', 'concat', 'clean']
-	grunt.registerTask 'production', ['coffee', 'copy', 'wrap', 'concat', 'uglify', 'clean']
-	
+	grunt.registerTask 'default', ['coffee', 'copy', 'wrap']
+	grunt.registerTask 'production', ['default', 'uglify']
