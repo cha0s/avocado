@@ -15,8 +15,9 @@ module.exports = (grunt) ->
 					]
 					dest: 'build/raw/dev'
 					expand: true
+					ext: '.js'
 				]
-			
+				
 		copy:
 			avocado:
 				files: [
