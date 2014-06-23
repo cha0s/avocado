@@ -6,7 +6,7 @@ Lfo = require 'avo/mixin/lfo'
 Promise = require 'avo/vendor/bluebird'
 Trait = require './trait'
 
-module.exports = Existence = class extends Trait
+module.exports = Existent = class extends Trait
 
 	stateDefaults: ->
 		

@@ -17,6 +17,15 @@ exports.close = ->
 		
 		window_.close()
 
+exports.hide = ->
+
+	if global?
+		
+		{Window} = global.window.nwDispatcher.requireNwGui()
+		window_ = Window.get()
+
+		window_.hide()
+
 exports.instantiate = ->
 	return if instantiated
 	instantiated = true
@@ -46,13 +55,6 @@ exports.instantiate = ->
 		renderer.view.height / renderer.view.width
 	]
 	
-	if global?
-		
-		{Window} = global.window.nwDispatcher.requireNwGui()
-		window_ = Window.get()
-
-		window_.show()
-		
 	centerCanvas = ->
 		
 		height = window.innerHeight
@@ -82,4 +84,14 @@ exports.instantiate = ->
 exports.offset = -> Vector.copy offset
 
 exports.renderer = -> renderer
-	
+
+exports.show = ->
+
+	if global?
+		
+		{Window} = global.window.nwDispatcher.requireNwGui()
+		window_ = Window.get()
+
+		window_.show()
+
+exports.size = -> [renderer.view.width, renderer.view.height]

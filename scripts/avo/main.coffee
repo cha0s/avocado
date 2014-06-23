@@ -72,8 +72,8 @@ tickCallback = ->
 		lastElapsed = elapsed
 		
 		while tickRemainder > tickTargetSeconds
-			stateInstance?.tick()
 			handleStateTransition()
+			stateInstance?.tick()
 		
 			tickRemainder -= tickTargetSeconds
 			

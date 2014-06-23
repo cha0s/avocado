@@ -5,7 +5,7 @@ Rules = require 'avo/behavior/rules'
 Promise = require 'avo/vendor/bluebird'
 Trait = require './trait'
 
-module.exports = Behavior = class extends Trait
+module.exports = Behavioral = class extends Trait
 
 	stateDefaults: ->
 		

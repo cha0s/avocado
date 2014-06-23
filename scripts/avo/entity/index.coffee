@@ -34,7 +34,7 @@ module.exports = Entity = class Entity
 		# All entities require an Existence trait. The assumption here is that
 		# Existence::initializeTrait() returns an immediate value (not a
 		# promise).
-		@extendTraits [type: 'existence']
+		@extendTraits [type: 'existent']
 		
 	FunctionExt.fastApply Mixin, [@::].concat mixins
 	

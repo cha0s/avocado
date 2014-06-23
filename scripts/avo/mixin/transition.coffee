@@ -136,9 +136,9 @@ module.exports = Transition = class
 			@_last = timing.elapsed()
 			elapsed
 			
-		startInterval: (result) ->
+		_startInterval: (result) ->
 			
-			@_interval = window.setInterval (-> @tick()), 10
+			@_interval = window.setInterval (=> @tick()), 10
 		
 		stopTransition: ->
 			super
