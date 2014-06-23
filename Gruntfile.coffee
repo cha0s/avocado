@@ -2,36 +2,28 @@ path = require 'path'
 
 module.exports = (grunt) ->
 
-	sourceMapping = grunt.file.expandMapping ['src/**/*.coffee'], 'build/',
-		rename: (destBase, destPath) ->
-			
-			destPath = destPath.replace 'src/', 'raw/dev/'
-			destBase + destPath.replace /\.coffee$/, ".js"
-			
-	# Don't include test suites
-	sourceMapping = sourceMapping.filter (file) ->
-		not file.src[0].match '\.spec\.coffee'
-	
-	sourceMappingObject = {}
-	for file in sourceMapping
-		continue unless file?
-		{src, dest} = file
-		
-		sourceMappingObject[dest] = src[0]
-		
 	grunt.initConfig
 		pkg: grunt.file.readJSON 'package.json'
 		
 		coffee:
 			avocado:
-				files: sourceMappingObject
-		
+				files: [
+					cwd: 'src/'
+					src: [
+						'**/*.coffee'
+						'!**/*.spec.coffee'
+					]
+					dest: 'build/raw/dev'
+					expand: true
+				]
+			
 		copy:
 			avocado:
 				files: [
 					cwd: 'src/'
 					src: [
 						'**/*.js'
+						'!**/*.spec.js'
 					]
 					dest: 'build/raw/dev'
 					expand: true
