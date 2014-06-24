@@ -70,15 +70,9 @@ if !!navigator.getGamepads or !!navigator.webkitGetGamepads or !!navigator.webki
 		
 		# Only schedule the next frame if we haven't decided to stop via
 		# stopPolling() before.
-		if ticking
-			if window.requestAnimationFrame
-				window.requestAnimationFrame tick
-			else if window.mozRequestAnimationFrame
-				window.mozRequestAnimationFrame tick
-			else window.webkitRequestAnimationFrame tick	if window.webkitRequestAnimationFrame
-	
-		# Note lack of setTimeout since all the browsers that support
-		# Gamepad API are already supporting requestAnimationFrame().
+		setTimeout tick, 10 if ticking
+		
+		return
 	
 	# Checks for the gamepad status. Monitors the necessary data and notices
 	# the differences from previous state (buttons for Chrome/Firefox,

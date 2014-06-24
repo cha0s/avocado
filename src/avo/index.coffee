@@ -119,13 +119,15 @@ renderCallback = ->
 	try
 	
 		stateInstance.render window_.renderer() if stateInstance?.render?
-		renderInterval = window.requestAnimationFrame renderCallback
 
 	catch error
 		
 		handleError error
-		
-renderInterval = window.requestAnimationFrame renderCallback
+
+# I was using renderAnimationFrame, but it seems to call back way too often,
+# which kills performance. Also, setting the FPS to 55 instead of 60 massively
+# boosts performance (without a noticeable loss) in my tests.
+renderInterval = window.setInterval renderCallback, 1000 / 55
 
 stateName = ''
 stateTransition = null
@@ -191,6 +193,6 @@ window.onerror = (message, filename, lineNumber, _, error) ->
 AbstractState::quit = quit = ->
 
 	window.clearInterval tickInterval
-	window.cancelAnimationFrame renderInterval
+	window.clearInterval renderInterval
 	
 	window_.close()
