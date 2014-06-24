@@ -4,7 +4,9 @@
 # Execution context. The "main loop" of the Avocado engine.
 # 
 
-if global?
+config = require 'avo/config'
+
+if 'node-webkit' is config.get 'platform'
 	
 	util = require 'util'
 	
@@ -30,13 +32,42 @@ if global?
 	global.HTMLImageElement = window.HTMLImageElement
 	global.Float32Array = window.Float32Array
 	global.Uint16Array = window.Uint16Array
+	
+	# Hot reload the engine when source files change.
+	{Gaze} = require 'gaze'
+	gaze = new Gaze [
+		'avocado/src/**/*.js'
+		'avocado/src/**/*.coffee'
+		'src/**/*.js'
+		'src/**/*.coffee'
+	]
+	
+	gaze.watched (err, files) ->
+		
+		keys = Object.keys files
+		
+		if 0 is keys.length
+			
+			console.info "*** NOTE *** Hot code reloading isn't working
+			correctly. In order to use this feature, you must follow the
+			instructions at
+			https://github.com/rogerwang/node-webkit/wiki/Using-Node-modules#3rd-party-modules-with-cc-addons
+			to rebuild gaze for your version of node-webkit."
+	
+	gaze.on 'all', (event, filepath) ->
+		gaze.close()
 
+	gaze.on 'end', ->
+		{Window} = global.window.nwDispatcher.requireNwGui()
+		window_ = Window.get()
+		
+		window_.reloadDev()
+		
 Promise = require 'avo/vendor/bluebird'
 
 AbstractState = require 'avo/state/abstractState'
 window_ = require 'avo/graphics/window'
 
-config = require 'avo/config'
 fs = require 'avo/fs'
 
 timing = require 'avo/timing'
