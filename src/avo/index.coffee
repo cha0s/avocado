@@ -175,7 +175,8 @@ handleStateTransition = ->
 				-> stateInstance = stateInstanceCache[stateName = name]
 			)
 	)
-	promise.done() if Promise.is promise
+	if Promise.is promise
+		promise.catch (error) -> handleError error
 
 # Read from config file.
 fs.readJsonResource('/config.json').then(
