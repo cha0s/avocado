@@ -6,6 +6,8 @@
 
 config = require 'avo/config'
 
+tryReload = false
+
 if 'node-webkit' is config.get 'platform'
 	
 	util = require 'util'
@@ -53,6 +55,10 @@ if 'node-webkit' is config.get 'platform'
 			instructions at
 			https://github.com/rogerwang/node-webkit/wiki/Using-Node-modules#3rd-party-modules-with-cc-addons
 			to rebuild gaze for your version of node-webkit."
+			
+		else
+			
+			tryReload = true
 	
 	gaze.on 'all', (event, filepath) ->
 		gaze.close()
@@ -184,15 +190,26 @@ fs.readJsonResource('/config.json').then(
 	
 handleError = (error) ->
 	console.log error.stack
-	quit()
+	
+	if tryReload
+		
+		halt()
+		console.info "Halted... waiting for source change"
+	
+	else
+
+		quit()
 
 window.onerror = (message, filename, lineNumber, _, error) ->
 	handleError error
 	true
 
-AbstractState::quit = quit = ->
+halt = ->
 
 	window.clearInterval tickInterval
 	window.clearInterval renderInterval
+	
+AbstractState::quit = quit = ->
+	halt()
 	
 	window_.close()
