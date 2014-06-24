@@ -85,10 +85,6 @@ module.exports = Animation = class Animation
 			
 			this
 		
-	addToStage: (stage) ->
-		
-		@_sprite.addToStage stage
-			
 	clampDirection: (direction) ->
 		
 		return 0 if @directionCount() is 1

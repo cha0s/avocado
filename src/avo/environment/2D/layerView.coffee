@@ -7,6 +7,7 @@ PIXI = require 'avo/vendor/pixi'
 Property = require 'avo/mixin/property'
 Rectangle = require 'avo/extension/rectangle'
 Sprite = require 'avo/graphics/sprite'
+SpriteContainer = require 'avo/graphics/spriteContainer'
 Vector = require 'avo/extension/vector'
 VectorMixin = require 'avo/mixin/vector'
 
@@ -21,13 +22,12 @@ module.exports = class LayerView
 	constructor: (@_layer) ->
 		mixin.call @ for mixin in mixins
 		
-		@_container = null
+		@_container = new SpriteContainer()
 		
 		@on 'positionChanged', (oldPosition) =>
 			return unless @_container?
 			
-			@_container.position.x = -@_x
-			@_container.position.y = -@_y
+			@_container.setPosition Vector.scale @position(), -1
 			
 		@on 'layerChanged', (oldSize) =>
 			
@@ -35,9 +35,7 @@ module.exports = class LayerView
 		
 	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
-	addToStage: (stage) ->
-		
-		stage.addChild @_container
+	container: -> @_container
 	
 	renderChunk: (rectangle) ->
 		return unless @_layer.tileIndices_?
@@ -48,7 +46,7 @@ module.exports = class LayerView
 		
 		container = new PIXI.DisplayObjectContainer()
 		sprite = new Sprite @_layer.tileset().image()
-		sprite.addToStage container
+		container.addChild sprite.internal()
 		
 		tileSize = @_layer.tileset_.tileSize()
 		
@@ -100,8 +98,6 @@ module.exports = class LayerView
 			chunkSize
 		)
 		
-		@_container = new PIXI.SpriteBatch()
-		
 		for y in [0...chunkArea[1]]
 			for x in [0...chunkArea[0]]
 				
@@ -116,6 +112,6 @@ module.exports = class LayerView
 				
 				sprite.setPosition position
 				
-				sprite.addToStage @_container
+				@_container.addChild sprite
 				
 		return

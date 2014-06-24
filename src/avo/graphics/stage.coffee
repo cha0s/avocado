@@ -2,21 +2,21 @@
 PIXI = require 'avo/vendor/pixi'
 
 color = require './color'
+FunctionExt = require 'avo/extension/function'
+Mixin = require 'avo/mixin'
+VectorMixin = require 'avo/mixin/vector'
 
-module.exports = class Stage
+Renderable = require './renderable'
 
-	constructor: (backgroundColor) ->
-		
-		@_stage = new PIXI.Stage()
-		
-	addChild: (child) -> @_stage.addChild child
+module.exports = class Stage extends Renderable
 	
-	renderWith: (renderer) -> renderer.render @_stage
-		
+	constructor: -> @_stage = new PIXI.Stage()
+	
+	addChild: (child) -> @_stage.addChild child.internal()
+	
 	setBackgroundColor: (backgroundColor) ->
-		
 		@_stage.setBackgroundColor backgroundColor.toInteger()
-
-	backgroundColor: ->
 		
-		color.fromInteger @_stage.backgroundColor
+	backgroundColor: -> color.fromInteger @_stage.backgroundColor
+		
+	internal: -> @_stage

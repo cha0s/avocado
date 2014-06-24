@@ -3,6 +3,7 @@ PIXI = require 'avo/vendor/pixi'
 Vector = require 'avo/extension/vector'
 
 config = require 'avo/config'
+Renderer = require 'avo/graphics/renderer'
 
 instantiated = false
 offset = []
@@ -30,29 +31,23 @@ exports.instantiate = ->
 	return if instantiated
 	instantiated = true
 	
-	resolution = config.get 'graphics:resolution'
-	
-	renderer = switch config.get 'graphics:renderer'
-		
-		when 'auto'
-			PIXI.autoDetectRenderer resolution[0], resolution[1]
-			
-		when 'canvas'
-			new PIXI.CanvasRenderer resolution[0], resolution[1]
-
-		when 'webgl'
-			new PIXI.WebGLRenderer resolution[0], resolution[1]
+	renderer = new Renderer(
+		config.get 'graphics:resolution'
+		config.get 'graphics:renderer'
+	) 
 	
 	container = window.document.createElement 'div'
 	container.style.position = 'absolute'
 	container.style.overflow = 'hidden'
-	container.appendChild renderer.view
+	container.appendChild renderer.element()
 	
 	window.document.body.appendChild container
 	
+	rendererSize = renderer.size()
+	
 	ratios = [
-		renderer.view.width / renderer.view.height
-		renderer.view.height / renderer.view.width
+		rendererSize[0] / rendererSize[1]
+		rendererSize[1] / rendererSize[0]
 	]
 	
 	centerCanvas = ->
@@ -94,4 +89,4 @@ exports.show = ->
 
 		window_.show()
 
-exports.size = -> [renderer.view.width, renderer.view.height]
+exports.size = -> renderer.size()
