@@ -10,7 +10,7 @@ renderer = null
 
 exports.close = ->
 	
-	if 'node-webkit' config.get 'platform'
+	if 'node-webkit' is config.get 'platform'
 		
 		{Window} = global.window.nwDispatcher.requireNwGui()
 		window_ = Window.get()
@@ -19,7 +19,7 @@ exports.close = ->
 
 exports.hide = ->
 
-	if 'node-webkit' config.get 'platform'
+	if 'node-webkit' is config.get 'platform'
 		
 		{Window} = global.window.nwDispatcher.requireNwGui()
 		window_ = Window.get()
@@ -87,7 +87,7 @@ exports.renderer = -> renderer
 
 exports.show = ->
 
-	if 'node-webkit' config.get 'platform'
+	if 'node-webkit' is config.get 'platform'
 		
 		{Window} = global.window.nwDispatcher.requireNwGui()
 		window_ = Window.get()
