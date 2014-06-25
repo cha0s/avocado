@@ -13,4 +13,4 @@ FunctionExt.fastApply Mixin, [input].concat mixins
 
 mixin.call input for mixin in mixins
 
-require "./#{sub}" for sub in ['gamepad', 'key', 'mouse']
+require "./#{sub}" for sub in ['gamepad', 'key', 'mouse', 'movement']

@@ -37,7 +37,8 @@ if !!navigator.getGamepads or !!navigator.webkitGetGamepads or !!navigator.webki
 	gamepadState = (gamepad) ->
 		
 		axes = {}
-		axes[index] = state for index, state of gamepad.axes
+		for index, state of gamepad.axes
+			axes[index] = if Math.abs(state) < .2 then 0 else state
 		
 		buttons = {}
 		for index, state of gamepad.buttons
@@ -84,9 +85,11 @@ if !!navigator.getGamepads or !!navigator.webkitGetGamepads or !!navigator.webki
 		# Poll to see if gamepads are connected or disconnected. Necessary
 		# only on Chrome.
 		pollGamepads()
-		for i of gamepads
-			gamepad = gamepads[i]
-			previousState = previousStates[i]
+		for index of gamepads
+			index = parseInt index
+			gamepad = gamepads[index]
+			
+			previousState = previousStates[index]
 			
 			# Don't do anything if the current timestamp is the same as previous
 			# one, which means that the state of the gamepad hasn't changed.
@@ -94,27 +97,30 @@ if !!navigator.getGamepads or !!navigator.webkitGetGamepads or !!navigator.webki
 			# makes sure we're not doing anything if the timestamps are empty
 			# or undefined.
 			continue if gamepad.timestamp and (gamepad.timestamp is previousState.timestamp)
+			currentState = gamepadState gamepad
 			
 			# Scan for changes and emit events since browsers don't seem to
 			# implement their own for the time being.
-			for index of previousState.buttons
-				previous = previousState.buttons[index]
-				state = gamepad.buttons[index]
+			for button of previousState.buttons
+				button = parseInt button
+				previous = previousState.buttons[button]
+				state = currentState.buttons[button]
 				state = state.value if state.value?
+				state = parseFloat state
 				
 				if previous isnt state
-					if .2 < Math.abs state
-						input.emit 'gamepadButton', button: index, state: state
+					input.emit 'gamepadButton', index: index, button: button, state: state
 			
-			for index of previousState.axes
-				previous = previousState.axes[index]
-				state = gamepad.axes[index]
+			for axis of previousState.axes
+				axis = parseInt axis
+				previous = previousState.axes[axis]
+				state = currentState.axes[axis]
+				state = parseFloat state
 				
 				if previous isnt state
-					if .2 < Math.abs state
-						input.emit 'gamepadAxis', axis: index, state: state
+					input.emit 'gamepadAxis', index: index, axis: axis, state: state
 			
-			previousStates[i] = gamepadState gamepad
+			previousStates[index] = gamepadState gamepad
 			
 		return
 	
