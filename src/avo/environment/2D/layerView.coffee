@@ -108,8 +108,6 @@ module.exports = class LayerView
 					chunkSize
 				)
 				
-				sprite.renderable = false
-				
 				sprite.setPosition position
 				
 				@_container.addChild sprite

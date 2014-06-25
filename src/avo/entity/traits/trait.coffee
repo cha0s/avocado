@@ -46,10 +46,8 @@ module.exports = class
 	
 	properties: -> {}
 	
-	initializeTrait: ->
+	initialize: ->
 	
-	resetTrait: ->
-		
 	removeTrait: ->
 	
 	setVariables: (variables) ->

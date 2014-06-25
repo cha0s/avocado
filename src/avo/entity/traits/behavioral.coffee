@@ -20,7 +20,7 @@ module.exports = Behavioral = class extends Trait
 		@_routines = new Routines()
 		@_rules = new Rules()
 		
-	initializeTrait: ->
+	initialize: ->
 		
 		Promise.allAsap [
 			@_routines.fromObject @state.routines

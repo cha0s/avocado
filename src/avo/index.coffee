@@ -92,7 +92,7 @@ tickInterval = null
 
 # [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
 lastElapsed = 0
-ticksPerSecondTarget = 80
+ticksPerSecondTarget = 120
 tickFrequency = 1000 / ticksPerSecondTarget
 tickTargetSeconds = 1 / ticksPerSecondTarget
 tickRemainder = 0

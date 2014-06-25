@@ -73,7 +73,6 @@ module.exports = Animation = class Animation
 	fromObject: (O) ->
 		
 		O.imageUri ?= O.uri.replace '.animation.json', '.png'
-		
 		for property in [
 			'directionCount', 'frameCount', 'frameRate', 'frameSize', 'uri'
 		]

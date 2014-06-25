@@ -1,5 +1,5 @@
 
-Timing = require 'avo/timing'
+timing = require 'avo/timing'
 
 Rectangle = require 'avo/extension/rectangle'
 Trait = require './trait'
@@ -79,7 +79,7 @@ module.exports = Corporeal = class extends Trait
 					@entity.position()
 					Vector.scale(
 						vector
-						Timing.TimingService.tickElapsed() * force
+						timing.tickElapsed() * force
 					)
 				)
 				

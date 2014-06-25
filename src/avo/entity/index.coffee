@@ -25,14 +25,13 @@ module.exports = Entity = class Entity
 		
 		@_context = {}
 		@_originalTraits = {}
-		@_renderers = {}
 		@_tickers = []
 		@_traits = {}
 		@_uri = null
 		@_uuid = uuid.v4()
 		
 		# All entities require an Existence trait. The assumption here is that
-		# Existence::initializeTrait() returns an immediate value (not a
+		# Existent::initialize() returns an immediate value (not a
 		# promise).
 		@extendTraits [type: 'existent']
 		
@@ -108,24 +107,6 @@ module.exports = Entity = class Entity
 					(l, r) -> l.weight - r.weight
 				) for ticker in @_tickers
 			
-			if handler['renderer']?
-				
-				renderers = if _.isFunction handler['renderer']
-					inline: handler['renderer']
-				else
-					handler['renderer']
-				
-				for key, spec of renderers
-					renderer = normalizeRendererSpec spec
-					renderer.type = trait.type
-					renderer.f = _.bind renderer.f, trait
-					
-					(@_renderers[key] ?= []).push renderer
-					
-				@_renderers[key] = @_renderers[key].sort(
-					(l, r) -> l.weight - r.weight
-				) for key, list of @_renderers
-		
 		trait
 
 	_coalesceTraits: (allTraits) ->
@@ -149,7 +130,7 @@ module.exports = Entity = class Entity
 				# extend the state,
 				_.extend @_traits[type].state, state
 				
-				# and fire Trait::initializeTrait().
+				# and fire Trait::initialize().
 				@_traits[type]
 			
 			# Otherwise, add the trait.
@@ -158,9 +139,9 @@ module.exports = Entity = class Entity
 				@_addTrait trait
 			
 		Promise.allAsap(
-			_.map traits, (trait) -> trait.initializeTrait()
+			_.map traits, (trait) -> trait.initialize()
 			=>
-				trait.resetTrait() for type, trait of @_traits
+				@emit 'traitsChanged'
 				@
 		)
 			
@@ -197,6 +178,12 @@ module.exports = Entity = class Entity
 				trait._hooks[hook], args, trait
 			)
 			results
+	
+	# Invoke a method with arguments if it exists on this entity.
+	optional: (name, args...) ->
+		return unless (fn = @[name])?
+		
+		FunctionExt.fastApply fn, args, this
 		
 	# Remove a Trait from this Entity.
 	removeTrait: (type) ->
@@ -213,20 +200,9 @@ module.exports = Entity = class Entity
 		# Remove the handlers.
 		@_tickers = _.filter @_tickers, (e) -> e.type isnt type
 
-		@_renderers[key] = _.filter(
-			@_renderers[key]
-			(e) -> e.type isnt type
-		) for key, list of @_renderers
-
 		# Remove the trait object.
 		delete @_traits[type]
 	
-	# Called every engine render cycle.
-	render: (destination, camera = [0, 0], type = 'inline') ->
-		
-		renderer.f destination, camera for renderer in @_renderers[type] ? []
-		return
-
 	_requireTrait: (type) -> require "avo/entity/traits/#{type}"
 	
 	# Reset traits.			
@@ -252,6 +228,8 @@ module.exports = Entity = class Entity
 	
 	# Get a trait by name.
 	trait: (traitName) -> @_traits[traitName]
+	
+	traits: -> @_traits
 	
 	_traitDependencies: (traitMap, trait) ->
 		
@@ -371,30 +349,12 @@ module.exports = Entity = class Entity
 		else
 			traitName
 	
-	# A handler (a renderer or a ticker) has two forms of specification. The
-	# more advanced form of this specification allows setting the function and
-	# the handler in a specification object. The simpler case is simply a
-	# function, in which case, the object specification is created around the
-	# function, with sane defaults.
-	normalizeHandlerSpec = (handler) ->
-		
-		unless handler.f?
-			f = handler
-			handler = f: f
-	
-		handler.weight ?= 0
-		
-		handler
-	
-	# A ticker specification implements a frequency default over the base
-	# handler.
 	normalizeTickerSpec = (ticker) ->
 		
-		ticker = normalizeHandlerSpec ticker
-		
-		ticker.frequency ?= 1000 / 60
+		unless ticker.f?
+			f = ticker
+			ticker = f: f
+	
+		ticker.weight ?= 0
 		
 		ticker
-			
-	# A renderer specification implements no extension over the base handler.
-	normalizeRendererSpec = normalizeHandlerSpec

@@ -14,4 +14,9 @@ module.exports = class Container extends Renderable
 	
 	addChild: (child) -> @_container.addChild child.internal()
 	
+	removeChild: (child) -> @_container.removeChild child.internal()
+	
+	removeAllChildren: ->
+		@_container.removeChild child for child in @_container.children
+	
 	internal: -> @_container

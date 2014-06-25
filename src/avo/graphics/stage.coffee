@@ -14,6 +14,11 @@ module.exports = class Stage extends Renderable
 	
 	addChild: (child) -> @_stage.addChild child.internal()
 	
+	removeChild: (child) -> @_stage.removeChild child.internal()
+	
+	removeAllChildren: ->
+		@_stage.removeChild child for child in @_stage.children
+	
 	setBackgroundColor: (backgroundColor) ->
 		@_stage.setBackgroundColor backgroundColor.toInteger()
 		
