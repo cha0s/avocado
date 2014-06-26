@@ -3,6 +3,7 @@ PIXI = require 'avo/vendor/pixi'
 Vector = require 'avo/extension/vector'
 
 config = require 'avo/config'
+input = require 'avo/input'
 Node = require 'avo/ui/node'
 Renderer = require 'avo/graphics/renderer'
 
@@ -46,11 +47,14 @@ exports.instantiate = ->
 	container.style.overflow = 'hidden'
 	container.appendChild renderer.element()
 	window.document.body.appendChild container
+	
+	input.attachMouseListenersTo container
 
 	uiContainer = window.document.createElement 'div'
 	uiContainer.style.position = 'absolute'
 	uiContainer.style.left = '0px'
 	uiContainer.style.top = '0px'
+	
 	container.appendChild uiContainer
 	
 	uiContainerNode = new Node uiContainer
@@ -64,28 +68,36 @@ exports.instantiate = ->
 	
 	centerCanvas = ->
 		
-		height = window.innerHeight
-		width = window.innerWidth
-		
-		calculatedHeight = height
-		calculatedWidth = height * ratios[0]
-		
-		if calculatedWidth > width
-			calculatedWidth = width
-			calculatedHeight = width * ratios[1]
-			
-		uiContainerNode.setScale(
-			calculatedWidth / renderer.width()
-			calculatedHeight / renderer.height()
-		)
-			
-		offset = [
-			(width - calculatedWidth) / 2
-			(height - calculatedHeight) / 2
+		windowSize = [
+			window.innerWidth
+			window.innerHeight
 		]
 		
-		container.style.width = "#{calculatedWidth}px"
-		container.style.height = "#{calculatedHeight}px"
+		calculatedSize = [
+			windowSize[1] * ratios[0]
+			windowSize[1]
+		]
+		
+		if calculatedSize[0] > windowSize[0]
+			calculatedSize = [
+				windowSize[0]
+				windowSize[0] * ratios[1]
+			]
+			
+		calculatedSize = Vector.round calculatedSize
+		container.style.width = "#{calculatedSize[0]}px"
+		container.style.height = "#{calculatedSize[1]}px"
+			
+		uiContainerNode.setScale Vector.div calculatedSize, renderer.size()
+		
+		containerReverseScale = Vector.div renderer.size(), calculatedSize
+		input.setMousePositionScale containerReverseScale
+		
+		containerSize = Vector.scale containerReverseScale, 100
+		uiContainer.style.width = "#{containerSize[0]}%"
+		uiContainer.style.height = "#{containerSize[1]}%"
+		
+		offset = Vector.scale Vector.sub(windowSize, calculatedSize), .5
 		container.style.left = "#{offset[0]}px"
 		container.style.top = "#{offset[1]}px"
 		

@@ -11,6 +11,10 @@ config.graphics =
 	resolution: [1280, 720]
 	renderer: 'auto'
 
+config.input = 
+	
+	mouseMovePerSecond: 50
+
 if process? and process.versions['node-webkit']
 	
 	config.platform = 'node-webkit'
