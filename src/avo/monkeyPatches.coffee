@@ -12,7 +12,13 @@ Promise.asap = (promiseOrValue, fulfilled, rejected, progressed) ->
 	
 	else
 		
-		(fulfilled ? ->) promiseOrValue
+		try
+		
+			(fulfilled ? _.identity) promiseOrValue
+			
+		catch error
+			
+			rejected? error
 
 Promise.allAsap = (promisesOrValues, fulfilled, rejected, progressed) ->
 
