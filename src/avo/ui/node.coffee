@@ -18,13 +18,20 @@ module.exports = class DomNode
 		mixin.call this for mixin in mixins
 		
 		if _.isString htmlOrElement
+
 			@_node = window.document.createElement 'div'
 			@_node.innerHTML = htmlOrElement
+
+			@_node.style.position = 'absolute'
+			@_node.style.height = '100%'
+			@_node.style.width = '100%'
+			
 		else
+
 			@_node = htmlOrElement
 		
-		@_node.style.position = 'absolute'
-			
+		@_node.$ = $(@_node)
+		
 	FunctionExt.fastApply Mixin, [@::].concat mixins
 	
 	destroy: -> 
@@ -33,14 +40,22 @@ module.exports = class DomNode
 		container.removeChild @_node
 		
 	addClass: (classNames) -> $(@_node).addClass classNames
+	
+	css: ->
 		
+		FunctionExt.fastApply(
+			@_node.$.css
+			arg for arg in arguments
+			@_node.$
+		)
+	
 	element: -> @_node
 	
-	find: (selector) -> $(@_node).find selector
+	find: (selector) -> @_node.$.find selector
 	
-	hasClass: (className) -> $(@_node).hasClass classNames
+	hasClass: (className) -> @_node.$.hasClass classNames
 
-	removeClass: (classNames) -> $(@_node).removeClass classNames
+	removeClass: (classNames) -> @_node.$.removeClass classNames
 		
 	hide: -> @_node.style.display = 'none'
 	
@@ -83,10 +98,16 @@ module.exports = class DomNode
 	opacity: -> @_node.style.opacity
 	setOpacity: (opacity) -> @_node.style.opacity = opacity
 	
-	setScale: (scaleX, scaleY = scaleX) ->
-		for prefix in ['', '-moz-', '-ms-', '-webkit-', '-o-']
+	setScale: (scale) ->
+		
+		for prefix in ['-moz-', '-ms-', '-webkit-', '-o-', '']
+
 			@_node.style["#{prefix}transform"] = "scale(#{
-				scaleX
+				scale[0]
 			}, #{
-				scaleY
+				scale[1]
 			})"
+			
+			@_node.style["#{prefix}transformOrigin"] = "0 0 0"
+			
+		return
