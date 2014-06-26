@@ -88,7 +88,14 @@ input.registerGamepadButtonMovement = (
 	
 	gamepadButtonMovements[id] = [0, 0]
 	gamepadButtonMovementMaps[id] = [upButton, rightButton, downButton, leftButton, index]
+
+# Simplified helper for registering default movement.	
+input.registerMovement = ->
 	
+	input.registerKeyMovement()
+	input.registerGamepadAxisMovement()
+	input.registerGamepadButtonMovement()
+
 input.unitMovement = (id = 0) ->	
 	
 	movement = [0, 0]
