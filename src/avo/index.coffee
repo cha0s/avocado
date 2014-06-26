@@ -6,8 +6,6 @@
 
 config = require 'avo/config'
 
-tryReload = false
-
 if 'node-webkit' is config.get 'platform'
 	
 	util = require 'util'
@@ -178,6 +176,7 @@ handleStateTransition = ->
 			Promise.asap(
 				stateInstanceCache[name].enter args, stateName
 				-> stateInstance = stateInstanceCache[stateName = name]
+				(error) -> handleError error
 			)
 	)
 	if Promise.is promise
@@ -197,7 +196,7 @@ fs.readJsonResource('/config.json').then(
 handleError = (error) ->
 	console.log error.stack
 	
-	if tryReload
+	if process? and process.env.watching
 		
 		halt()
 		console.info "Halted... waiting for source change"
