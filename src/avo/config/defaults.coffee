@@ -4,6 +4,7 @@ module.exports = config = {}
 config.fs =
 	
 	resourcePath: 'resource'
+	uiPath: 'ui'
 
 config.graphics =
 	

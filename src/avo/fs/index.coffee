@@ -3,6 +3,28 @@ Promise = require 'avo/vendor/bluebird'
 
 config = require 'avo/config'
 
+readUri = (uri) ->
+
+	new Promise (resolve, reject) ->
+	
+		request = new window.XMLHttpRequest()
+		request.open 'GET', uri
+		request.onreadystatechange = ->
+			
+			if request.readyState is 4
+				
+				switch request.status
+					
+					when 0, 200
+					
+						resolve request.responseText
+					
+					else
+					
+						reject new Error "Couldn't load #{uri}"
+		
+		request.send()
+
 resourceCache = {}
 exports.readResource = (uri) ->
 	
@@ -14,26 +36,29 @@ exports.readResource = (uri) ->
 			
 			resolve resourceCache[qualifiedUri]
 			
-		else 
+		else
 			
-			request = new window.XMLHttpRequest()
-			request.open 'GET', qualifiedUri
-			request.onreadystatechange = ->
-				
-				if request.readyState is 4
-					
-					switch request.status
-						
-						when 0, 200
-						
-							resolve resourceCache[qualifiedUri] = request.responseText
-						
-						else
-						
-							reject new Error "Couldn't load resource: #{qualifiedUri}"
+			readUri(qualifiedUri).then (text) ->
 			
-			request.send()
-
+				resolve resourceCache[qualifiedUri] = text
+	
+uiCache = {}
+exports.readUi = (uri) ->
+	
+	qualifiedUri = "#{config.get 'fs:uiPath'}#{uri}"
+	
+	new Promise (resolve, reject) ->
+	
+		if uiCache[qualifiedUri]?
+			
+			resolve uiCache[qualifiedUri]
+			
+		else
+			
+			readUri(qualifiedUri).then (text) ->
+			
+				resolve uiCache[qualifiedUri] = text
+	
 # Reads a JSON resource. Returns a promise to be resolved with the parsed
 # JSON object.
 exports.readJsonResource = (uri) ->
