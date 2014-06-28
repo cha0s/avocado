@@ -2,14 +2,17 @@
 # Specifies objects in the game engine. Entities are essentially just
 # compositions of (subclassed) [`Trait`](./Traits/Trait.html) objects.
 
-_ = require 'avo/vendor/underscore'
-EventEmitter = require 'avo/mixin/eventEmitter'
-fs = require 'avo/fs'
-FunctionExt = require 'avo/extension/function'
-Mixin = require 'avo/mixin'
 Promise = require 'avo/vendor/bluebird'
-String = require 'avo/extension/string'
+_ = require 'avo/vendor/underscore'
 uuid = require 'avo/vendor/uuid'
+
+FunctionExt = require 'avo/extension/function'
+String = require 'avo/extension/string'
+
+fs = require 'avo/fs'
+
+Mixin = require 'avo/mixin'
+EventEmitter = require 'avo/mixin/eventEmitter'
 
 module.exports = Entity = class Entity
 	
