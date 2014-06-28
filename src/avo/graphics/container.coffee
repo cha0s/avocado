@@ -18,5 +18,7 @@ module.exports = class Container extends Renderable
 	
 	removeAllChildren: ->
 		@_container.removeChild child for child in @_container.children
+		
+	sortChildren: (fn) -> @_container.children.sort fn
 	
 	internal: -> @_container
