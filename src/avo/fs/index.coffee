@@ -15,9 +15,15 @@ readUri = (uri) ->
 				
 				switch request.status
 					
-					when 0, 200
+					# Work around for old node-webkit behavior.
+					# See: https://github.com/rogerwang/node-webkit/commit/08c6ce5ff3fcf1b4df0aca1e717bb80d617214a2
 					
-						resolve request.responseText
+					when 0, 200
+						
+						if request.responseText
+							resolve request.responseText
+						else
+							reject	new Error "Couldn't load #{uri}"
 					
 					else
 					
