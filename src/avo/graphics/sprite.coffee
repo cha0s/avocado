@@ -22,7 +22,16 @@ module.exports = class Sprite extends Renderable
 	
 	alpha: -> @_sprite.alpha
 	
+	image: -> @_image
+	
 	setAlpha: (alpha) -> @_sprite.alpha = alpha
+	
+	setOrigin: (origin) ->
+		
+		@_sprite.pivot.x = origin[0]
+		@_sprite.pivot.y = origin[1]
+	
+	setRotation: (rotation) -> @_sprite.rotation = rotation
 	
 	setSourceRectangle: (rectangle) ->
 		
