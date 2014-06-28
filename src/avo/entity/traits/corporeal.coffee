@@ -14,6 +14,7 @@ module.exports = Corporeal = class extends Trait
 		immovable: false
 		offset: [0, 0]
 		position: [-10000, -10000]
+		rotation: 0
 		size: [0, 0]
 		
 	properties: ->
@@ -34,10 +35,11 @@ module.exports = Corporeal = class extends Trait
 		position:
 			set: (position) -> @state.position = Vector.copy position
 			eq: (l, r) -> Vector.equals l, r
+		rotation: {}
 		size:
 			set: (size) -> @state.size = Vector.copy size
 			eq: (l, r) -> Vector.equals l, r
-	
+			
 	values: ->
 		
 		height: -> @state.size[1]
@@ -62,6 +64,20 @@ module.exports = Corporeal = class extends Trait
 		
 		y: -> @state.position[1]
 		
+		zIndex: ->
+			
+			zIndexInvocations = @entity.invoke 'zIndex'
+			
+			# If no one cared about movement, we'll just use y.
+			if zIndexInvocations.length is 0
+				
+				@entity.y()
+				
+			else
+				
+				# ???
+				zIndexInvocations[0]
+	
 	actions: ->
 		
 		forceMove: (vector, force) ->

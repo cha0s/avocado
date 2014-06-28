@@ -5,10 +5,17 @@ Trait = require './trait'
 
 module.exports = class Visible extends Trait
 	
+	stateDefaults: ->
+		
+		alpha: 1
+		isVisible: true
+		scale: [1, 1]
+		
 	constructor: ->
 		super
 		
 		@_localContainer = new Container()
+		@_localContainer.internal().entity = @entity
 	
 	initialize: ->
 		
@@ -18,14 +25,18 @@ module.exports = class Visible extends Trait
 			
 			@entity.emit 'addToLocalContainer', @_localContainer
 			
-	stateDefaults: ->
+		@_localContainer.setIsVisible @state.isVisible
+			
+	actions: ->
 		
-		isVisible: true
-		alpha: 1
-		scale: [1, 1]
-		
+		setIsVisible: (isVisible) ->
+			@state.isVisible = isVisible
+			@_localContainer.setIsVisible isVisible
+			
 	values: ->
 		
 		localContainer: -> @_localContainer 
 		
 		localRectangle: -> @_localContainer.localRectangle()
+		
+		isVisible: -> @_localContainer.isVisible()

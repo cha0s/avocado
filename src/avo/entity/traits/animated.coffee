@@ -1,6 +1,8 @@
 
 Promise = require 'avo/vendor/bluebird'
 
+Vector = require 'avo/extension/vector'
+
 Animation = require 'avo/graphics/animation'
 
 Trait = require './trait'
@@ -8,9 +10,15 @@ Trait = require './trait'
 module.exports = class Animated extends Trait
 	
 	@dependencies: [
+		'corporeal'
 		'visible'
 	]
 	
+	constructor: ->
+		super
+		
+		@_animations = {}
+		
 	stateDefaults: ->
 		
 		animations: {}
@@ -18,9 +26,6 @@ module.exports = class Animated extends Trait
 		preserveFrameWhenMoving: false
 		
 	initialize: ->
-		
-		@_animations = {}
-		@_localContainer = null
 		
 		animationPromises = for animationIndex, O of @state.animations
 			
@@ -36,25 +41,59 @@ module.exports = class Animated extends Trait
 					
 					@_animations[animationIndex] = animation
 					
+					animation.sprite().setOrigin(
+						O.origin ? Vector.scale animation.frameSize(), .5
+					)
+					
 					animation.setAsync false
 					animation.start()
 			
 		Promise.all animationPromises
 	
+	_setAnimationPosition: (animationIndex, position) ->
+	
+		@_animations[animationIndex].sprite().setPosition Vector.add(
+			position
+			Vector.scale(
+				@state.animations[animationIndex].offset ? [0, 0]
+				-1
+			)
+		)
+		
+	_snapPosition: ->
+		for i, animation of @_animations
+			animation.sprite().setPosition Vector.sub(
+				@entity.position()
+				@state.animations[i].offset ? [0, 0]
+			)
+			
+	_snapRotation: ->
+		for i, animation of @_animations
+			animation.sprite().setRotation @entity.rotation()
+			
 	properties: ->
 		
 		animationIndex: {}
 				
 	signals: ->
 		
-		addToLocalContainer: (@_localContainer) ->
+		traitsChanged: ->
 			
-			@_localContainer.addChild @_animations[@state.animationIndex].sprite()
+			@_snapPosition()
+			@_snapRotation()
+		
+		addToLocalContainer: (localContainer) ->
+			
+			for i, animation of @_animations
+				animation.sprite().setIsVisible false
+				localContainer.addChild animation.sprite()
+			
+			@_animations[@state.animationIndex].sprite().setIsVisible true
 			
 		animationIndexChanged: (oldIndex) ->
 			
-			@_localContainer.removeChild @_animations[oldIndex].sprite()
-			@_localContainer.addChild @_animations[@state.animationIndex].sprite()
+			@_animations[oldIndex].sprite().setIsVisible false
+			@_animations[@state.animationIndex].sprite().setIsVisible true
 			
 		directionChanged: ->
 
@@ -77,10 +116,9 @@ module.exports = class Animated extends Trait
 			
 				@entity.setAnimationIndex 'initial'
 			
-		positionChanged: ->
+		positionChanged: -> @_snapPosition()
 
-			for i, animation of @_animations
-				animation.setPosition @entity.position()
+		rotationChanged: -> @_snapRotation()
 
 	values: ->
 		
