@@ -6,7 +6,7 @@ FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 
-module.exports = Ticker = class Ticker
+class Ticker
 
 	mixins = [
 		EventEmitter
@@ -42,11 +42,7 @@ module.exports = Ticker = class Ticker
 			
 		return
 
-Ticker.InBand = class TickerInBand extends Ticker
-	
-	elapsedSinceLast: -> timing.tickElapsed() * 1000
-					
-Ticker.OutOfBand = class TickerOutOfBand extends Ticker					
+module.exports = class TickerOutOfBand extends Ticker					
 	
 	constructor: ->
 		super
@@ -63,3 +59,9 @@ Ticker.OutOfBand = class TickerOutOfBand extends Ticker
 		super
 		
 		@_last = timing.elapsed()
+
+module.exports.OutOfBand = module.exports
+
+module.exports.InBand = class TickerInBand extends Ticker
+	
+	elapsedSinceLast: -> timing.tickElapsed() * 1000
