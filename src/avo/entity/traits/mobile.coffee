@@ -32,9 +32,9 @@ module.exports = class extends Trait
 				Vector.toDirection vector, @entity.directionCount()
 			) unless isZero
 			
-			return unless @entity.isMobile()
+			@entity.setIsMoving @entity.isMobile() and not isZero
 			
-			@entity.setIsMoving not isZero
+			return unless @entity.isMobile()
 			
 			@entity.forceMove vector, @entity.movingSpeed()
 
