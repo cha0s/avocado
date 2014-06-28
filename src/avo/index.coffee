@@ -111,7 +111,7 @@ tickCallback = ->
 		tickRemainder += elapsed - lastElapsed
 		lastElapsed = elapsed
 		
-		while tickRemainder > tickTargetSeconds
+		while tickRemainder >= tickTargetSeconds
 			handleStateTransition()
 			stateInstance?.tick()
 		
@@ -178,6 +178,8 @@ handleStateTransition = ->
 				-> stateInstance = stateInstanceCache[stateName = name]
 				(error) -> handleError error
 			)
+			
+		(error) -> handleError error
 	)
 	if Promise.is promise
 		promise.catch (error) -> handleError error
