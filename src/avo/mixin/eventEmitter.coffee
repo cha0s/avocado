@@ -45,14 +45,12 @@ module.exports = EventEmitter = class
 		for eventName in eventNames
 			info = parseEventName eventName
 			
-			(@_events[info.event] ?= {})[f] =
-				f: _.bind f, that
-				that: that
-				namespace: info.namespace
-				once: false
-				
-			(@_namespaces[info.namespace] ?= {})[f] =
-				event: info.event
+			f.__namespace = info.namespace
+			f.__event = info.event
+			f.__once = false
+			(f.__that ?= []).push that
+			(@_events[info.event] ?= []).push f
+			((@_events[info.namespace] ?= {})[info.event] ?= []).push f
 			
 		return
 		
@@ -60,13 +58,13 @@ module.exports = EventEmitter = class
 		@on eventName, f, that
 		
 		info = parseEventName eventName
-		@_events[info.event][f]['once'] = true
+		@_events[info.event][@_events[info.event].length - 1].__once = true
 		
 		return
 		
 	# Remove listeners from an object.
 	# 
-	# There are four ways to use avo.**EventEmitter**.off:
+	# There are four ways to use **EventEmitter**.off:
 	# 
 	# 1. You can call <code>object.off 'eventName', function</code> where
 	# *function* is a function previously attached with <code>object.on
@@ -92,33 +90,44 @@ module.exports = EventEmitter = class
 		if 'function' is typeof f
 			return if not @_events[info.event]?
 			
-			delete @_events[info.event][f]
-			delete @_namespaces[info.namespace][f]
+			if -1 isnt (index = @_events[info.event].indexOf f)
+				@_events[info.event].splice index, 1
+			
+			if -1 isnt (index = @_namespaces[info.namespace][info.event].indexOf f)
+				@_namespaces[info.namespace][info.event].splice index, 1
 			
 			return
 		
 		# No namespace? Remove every matching event.
 		if '' is info.namespace
-			for f of @_events[info.event]
-				delete @_namespaces[@_events[info.event][f].namespace][f]
-				delete @_events[info.event][f]
+			
+			delete @_events[info.event]
+			for namespace, events of @_namespaces
+				delete events[info.event]
+			
 			return
 	
 		# Namespaced event? Remove it.
 		if info.event
-			for f of @_events[info.event]
-				if info.namespace != @_events[info.event][f].namespace
-					continue
-				delete @_namespaces[info.namespace][f]
-				delete @_events[info.event][f]
+			
+			return unless (events = @_namespaces[info.namespace])?
+			
+			for f in events[info.event]
+				delete events[info.event]
+				if (index = @_events.indexOf f)?
+					@_events.splice index, 1
+			
 			return
 		
 		# Only a namespace? Remove all events associated with it.
-		for f of @_namespaces[info.namespace]
-			delete @_events[@_namespaces[info.namespace][f].event][f]
-			delete @_namespaces[info.namespace][f]
+		for namespace, events of @_namespaces
+			for f in events[info.event]
+				delete events[info.event]
+				if (index = @_events.indexOf f)?
+					@_events.splice index, 1
+		delete @_namespaces[info.namespace]
 		
-		undefined
+		return
 		
 	# Notify ALL the listeners!
 	emit: (name) ->
@@ -126,11 +135,17 @@ module.exports = EventEmitter = class
 		
 		args = (arg for arg, i in arguments when i > 0)
 		
-		for callback, {f, namespace, once, that} of @_events[name]
+		for f in @_events[name]
+			@off "#{name}.#{f.__namespace}", f if f.__once
 			
-			@off "#{name}.#{namespace}", callback if once
-			
-			FunctionExt.fastApply f, args, that
+			for that in f.__that
+				
+				# Fast path...
+				if that is null and args.length is 0
+					f()
+					continue
+				
+				FunctionExt.fastApply f, args, that
 			
 		return
 
