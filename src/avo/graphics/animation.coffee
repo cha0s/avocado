@@ -21,10 +21,14 @@ VectorMixin = require 'avo/mixin/vector'
 module.exports = Animation = class Animation
 	
 	@load: (uri) ->
-		fs.readJsonResource(uri).then (O) ->
+		
+		unless uri.match '.animation.json'
+			uri += '/index.animation.json'
+		
+		promise = fs.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			(new Animation()).fromObject O
-	
+		
 	mixins = [
 		EventEmitter
 		Property 'alpha', 1
