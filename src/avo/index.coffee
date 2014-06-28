@@ -192,8 +192,22 @@ fs.readJsonResource('/config.json').then(
 
 	window_.instantiate()
 	
-	# Enter the 'initial' state. This is implemented by your game.
-	AbstractState::transitionToState 'initial'
+	bootstrapPromise = try
+		
+		bootstrap = require 'avo/bootstrap'
+		bootstrap.promise
+	
+	catch error
+		
+		unless error.message is "Cannot find module 'avo/bootstrap'"
+			throw error
+			
+		null
+		
+	Promise.asap bootstrapPromise, ->
+		
+		# Enter the 'initial' state. This is implemented by your game.
+		AbstractState::transitionToState 'initial'
 	
 handleError = (error) ->
 	console.log error.stack
