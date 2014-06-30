@@ -8,7 +8,7 @@ VectorMixin = require 'avo/mixin/vector'
 
 Renderable = require './renderable'
 
-module.exports = class Stage extends Renderable
+module.exports = class Stage
 	
 	constructor: -> @_stage = new PIXI.Stage()
 	

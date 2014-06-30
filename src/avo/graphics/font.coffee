@@ -11,31 +11,31 @@ module.exports = class Font
 		@_family = ''
 		@_size = 12
 	
-	textNode = ->
+	@textNode: (text, style) ->
 	
 		node = window.document.createElement 'span'
 		# Characters that vary significantly among different fonts
-		node.innerHTML = 'giItT1WQy@!-/#'
+		node.innerHTML = text
 		# Visible - so we can measure it - but not on the screen
 		node.style.position      = 'absolute'
 		node.style.left          = '-10000px'
 		node.style.top           = '-10000px'
-		# Large font size makes even subtle changes obvious
-		node.style.fontSize      = "300px"
-		# Reset any font properties
-		node.style.fontFamily    = 'sans-serif'
-		node.style.fontVariant   = 'normal'
-		node.style.fontStyle     = 'normal'
-		node.style.fontWeight    = 'normal'
+		
+		node.style.font = style
 		
 		node
+	
+	family: -> @_family
 	
 	# Adapted from http://stackoverflow.com/a/11689060
 	pollForLoadedFont = (font) ->
 		
 		new Promise (resolve, reject) ->
 		
-			window.document.body.appendChild node = textNode()
+			window.document.body.appendChild node = Font.textNode(
+				'giItT1WQy@!-/#'
+				'sans-serif 300px'
+			)
 			
 			width = node.offsetWidth
 			
