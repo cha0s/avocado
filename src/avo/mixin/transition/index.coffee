@@ -19,15 +19,25 @@
 # [jQuery.animate](http://api.jquery.com/animate/), though the API is ***NOT***
 # compatible.
 
+Promise = require 'avo/vendor/bluebird'
+
+FunctionExt = require 'avo/extension/function'
+String = require 'avo/extension/string'
+
 timing = require 'avo/timing'
 
-Mixin = require './index'
-Promise = require 'avo/vendor/bluebird'
-String = require 'avo/extension/string'
+EventEmitter = require '../eventEmitter'
+Mixin = require '../index'
 
 TransitionResult = class TransitionResult
 	
+	mixins = [
+		EventEmitter
+	]
+	
 	constructor: (@_object, @_props, speed, easing) ->
+		
+		mixin.call this for mixin in mixins
 		
 		# Speed might not get passed. If it doesn't, default to 100
 		# milliseconds.
@@ -66,6 +76,8 @@ TransitionResult = class TransitionResult
 		
 		@_elapsed = 0
 		@_duration = @_speed / 1000
+		
+	FunctionExt.fastApply Mixin, [@::].concat mixins
 
 	# Immediately finish the transition. This will leave the object
 	# in the fully transitioned state.
@@ -81,7 +93,7 @@ TransitionResult = class TransitionResult
 	stopTransition: ->
 	
 		# Let any listeners know that the transition is complete.
-#		@_deferred.progress [@_elapsed, @_duration]
+		@emit 'progress', [@_elapsed, @_duration]
 		@_deferred.resolve()
 
 	# Tick callback. Called repeatedly while this transition is
@@ -115,8 +127,8 @@ TransitionResult = class TransitionResult
 		# Stop if we're done.
 		if @_elapsed is @_duration
 			@stopTransition()
-#		else
-#			@_deferred.progress [@_elapsed, @_duration]
+		else
+			@emit 'progress', [@_elapsed, @_duration]
 
 module.exports = Transition = class					
 
@@ -156,8 +168,6 @@ module.exports = Transition = class
 		
 		new TransitionResultOutOfBand @, props, speed, easing
 
-Transition.Mixin = (O) -> Mixin O, Transition
-
 Transition.OutOfBand = Transition
 
 Transition.InBand = class					
@@ -175,64 +185,6 @@ Transition.InBand = class
 	) ->
 		
 		new TransitionResultInBand @, props, speed, easing
-
-Transition.InBand.Mixin = (O) -> Mixin O, Transition.InBand
-
-Transition.Vector = class
-
-	constructor: (vector, Type = Transition) ->
-		
-		@[0] = vector[0]
-		@[1] = vector[1]
-		
-		Mixin this, Type
-		
-	x: -> @[0]
-	setX: (x) -> @[0] = x
-	y: -> @[1]
-	setY: (y) -> @[1] = y
-
-Transition.Vector.OutOfBand = Transition.Vector
-
-Transition.Vector.InBand = class extends Transition.Vector
-
-	constructor: (vector) ->
-		
-		@[0] = vector[0]
-		@[1] = vector[1]
-		
-		Mixin this, Transition.InBand
-		
-	x: -> @[0]
-	setX: (x) -> @[0] = x
-	y: -> @[1]
-	setY: (y) -> @[1] = y
-	
-	vector: -> this
-
-Transition.Value = class
-
-	constructor: (value, key = 'value', Type = Transition) ->
-		
-		@["_#{key}"] = value
-		
-		@[key] = -> @["_#{key}"]
-		@[String.setterName key] = (value) -> @["_#{key}"] = value
-		
-		Mixin this, Type
-
-Transition.Value.OutOfBand = Transition.Value
-
-Transition.Value.InBand = class extends Transition.Value
-
-	constructor: (value, key = 'value') ->
-		
-		@["_#{key}"] = value
-		
-		@[key] = -> @["_#{key}"]
-		@[String.setterName key] = (value) -> @["_#{key}"] = value
-		
-		Mixin this, Transition.InBand
 
 # Registered easing functions. An easing function is a parametric equation
 # that determines the value of a property over the time length of the
