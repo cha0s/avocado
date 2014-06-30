@@ -22,7 +22,7 @@ class Color
 		
 	toCss: -> "rgba(#{@red()}, #{@green()}, #{@blue()}, #{@alpha()})"
 	
-	toInteger: -> (@red() << 16) | (@blue() << 8) | @green()
+	toInteger: -> (@red() << 16) | (@green() << 8) | @blue()
 		
 	FunctionExt.fastApply Mixin, [@::].concat mixins	
 
