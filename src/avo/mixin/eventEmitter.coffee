@@ -42,14 +42,16 @@ module.exports = EventEmitter = class
 			[eventNamesOrEventName]
 		
 		
+		f.__once = false
+		(f.__that ?= []).push that
+		
 		for eventName in eventNames
 			info = parseEventName eventName
 			
-			f.__namespace = info.namespace
 			f.__event = info.event
-			f.__once = false
-			(f.__that ?= []).push that
 			(@_events[info.event] ?= []).push f
+			
+			f.__namespace = info.namespace
 			((@_events[info.namespace] ?= {})[info.event] ?= []).push f
 			
 		return
