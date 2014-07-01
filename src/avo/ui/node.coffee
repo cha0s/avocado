@@ -108,6 +108,7 @@ module.exports = class DomNode
 				scale[1]
 			})"
 			
+			@_node.style["#{prefix}transform-origin"] = "0 0 0"
 			@_node.style["#{prefix}transformOrigin"] = "0 0 0"
 			
 		return
