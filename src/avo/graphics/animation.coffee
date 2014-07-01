@@ -31,14 +31,11 @@ module.exports = Animation = class Animation
 		
 	mixins = [
 		EventEmitter
-		Property 'alpha', 1
-#		Property 'blendMode', Graphics.GraphicsService.BlendMode_Blend
 		DirectionProperty = Property 'direction', 0
 		Property 'directionCount', 1
 		Property 'frameSize', [0, 0]
 		ImageProperty = Property 'image', null
 		VectorMixin 'position'
-		Property 'scale', [1, 1]
 		TimedIndex 'frame'
 		Property 'uri', ''
 	]
@@ -51,7 +48,6 @@ module.exports = Animation = class Animation
 		@_sprite = null
 		@_ticker = null
 		
-#		@on 'alphaChanged', => @_sprite.setAlpha @alpha()
 		@on 'imageChanged', =>
 			if @_sprite?
 				@_sprite.setSource @image()
@@ -59,8 +55,7 @@ module.exports = Animation = class Animation
 				@_sprite = new Sprite @image()
 			
 		@on 'positionChanged', => @_sprite.setPosition @position()
-#		@on 'blendModeChanged', => @_sprite.setBlendMode @blendMode()
-#		@on 'scaleChanged', => @_sprite.setScale @scale()
+
 		@on(
 			[
 				'directionChanged'
@@ -68,8 +63,7 @@ module.exports = Animation = class Animation
 				'imageChanged'
 				'indexChanged'
 			]
-			=>
-				@_sprite.setSourceRectangle @sourceRectangle()
+			=> @_sprite.setSourceRectangle @sourceRectangle()
 		)
 	
 	FunctionExt.fastApply Mixin, [@::].concat mixins
