@@ -17,6 +17,11 @@ module.exports = Corporeal = class extends Trait
 		rotation: 0
 		size: [0, 0]
 		
+	constructor: ->
+		super
+		
+		@_zIndex = 0
+		
 	properties: ->
 		
 		direction: set: (direction) ->
@@ -64,20 +69,8 @@ module.exports = Corporeal = class extends Trait
 		
 		y: -> @state.position[1]
 		
-		zIndex: ->
+		zIndex: -> @_zIndex
 			
-			zIndexInvocations = @entity.invoke 'zIndex'
-			
-			# If no one cared about movement, we'll just use y.
-			if zIndexInvocations.length is 0
-				
-				@entity.y()
-				
-			else
-				
-				# ???
-				zIndexInvocations[0]
-	
 	actions: ->
 		
 		forceMove: (vector, force) ->
@@ -110,3 +103,23 @@ module.exports = Corporeal = class extends Trait
 		setX: (x) -> @entity.setPosition [x, @state.position[1]]
 			
 		setY: (y) -> @entity.setPosition [@state.position[0], y]
+		
+	signals: ->
+		
+		positionChanged: -> @entity.emit 'updateZIndex'
+		
+		traitsChanged: -> @entity.emit 'updateZIndex'
+		
+		updateZIndex: ->
+
+			zIndexInvocations = @entity.invoke 'zIndex'
+			
+			# If no one cared about movement, we'll just use y.
+			if zIndexInvocations.length is 0
+				
+				@_zIndex = @state.position[1]
+				
+			else
+				
+				# ???
+				@_zIndex = zIndexInvocations[0]

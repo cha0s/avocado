@@ -1,4 +1,5 @@
 
+_ = require 'avo/vendor/underscore'
 Promise = require 'avo/vendor/bluebird'
 
 Vector = require 'avo/extension/vector'
@@ -31,10 +32,8 @@ module.exports = class Illustrated extends Trait
 			
 			# Look for images in the entity directory if no URI was
 			# explicitly given.
-			O.uri = @entity.uri().replace(
-				'.entity.json',
-				'/' + imageIndex + '.png'
-			) unless O.uri?
+			unless O.uri?
+				O.uri = "#{@entity.uri()}/illustrations/#{imageIndex}.png"
 			
 			do (imageIndex, O) =>
 				Image.load(O.uri).then (image) =>
@@ -107,7 +106,7 @@ module.exports = class Illustrated extends Trait
 		# Delete image URIs that are just using the entity's uri, since
 		# that's the default.
 		if state.images?
-			uri = @entity.uri().replace '.entity.json', ''
+			uri = @entity.uri().replace 'index.entity.json', 'illustrations'
 			
 			for index, image of state.images
 				if image.uri is "#{uri}/#{index}.png"

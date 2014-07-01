@@ -22,8 +22,30 @@ module.exports = class Parent extends Trait
 				
 				child.setParent @entity
 				@_children.push child
+		
+	actions: ->
+		
+		addChild: (child) ->
+			
+			@_children.push child
+			child.setParent @entity
+			
+			@entity.emit 'childrenChanged'
+				
+		removeChild: (child) ->
+			
+			return if -1 is (index = @_children.indexOf child)
+			
+			@_children.splice index, 1
+			
+			@entity.emit 'childrenChanged'
 				
 	values: ->
 		
 		children: -> @_children
 		
+		hasChild: (child) -> -1 isnt @_children.indexOf child
+	
+	hooks: ->
+		
+		takesHarmFrom: (entity) -> not @entity.hasChild entity

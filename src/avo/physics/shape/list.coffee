@@ -48,13 +48,13 @@ module.exports = class ShapeList
 			
 			@_container.removeAllChildren()
 			
+			@_container.addChild @_primitives
+				
 			for shape in @_shapes
 				
 				shape.on 'aabbChanged', => @emit 'aabbChanged'
 				
 				@_container.addChild shape.primitives()
-				
-			@_container.addChild @_primitives
 				
 		@on 'originChanged', =>
 			for shape in @_shapes
@@ -69,13 +69,6 @@ module.exports = class ShapeList
 				shape.setParentScale @scale()
 				
 	FunctionExt.fastApply Mixin, [@::].concat mixins
-	
-#	_drawAabb: ->
-#		
-#		@_primitives.drawRectangle(
-#			@aabb()
-#			Primitives.LineStyle color 255, 255, 0
-#		)
 	
 	fromObject: (O) ->
 	
@@ -115,10 +108,13 @@ module.exports = class ShapeList
 			max[0] = Math.max max[0], aabb[0] + aabb[2]
 			max[1] = Math.max max[1], aabb[1] + aabb[3]
 			
-		[
-			min[0], min[1]
-			max[0] - min[0], max[1] - min[1]
-		]
+		Rectangle.translated(
+			[
+				min[0], min[1]
+				max[0] - min[0], max[1] - min[1]
+			]
+			@positionWithOrigin()
+		)
 	
 	container: -> @_container
 		
@@ -126,21 +122,10 @@ module.exports = class ShapeList
 		
 		return false if @_shapes.length is 0
 		
-		return false unless Rectangle.intersects(
-			Rectangle.translated(
-				@aabb()
-				@positionWithOrigin()
-			)
-			Rectangle.translated(
-				shapeList.aabb()
-				shapeList.positionWithOrigin()
-			)
-		)
+		return false unless Rectangle.intersects @aabb(), shapeList.aabb()
 		
 		for shape in @_shapes
-			
 			for otherShape in shapeList._shapes
-				
 				if Rectangle.intersects(
 					Rectangle.translated(
 						shape.aabb()
@@ -150,9 +135,7 @@ module.exports = class ShapeList
 						otherShape.aabb()
 						shapeList.positionWithOrigin()
 					)
-				
 				)
-					
 					return self: shape, other: otherShape
 
 		false

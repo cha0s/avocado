@@ -1,15 +1,9 @@
 
 Mixin = require 'avo/mixin'
-Property = require 'avo/mixin/property'
 VectorMixin = require 'avo/mixin/vector'
 
 FunctionExt = require 'avo/extension/function'
-Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
-Vertice = require 'avo/extension/vertice'
-
-color = require 'avo/graphics/color'
-Primitives = require 'avo/graphics/primitives'
 
 Shape = require './index'
 ShapePolygon = require './polygon'

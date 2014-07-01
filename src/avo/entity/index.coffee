@@ -164,7 +164,7 @@ module.exports = Entity = class Entity
 		)
 
 	# Check whether this Entity has a trait.
-	hasTrait: (traitName) -> @_traits[traitName]?
+	is: (traitName) -> @_traits[traitName]?
 	
 	# Invoke a hook with the specified arguments. Returns an array of responses
 	# from hook implementations.
@@ -177,9 +177,10 @@ module.exports = Entity = class Entity
 	
 		for type, trait of @_traits
 			continue if not trait._hooks[hook]?
-			continue unless results = FunctionExt.fastApply(
+			
+			continue unless (results = FunctionExt.fastApply(
 				trait._hooks[hook], args, trait
-			)
+			))?
 			results
 	
 	# Invoke a method with arguments if it exists on this entity.
@@ -322,6 +323,8 @@ module.exports = Entity = class Entity
 
 		loadObject = (uri) ->
 	
+			uri += '/index.entity.json'
+		
 			fs.readJsonResource(uri).then (O) ->
 				
 				{parent, traits} = O

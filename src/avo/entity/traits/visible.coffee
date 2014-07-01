@@ -15,7 +15,6 @@ module.exports = class Visible extends Trait
 		super
 		
 		@_localContainer = new Container()
-		@_localContainer.internal().entity = @entity
 	
 	initialize: ->
 		
