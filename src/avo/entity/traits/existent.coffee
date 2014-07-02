@@ -1,9 +1,13 @@
 
-Timing = require 'avo/timing'
+Promise = require 'avo/vendor/bluebird'
 
 FunctionExt = require 'avo/extension/function'
+
+Transition = require 'avo/mixin/transition'
 Lfo = require 'avo/mixin/lfo'
-Promise = require 'avo/vendor/bluebird'
+
+Timing = require 'avo/timing'
+
 Trait = require './trait'
 
 module.exports = Existent = class extends Trait
@@ -26,6 +30,21 @@ module.exports = Existent = class extends Trait
 			
 			state.setPromise lfo.promise
 			state.setTicker -> lfo.tick()
+			
+		transition: (properties, duration, easing, state) ->
+			
+			unless state?
+				state = easing
+				easing = null
+				
+			transition = FunctionExt.fastApply(
+				Transition.InBand::transition
+				[properties, duration, easing]
+				@entity
+			)
+			
+			state.setPromise transition.promise
+			state.setTicker -> transition.tick()
 			
 		signal: -> FunctionExt.fastApply @entity.emit, arguments, @entity
 	
