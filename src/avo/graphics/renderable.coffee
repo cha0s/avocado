@@ -1,6 +1,8 @@
 
 FunctionExt = require 'avo/extension/function'
 
+color = require 'avo/graphics/color'
+
 EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
 Transition = require 'avo/mixin/transition'
@@ -88,6 +90,40 @@ module.exports = class Renderable
 	setX: (x) -> @internal().position.x = x
 	
 	setY: (y) -> @internal().position.y = y
+	
+	setTintRed: (red) ->
+		
+		color_ = color.fromInteger @internal().tint
+		color_.setRed red
+		@internal().tint = color_.toInteger()
+	
+	setTintGreen: (green) ->
+		
+		color_ = color.fromInteger @internal().tint
+		color_.setGreen green
+		@internal().tint = color_.toInteger()
+	
+	setTintBlue: (blue) ->
+		
+		color_ = color.fromInteger @internal().tint
+		color_.setBlue blue
+		@internal().tint = color_.toInteger()
+	
+	setTint: (color) -> @internal().tint = color.toInteger()
+		
+	tintRed: ->
+		
+		color.fromInteger(@internal().tint).red()
+	
+	tintGreen: (green) ->
+		
+		color.fromInteger(@internal().tint).green()
+	
+	tintBlue: (blue) ->
+		
+		color.fromInteger(@internal().tint).blue()
+	
+	tint: (color) -> color.fromInteger @internal().tint
 		
 	x: -> @internal().position.x
 	
