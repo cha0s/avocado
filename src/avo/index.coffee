@@ -95,13 +95,18 @@ tickInterval = null
 
 # [Fix your timestep!](http://gafferongames.com/game-physics/fix-your-timestep/)
 lastElapsed = 0
-ticksPerSecondTarget = 120
+ticksPerSecondTarget = config.get 'timing:ticksPerSecond'
 tickFrequency = 1000 / ticksPerSecondTarget
 tickTargetSeconds = 1 / ticksPerSecondTarget
 tickRemainder = 0
 timing.setTickElapsed tickTargetSeconds
 
 originalTimestamp = Date.now()
+
+dispatchTick = ->
+
+	handleStateTransition()
+	stateInstance?.tick()
 
 tickCallback = ->
 
@@ -110,12 +115,25 @@ tickCallback = ->
 		timing.setElapsed elapsed = (Date.now() - originalTimestamp) / 1000
 		tickRemainder += elapsed - lastElapsed
 		lastElapsed = elapsed
+		ticksToDispatch = Math.floor tickRemainder / tickTargetSeconds
 		
-		while tickRemainder >= tickTargetSeconds
-			handleStateTransition()
-			stateInstance?.tick()
+		if ticksToDispatch < 3
 		
-			tickRemainder -= tickTargetSeconds
+			while tickRemainder >= tickTargetSeconds
+				
+				dispatchTick()
+			
+				tickRemainder -= tickTargetSeconds
+				
+		else
+			
+			tickTime = tickTargetSeconds * ticksToDispatch
+			tickRemainder -= tickTime
+			timing.setTickElapsed tickTime
+			
+			dispatchTick()
+			
+			timing.setTickElapsed tickTargetSeconds
 			
 	catch error
 		
