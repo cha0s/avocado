@@ -15,6 +15,10 @@ config.input =
 	
 	mouseMovePerSecond: 50
 
+config.timing =
+	
+	ticksPerSecond: 60
+
 if process? and process.versions['node-webkit']
 	
 	config.platform = 'node-webkit'
