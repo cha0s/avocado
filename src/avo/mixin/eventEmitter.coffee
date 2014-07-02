@@ -135,20 +135,31 @@ module.exports = EventEmitter = class
 	emit: (name) ->
 		return if not @_events[name]?
 		
-		args = (arg for arg, i in arguments when i > 0)
-		
 		for f in @_events[name]
 			@off "#{name}.#{f.__namespace}", f if f.__once
 			
 			for that in f.__that
 				
 				# Fast path...
-				if that is null and args.length is 0
+				if that is null and arguments.length is 1
 					f()
-					continue
+				else if arguments.length is 1
+					f.call that
+				else if arguments.length is 2
+					f.call that, arguments[1]
+				else if arguments.length is 3
+					f.call that, arguments[1], arguments[2]
+				else if arguments.length is 4
+					f.call that, arguments[1], arguments[2], arguments[3]
+				else if arguments.length is 5
+					f.call that, arguments[1], arguments[2], arguments[3], arguments[4]
+				else if arguments.length is 6
+					f.call that, arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]
+				else
+					args = []
+					args.push arguments[i] for i in [1...arguments.length]
+					f.apply that, args
 				
-				FunctionExt.fastApply f, args, that
-			
 		return
 
 EventEmitter.Mixin = (O) -> Mixin O, EventEmitter
