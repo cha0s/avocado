@@ -91,7 +91,7 @@ module.exports = class LayerView
 		
 	renderChunks: ->
 
-		chunkSize = [512, 512]
+		chunkSize = [1024, 1024]
 		
 		chunkArea = Vector.ceil Vector.div(
 			@_layer.sizeInPx()
