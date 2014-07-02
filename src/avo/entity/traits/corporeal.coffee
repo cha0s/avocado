@@ -73,7 +73,7 @@ module.exports = Corporeal = class extends Trait
 			
 	actions: ->
 		
-		forceMove: (vector, force) ->
+		applyImpulse: (vector, force) ->
 			return if @entity.immovable()
 			
 			moveInvocations = @entity.invoke(

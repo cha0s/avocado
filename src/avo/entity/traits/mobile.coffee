@@ -36,7 +36,7 @@ module.exports = class extends Trait
 			
 			return unless @entity.isMobile()
 			
-			@entity.forceMove vector, @entity.movingSpeed()
+			@entity.applyImpulse vector, @entity.movingSpeed()
 
 		moveToward:
 			
@@ -73,5 +73,3 @@ module.exports = class extends Trait
 					
 					timeout -= timing.tickElapsed()
 					deferred.resolve() if timeout <= 0
-				
-				ticker = @entity.addTicker ticker
