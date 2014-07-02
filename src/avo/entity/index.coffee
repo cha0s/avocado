@@ -6,6 +6,8 @@ Promise = require 'avo/vendor/bluebird'
 _ = require 'avo/vendor/underscore'
 uuid = require 'avo/vendor/uuid'
 
+behaviorContext = require 'avo/behavior/context'
+
 FunctionExt = require 'avo/extension/function'
 String = require 'avo/extension/string'
 
@@ -26,7 +28,9 @@ module.exports = Entity = class Entity
 	constructor: ->
 		mixin.call @ for mixin in mixins
 		
-		@_context = {}
+		@_context = behaviorContext.defaultContext()
+		@_context.entity = this
+		
 		@_originalTraits = {}
 		@_tickers = []
 		@_traits = {}
@@ -174,14 +178,18 @@ module.exports = Entity = class Entity
 			arg for arg, i in arguments when i > 0
 		else
 			[]
-	
+		
+		results = []
+		
 		for type, trait of @_traits
 			continue if not trait._hooks[hook]?
 			
-			continue unless (results = FunctionExt.fastApply(
+			continue unless (result = FunctionExt.fastApply(
 				trait._hooks[hook], args, trait
 			))?
-			results
+			results.push result
+			
+		results
 	
 	# Invoke a method with arguments if it exists on this entity.
 	optional: (name, args...) ->
