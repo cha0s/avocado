@@ -91,10 +91,36 @@ module.exports = class Illustrated extends Trait
 
 		rotationChanged: ->	@_snapRotation()
 	
+	actions: ->
+	
+		setScaleX: (x) -> @_sprites[@state.imageIndex].setScaleX x
+		
+		setScaleY: (y) -> @_sprites[@state.imageIndex].setScaleY y
+		
+		setTintRed: (red) -> @_sprites[@state.imageIndex].setTintRed red
+			
+		setTintGreen: (green) -> @_sprites[@state.imageIndex].setTintGreen green
+			
+		setTintBlue: (blue) -> @_sprites[@state.imageIndex].setTintBlue blue
+			
+		setTint: (color) -> @_sprites[@state.imageIndex].setTint color
+		
 	values: ->
 		
 		image: -> @_sprites[@state.imageIndex].image() 
+		
+		scaleX: -> @_sprites[@state.imageIndex].scaleX()
+		
+		scaleY: -> @_sprites[@state.imageIndex].scaleY()
 
+		tintRed: -> @_sprites[@state.imageIndex].tintRed()
+			
+		tintGreen: -> @_sprites[@state.imageIndex].tintGreen()
+			
+		tintBlue: -> @_sprites[@state.imageIndex].tintBlue()
+			
+		tint: -> @_sprites[@state.imageIndex].tint()
+			
 	toJSON: ->
 		
 		O = super
