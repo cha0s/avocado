@@ -9,7 +9,7 @@ module.exports = Behavioral = class extends Trait
 
 	stateDefaults: ->
 		
-		behaving: true
+		isBehaving: true
 		routineIndex: 'initial'
 		routines: {}
 		rules: []
@@ -31,10 +31,11 @@ module.exports = Behavioral = class extends Trait
 		
 	properties: ->
 		
-		behaving: {}
+		isBehaving: {}
 		routineIndex:
 
 			set: (routineIndex) ->
+				
 				@_routines.setIndex @state.routineIndex = routineIndex
 		
 	actions: ->
@@ -47,10 +48,14 @@ module.exports = Behavioral = class extends Trait
 		
 		ticker: ->
 			
-			return unless @entity.behaving()
+			return unless @entity.isBehaving()
 			
 			@_rules.invoke @entity.context()
 			
 			@_routines.routine().invoke @entity.context()
 			
 			return
+
+	signals: ->
+		
+		dying: -> @entity.setIsBehaving false
