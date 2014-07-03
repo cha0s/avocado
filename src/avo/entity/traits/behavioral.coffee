@@ -1,4 +1,5 @@
 
+Actions = require 'avo/behavior/actions'
 Routines = require 'avo/behavior/routines'
 Rules = require 'avo/behavior/rules'
 
@@ -13,18 +14,21 @@ module.exports = Behavioral = class extends Trait
 		routineIndex: 'initial'
 		routines: {}
 		rules: []
+		staticActions: []
 	
 	constructor: (entity, state) ->
 		super
 		
 		@_routines = new Routines()
 		@_rules = new Rules()
+		@_staticActions = new Actions()
 		
 	initialize: ->
 		
 		Promise.allAsap [
 			@_routines.fromObject @state.routines
 			@_rules.fromObject @state.rules
+			@_staticActions.fromObject @state.staticActions
 		], =>
 			
 			@_routines.setIndex @state.routineIndex
@@ -50,9 +54,11 @@ module.exports = Behavioral = class extends Trait
 			
 			return unless @entity.isBehaving()
 			
-			@_rules.invoke @entity.context()
+			context = @entity.context()
 			
-			@_routines.routine().invoke @entity.context()
+			@_routines.routine().invoke context
+			@_rules.invoke context
+			@_staticActions.invoke context
 			
 			return
 
