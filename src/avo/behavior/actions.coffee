@@ -23,6 +23,7 @@ module.exports = class Actions extends Collection 'actions'
 		@_state = null
 	
 	invoke: (context) ->
+		return if @_actions.length is 0
 		
 		if @_state?
 			
