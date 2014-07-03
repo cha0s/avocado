@@ -25,7 +25,7 @@ module.exports = class Visible extends Trait
 			@entity.emit 'addToLocalContainer', @_localContainer
 			
 		@_localContainer.setIsVisible @state.isVisible
-			
+	
 	actions: ->
 		
 		setIsVisible: (isVisible) ->

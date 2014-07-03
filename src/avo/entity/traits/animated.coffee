@@ -50,26 +50,25 @@ module.exports = class Animated extends Trait
 			
 		Promise.all animationPromises
 	
-	_setAnimationPosition: (animationIndex, position) ->
-	
-		@_animations[animationIndex].sprite().setPosition Vector.add(
-			position
-			Vector.scale(
-				@state.animations[animationIndex].offset ? [0, 0]
-				-1
-			)
-		)
-		
 	_snapPosition: ->
+		
 		for i, animation of @_animations
 			animation.sprite().setPosition Vector.sub(
 				@entity.position()
-				@state.animations[i].offset ? [0, 0]
+				Vector.add(
+					@entity.offset()
+					@state.animations[i].offset ? [0, 0]
+				)
 			)
 			
+		return
+			
 	_snapRotation: ->
+		
 		for i, animation of @_animations
 			animation.sprite().setRotation @entity.rotation()
+			
+		return
 			
 	properties: ->
 		

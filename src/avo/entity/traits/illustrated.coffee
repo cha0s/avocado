@@ -45,23 +45,28 @@ module.exports = class Illustrated extends Trait
 					
 		Promise.all imagePromises
 	
-	_setImagePosition: (imageIndex, position) ->
-	
-		@_sprites[imageIndex].setPosition Vector.add(
-			position
-			Vector.scale(
-				@state.images[imageIndex].offset ? [0, 0]
-				-1
-			)
-		)
-	
 	_snapPosition: ->
+		
 		for i, sprite of @_sprites
-			@_setImagePosition i, @entity.position()
+			sprite.setPosition Vector.add(
+				@entity.position()
+				Vector.scale(
+					Vector.add(
+						@entity.offset()
+						@state.images[i].offset ? [0, 0]
+					)
+					-1
+				)
+			)
+			
+		return
 			
 	_snapRotation: ->
+		
 		for i, sprite of @_sprites
 			sprite.setRotation @entity.rotation()
+			
+		return
 			
 	properties: ->
 		
