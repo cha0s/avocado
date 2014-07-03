@@ -24,11 +24,11 @@ module.exports = class Child extends Trait
 	
 		position = Vector.copy @_parent.position()
 		
-		for attachedOffset in @entity.invoke 'attachedOffset'
-			position = Vector.add(
-				position
-				attachedOffset
-			)
+	
+		position = Vector.add(
+			position
+			attachedOffset
+		) for attachedOffset in @entity.invoke 'attachedOffset'
 		
 		@entity.setPosition position
 		
