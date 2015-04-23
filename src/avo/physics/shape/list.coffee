@@ -40,7 +40,10 @@ module.exports = class ShapeList
 			@_primitives.clear()
 			
 			@_primitives.drawRectangle(
-				@aabb()
+				Rectangle.translated(
+					@aabb()
+					Vector.scale @positionWithOrigin(), -1
+				)
 				Primitives.LineStyle color 255, 0, 255
 			)
 			
