@@ -2,52 +2,52 @@
 _ = require 'avo/vendor/underscore'
 Promise = require 'avo/vendor/bluebird'
 
-#Promise.longStackTraces()
+config = require 'avo/config'
 
-Promise.asap = (promiseOrValue, fulfilled, rejected, progressed) ->
-	
+# Much more debugging information for promises.
+Promise.longStackTraces() if config.get 'promises:longStackTraces'
+
+Promise.asap = (promiseOrValue, fulfilled, rejected) ->
+
 	if Promise.is promiseOrValue
-		
-		promiseOrValue.then fulfilled, rejected, progressed
-	
+
+		promiseOrValue.then(fulfilled).catch rejected
+
 	else
-		
+
 		try
-		
-			(fulfilled ? _.identity) promiseOrValue
-			
+
+			fulfilled? promiseOrValue
+
 		catch error
-			
+
 			rejected? error
 
-Promise.allAsap = (promisesOrValues, fulfilled, rejected, progressed) ->
+Promise.allAsap = (promisesOrValues, fulfilled, rejected) ->
 
-	if _.some promisesOrValues, Promise.is
-		
-		promises = _.filter(
-			promisesOrValues
-			(promiseOrValue) -> Promise.is promiseOrValue
-		)
-		
-		fulfilled ?= ->
-		
-		Promise.all(
-			promises
-		).then(
-			->
-				fulfilled _.map promisesOrValues, (promiseOrValue) ->
-					if Promise.is promiseOrValue
-						promiseOrValue.value()
-					else
-						promiseOrValue
+	promises = _.filter(
+		promisesOrValues
+		(promiseOrValue) -> Promise.is promiseOrValue
+	)
 
-			rejected
-		)
-		
+	if promises.length
+
+		Promise.all(promises).then((values) ->
+
+			fulfilled? values
+
+		).catch rejected
+
 	else
-		
-		(fulfilled ? _.identity) (value for value in promisesOrValues)
 
-Promise.when = (promiseOrValue, resolved, rejected, progressed) ->
+		try
 
-	Promise.cast(promiseOrValue).then resolved, rejected, progressed
+			fulfilled? (value for value in promisesOrValues)
+
+		catch error
+
+			rejected? error
+
+Promise.when = (promiseOrValue, resolved, rejected) ->
+
+	Promise.cast(promiseOrValue).then resolved, rejected
