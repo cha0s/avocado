@@ -52,7 +52,7 @@ module.exports = EventEmitter = class
 			(@_events[info.event] ?= []).push f
 			
 			f.__namespace = info.namespace
-			((@_events[info.namespace] ?= {})[info.event] ?= []).push f
+			((@_namespaces[info.namespace] ?= {})[info.event] ?= []).push f
 			
 		return
 		
@@ -123,7 +123,7 @@ module.exports = EventEmitter = class
 		
 		# Only a namespace? Remove all events associated with it.
 		for namespace, events of @_namespaces
-			for f in events[info.event]
+			for f in events[info.event] ? []
 				delete events[info.event]
 				if (index = @_events.indexOf f)?
 					@_events.splice index, 1
