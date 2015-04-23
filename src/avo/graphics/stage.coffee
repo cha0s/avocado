@@ -10,7 +10,10 @@ Renderable = require './renderable'
 
 module.exports = class Stage
 	
-	constructor: -> @_stage = new PIXI.Stage()
+	constructor: ->
+		
+		@_stage = new PIXI.Stage()
+		@_stage.interactive = false
 	
 	addChild: (child) -> @_stage.addChild child.internal()
 	

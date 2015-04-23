@@ -76,7 +76,7 @@ module.exports = Animation = class Animation
 		]
 			@[String.setterName property] O[property] if O[property]?
 		
-		Image.load(O.imageUri).then (image) =>
+		Image.loadWithoutCache(O.imageUri).then (image) =>
 			
 			@setImage image, O.frameSize
 			

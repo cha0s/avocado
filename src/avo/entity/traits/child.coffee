@@ -42,17 +42,15 @@ module.exports = class Child extends Trait
 				@_setPositionFromParent()
 				@_parent.on 'positionChanged', => @_setPositionFromParent()
 					
-	hooks: ->
+	values: ->
 		
-		zIndex: ->
-			return unless (parent = @entity.parent())?
+		customZIndex: ->
+			return @entity.y() unless (parent = @entity.parent())?
 			
 			if @state.isAbove
 				parent.y() + .0001
 			else
 				parent.y() - .0001
 				
-	values: ->
-		
 		parent: -> @_parent
 		

@@ -14,15 +14,15 @@ module.exports = Existent = class extends Trait
 
 	stateDefaults: ->
 		
-		isDestroyed: false
 		name: 'Untitled'
 		
 	properties: ->
 		
-		isDestroyed: {}
 		name: {}
 	
 	actions: ->
+		
+		destroy: -> @entity.emit 'destroyed'
 		
 		lfo: (properties, duration, state) ->
 			

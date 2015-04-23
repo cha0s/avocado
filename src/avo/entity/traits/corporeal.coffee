@@ -1,9 +1,13 @@
 
+FunctionExt = require 'avo/extension/function'
+Rectangle = require 'avo/extension/rectangle'
+Vector = require 'avo/extension/vector'
+
+Transition = require 'avo/mixin/transition'
+
 timing = require 'avo/timing'
 
-Rectangle = require 'avo/extension/rectangle'
 Trait = require './trait'
-Vector = require 'avo/extension/vector'
 
 module.exports = Corporeal = class extends Trait
 
@@ -15,7 +19,6 @@ module.exports = Corporeal = class extends Trait
 		offset: [0, 0]
 		position: [-10000, -10000]
 		rotation: 0
-		size: [0, 0]
 		
 	constructor: ->
 		super
@@ -41,29 +44,16 @@ module.exports = Corporeal = class extends Trait
 			set: (position) -> @state.position = Vector.copy position
 			eq: (l, r) -> Vector.equals l, r
 		rotation: {}
-		size:
-			set: (size) -> @state.size = Vector.copy size
-			eq: (l, r) -> Vector.equals l, r
 			
 	values: ->
 		
-		height: -> @state.size[1]
+		hypotenuseToEntity: (entity) ->
+			
+			Vector.hypotenuse entity.position(), @state.position
 		
 		offsetX: -> @state.offset[0]
 		
 		offsetY: -> @state.offset[1]
-		
-		rectangle: ->
-				
-			Rectangle.compose(
-				Vector.sub(
-					@state.position
-					Vector.scale @state.size, .5
-				)
-				@state.size
-			)
-		
-		width: -> @state.size[0]
 		
 		x: -> @state.position[0]
 		
@@ -76,30 +66,41 @@ module.exports = Corporeal = class extends Trait
 		applyImpulse: (vector, force) ->
 			return if @entity.immovable()
 			
-			moveInvocations = @entity.invoke(
-				'moveRequest'
-				vector, force
-			)
-			
-			# If no one cared about movement, we'll just do naive movement.
-			if moveInvocations.length is 0
+			if @entity.physicsApplyImpulse?
 				
+				@entity.physicsApplyImpulse vector, force
+				
+			# Naive movement.
+			else
+			
 				@entity.setPosition Vector.add(
 					@entity.position()
-					Vector.scale(
-						vector
-						timing.tickElapsed() * force
-					)
+					Vector.scale vector, timing.tickElapsed() * force
 				)
-				
-		setHeight: (height) -> @entity.setSize [@state.size[0], height]
+		
+		quickElastic: (properties, duration, state) ->
 			
+			elapsedSoFar = 0
+			
+			transitionResult = FunctionExt.fastApply(
+				Transition.InBand::transition
+				[properties, duration * 3, 'easeOutElastic']
+				@entity
+			)
+			
+			state.setTicker ->
+				
+				if duration <= elapsedSoFar += timing.tickElapsed() * 1000
+					transitionResult.skipTransition()
+				
+				transitionResult.tick()
+				
+			state.setPromise transitionResult.promise
+				
 		setOffsetX: (x) -> @entity.setOffset [x, @entity.offsetY()]
 		
 		setOffsetY: (y) -> @entity.setOffset [@entity.offsetX(), y]
 		
-		setWidth: (width) -> @entity.setSize [width, @state.size[1]]
-			
 		setX: (x) -> @entity.setPosition [x, @state.position[1]]
 			
 		setY: (y) -> @entity.setPosition [@state.position[0], y]
@@ -111,15 +112,12 @@ module.exports = Corporeal = class extends Trait
 		traitsChanged: -> @entity.emit 'updateZIndex'
 		
 		updateZIndex: ->
-
-			zIndexInvocations = @entity.invoke 'zIndex'
 			
+			@_zIndex = if @entity.customZIndex?
+				
+				@entity.customZIndex()
+				
 			# If no one cared about movement, we'll just use y.
-			if zIndexInvocations.length is 0
-				
-				@_zIndex = @state.position[1]
-				
 			else
 				
-				# ???
-				@_zIndex = zIndexInvocations[0]
+				@state.position[1]

@@ -36,23 +36,26 @@ module.exports = class extends Trait
 			
 			return unless @entity.isMobile()
 			
-			@entity.applyImpulse vector, @entity.movingSpeed()
-
-		moveToward:
+			if @entity.physicsApplyMovement?
+				
+				@entity.physicsApplyMovement vector, @entity.movingSpeed()
 			
-			f: (destination, timeout = Infinity, state) ->
+			else
+			
+				@entity.applyImpulse vector, @entity.movingSpeed()
+				
+		moveTo:
+			
+			f: (destination, state) ->
 				
 				deferred = Promise.defer()
 				
-				timeout /= 1000
+				hypotenuse = Vector.hypotenuse(
+					destination
+					@entity.position()
+				)				
 				
-				state.setPromise deferred.promise
-				state.setTicker =>
-					
-					@entity.move hypotenuse = Vector.hypotenuse(
-						destination
-						@entity.position()
-					)
+				checkMovementEnd = =>
 					
 					entityPosition = @entity.position()
 					for i in [0, 1] when hypotenuse[i] isnt 0
@@ -65,11 +68,27 @@ module.exports = class extends Trait
 							if entityPosition[i] > destination[i]
 								entityPosition[i] = destination[i]
 					
-					@entity.setPosition entityPosition
-					return deferred.resolve() if Vector.equals(
+					diff = Vector.abs Vector.sub destination, entityPosition
+					if diff[0] <= 1 and diff[1] <= 1
+						
+						@entity.off 'afterPhysicsTick', checkMovementEnd
+						@entity.setPosition destination
+						
+						deferred.resolve()
+						
+				@entity.on 'afterPhysicsTick', checkMovementEnd
+				
+				state.setPromise deferred.promise
+					
+				state.setTicker =>
+					
+					@entity.move hypotenuse = Vector.hypotenuse(
 						destination
-						entityPosition
+						@entity.position()
 					)
 					
-					timeout -= timing.tickElapsed()
-					deferred.resolve() if timeout <= 0
+		pursue:
+			
+			f: (entity) ->
+				
+				@entity.move @entity.hypotenuseToEntity entity

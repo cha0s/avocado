@@ -18,6 +18,7 @@ config.input =
 config.timing =
 	
 	ticksPerSecond: 60
+	rendersPerSecond: 60
 
 if process? and process.versions['node-webkit']
 	

@@ -28,8 +28,33 @@ module.exports = class AvoImage
 		
 		new Promise (resolve, reject) ->
 		
-			# Can't use cache, because we can only do partial image rendering
-			# on texture, not on sprite.
+			texture = PIXI.Texture.fromImage "#{
+				config.get 'fs:resourcePath'
+			}#{
+				uri
+			}"
+			
+			onloadProxy = texture.baseTexture.source.onload
+			texture.baseTexture.source.onload = ->
+				onloadProxy?()
+			
+				image = new AvoImage()
+		
+				image._uri = uri
+				image._texture = texture
+				
+				resolve image
+		
+			onerrorProxy = texture.baseTexture.source.onerror
+			texture.baseTexture.source.onerror = ->
+				onerrorProxy?()
+				
+				reject new Error "Couldn't load Image: #{uri}"
+			
+	@loadWithoutCache: (uri, fn) ->
+		
+		new Promise (resolve, reject) ->
+		
 			texture = new PIXI.Texture PIXI.BaseTexture.fromImage "#{
 				config.get 'fs:resourcePath'
 			}#{
