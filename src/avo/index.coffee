@@ -79,6 +79,8 @@ window_ = require 'avo/graphics/window'
 
 fs = require 'avo/fs'
 
+Cps = require 'avo/timing/cps'
+Ticker = require 'avo/timing/ticker'
 timing = require 'avo/timing'
 
 require 'avo/monkeyPatches'
@@ -103,58 +105,94 @@ timing.setTickElapsed tickTargetSeconds
 
 originalTimestamp = Date.now()
 
+tickCps = new Cps()
+renderCps = new Cps()
+
 dispatchTick = ->
 
 	handleStateTransition()
 	stateInstance?.tick()
+	tickCps.tick()
 
 tickCallback = ->
 
 	try
-	
-		timing.setElapsed elapsed = (Date.now() - originalTimestamp) / 1000
+		
+		elapsed = timing.elapsed()
 		tickRemainder += elapsed - lastElapsed
 		lastElapsed = elapsed
-		ticksToDispatch = Math.floor tickRemainder / tickTargetSeconds
 		
-		if ticksToDispatch < 3
-		
-			while tickRemainder >= tickTargetSeconds
-				
-				dispatchTick()
-			
-				tickRemainder -= tickTargetSeconds
-				
-		else
-			
-			tickTime = tickTargetSeconds * ticksToDispatch
-			tickRemainder -= tickTime
-			timing.setTickElapsed tickTime
+		while tickRemainder >= tickTargetSeconds
 			
 			dispatchTick()
-			
-			timing.setTickElapsed tickTargetSeconds
-			
+		
+			tickRemainder -= tickTargetSeconds
+				
 	catch error
 		
 		handleError error
-
-tickInterval = window.setInterval tickCallback, tickFrequency
 
 renderCallback = ->
 	
 	try
 	
 		stateInstance.render window_.renderer() if stateInstance?.render?
+		renderCps.tick()
 
 	catch error
 		
 		handleError error
 
-# I was using renderAnimationFrame, but it seems to call back way too often,
-# which kills performance. Also, setting the FPS to 55 instead of 60 massively
-# boosts performance (without a noticeable loss) in my tests.
-renderInterval = window.setInterval renderCallback, 1000 / 55
+originalRendersPerSecond = rendersPerSecond = config.get 'timing:rendersPerSecond'
+renderTicker = new Ticker 1000 / rendersPerSecond
+renderTicker.on 'tick', renderCallback
+
+originalTicksPerSecond = ticksPerSecond = config.get 'timing:ticksPerSecond'
+tickTicker = new Ticker 1000 / ticksPerSecond
+tickTicker.on 'tick', tickCallback
+
+renderSamples = []
+tickSamples = []
+
+adjustmentTicker = new Ticker 1000
+adjustmentTicker.on 'tick', ->
+	
+	renderSamples = renderSamples.filter (e) -> !!e
+
+	actualRenderCps = renderSamples.reduce ((l, r) -> l + r), 0
+	actualRenderCps /= renderSamples.length
+	renderSamples = []
+	
+	if actualRenderCps < rendersPerSecond * .75
+		renderTicker.setFrequency 1000 / (rendersPerSecond *= .75)
+	
+	else
+		if rendersPerSecond * 1.25 <= originalRendersPerSecond
+			renderTicker.setFrequency 1000 / (rendersPerSecond *= 1.25)
+		else
+			renderTicker.setFrequency 1000 / originalRendersPerSecond
+	
+	actualTickCps = tickSamples.reduce ((l, r) -> l + r), 0
+	actualTickCps /= tickSamples.length
+	tickSamples = []
+
+sampleTicker = new Ticker 125
+sampleTicker.on 'tick', ->
+	
+	renderSamples.push renderCps.count()
+	tickSamples.push tickCps.count()
+
+dispatcher = ->	
+	
+	timing.setElapsed elapsed = (Date.now() - originalTimestamp) / 1000
+	
+	tickTicker.tick()
+	renderTicker.tick()
+	
+	sampleTicker.tick()
+	adjustmentTicker.tick()
+
+dispatcherInterval = window.setInterval dispatcher, 10
 
 stateName = ''
 stateTransition = null
@@ -245,8 +283,7 @@ window.onerror = (message, filename, lineNumber, _, error) ->
 
 halt = ->
 
-	window.clearInterval tickInterval
-	window.clearInterval renderInterval
+	window.clearInterval dispatcherInterval
 	
 AbstractState::quit = quit = ->
 	halt()
