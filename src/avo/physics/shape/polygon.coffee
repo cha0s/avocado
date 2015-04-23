@@ -84,6 +84,8 @@ module.exports = class ShapePolygon extends Shape
 		
 		this
 	
+	vertices: -> @_vertices
+	
 	setVertices: (vertices) ->
 		
 		@_vertices = vertices.slice()
