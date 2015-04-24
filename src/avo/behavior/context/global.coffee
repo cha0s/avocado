@@ -1,6 +1,6 @@
 
 exports.randomNumber = (min, max, floor = true) ->
-	
+
 	mag = Math.random() * (max - min)
 	mag = Math.floor mag if floor
 	min + mag

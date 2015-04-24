@@ -7,7 +7,7 @@ mixins = [
 	EventEmitter
 ]
 
-input = module.exports 
+input = module.exports
 
 FunctionExt.fastApply Mixin, [input].concat mixins
 

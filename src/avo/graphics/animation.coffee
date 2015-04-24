@@ -19,16 +19,16 @@ Vector = require 'avo/extension/vector'
 VectorMixin = require 'avo/mixin/vector'
 
 module.exports = Animation = class Animation
-	
+
 	@load: (uri) ->
-		
+
 		unless uri.match '.animation.json'
 			uri += '/index.animation.json'
-		
+
 		promise = fs.readJsonResource(uri).then (O) ->
 			O.uri = uri
 			(new Animation()).fromObject O
-		
+
 	mixins = [
 		EventEmitter
 		DirectionProperty = Property 'direction', 0
@@ -39,21 +39,21 @@ module.exports = Animation = class Animation
 		TimedIndex 'frame'
 		Property 'uri', ''
 	]
-	
+
 	constructor: ->
-		
+
 		mixin.call @ for mixin in mixins
-		
+
 		@_interval = null
 		@_sprite = null
 		@_ticker = null
-		
+
 		@on 'imageChanged', =>
 			if @_sprite?
 				@_sprite.setSource @image()
 			else
 				@_sprite = new Sprite @image()
-			
+
 		@on 'positionChanged', => @_sprite.setPosition @position()
 
 		@on(
@@ -65,27 +65,27 @@ module.exports = Animation = class Animation
 			]
 			=> @_sprite.setSourceRectangle @sourceRectangle()
 		)
-	
+
 	FunctionExt.fastApply Mixin, [@::].concat mixins
-	
+
 	fromObject: (O) ->
-		
+
 		O.imageUri ?= O.uri.replace '.animation.json', '.png'
 		for property in [
 			'directionCount', 'frameCount', 'frameRate', 'frameSize', 'uri'
 		]
 			@[String.setterName property] O[property] if O[property]?
-		
+
 		Image.loadWithoutCache(O.imageUri).then (image) =>
-			
+
 			@setImage image, O.frameSize
-			
+
 			this
-		
+
 	clampDirection: (direction) ->
-		
+
 		return 0 if @directionCount() is 1
-		
+
 		direction = Math.min 7, Math.max direction, 0
 		direction = {
 			4: 1
@@ -93,36 +93,36 @@ module.exports = Animation = class Animation
 			6: 3
 			7: 3
 		}[direction] if @directionCount() is 4 and direction > 3
-		
+
 		direction
-	
+
 	render: (
 		destination
 		index
 	) ->
-		
+
 		return unless @frameCount() > 0
 		return unless @image()?
-		
+
 		if (index ?= @index()) isnt @index()
 			@_sprite.setSourceRectangle @sourceRectangle index
-		
+
 		@_sprite.setScale @scale()
-			
+
 		@_sprite.renderTo destination
-		
+
 	setDirection: (direction) ->
 		DirectionProperty::setDirection.call(
 			@
 			@clampDirection direction
 		)
-	
+
 	setImage: (
 		image
 		frameSize
 	) ->
 		ImageProperty::setImage.call this, image
-		
+
 		# If the frame size isn't explicitly given, then calculate the
 		# size of one frame using the total number of frames and the total
 		# spritesheet size. Width is calculated by dividing the total
@@ -133,11 +133,11 @@ module.exports = Animation = class Animation
 			@image().size()
 			[@frameCount(), @directionCount()]
 		)
-		
+
 		return
-		
+
 	sourceRectangle: (index) ->
-		
+
 		Rectangle.compose(
 			Vector.mul @frameSize(), [
 				(index ? @index()) % @frameCount()
@@ -145,14 +145,14 @@ module.exports = Animation = class Animation
 			]
 			@frameSize()
 		)
-	
+
 	sprite: -> @_sprite
-	
+
 	toJSON: ->
-		
+
 		defaultImageUri = @uri().replace '.animation.json', '.png'
 		imageUri = @image().uri() if @image().uri() isnt defaultImageUri
-		
+
 		directionCount: @directionCount()
 		frameRate: @frameRate()
 		frameCount: @frameCount()

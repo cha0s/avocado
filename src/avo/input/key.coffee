@@ -5,39 +5,39 @@ keyDownFlags = {}
 
 window.addEventListener 'keydown', (event) ->
 	event ?= window.event
-	
+
 	repeat = keyDownFlags[event.keyCode] is true
 	keyDownFlags[event.keyCode] = true
-	
+
 	input.emit(
 		'keyDown'
 		keyCode: keyCodeMap event.keyCode
 		preventDefault: -> event.preventDefault()
 		repeat: repeat
 	)
-	
+
 	return
 
 window.addEventListener 'keyup', (event) ->
 	event ?= window.event
-	
+
 	delete keyDownFlags[event.keyCode]
-	
+
 	input.emit(
 		'keyUp'
 		keyCode: keyCodeMap event.keyCode
 		preventDefault: -> event.preventDefault()
 	)
-	
+
 	return
 
 window.addEventListener 'blur', ->
-	
+
 	input.emit(
 		'keyUp'
 		keyCode: keyCodeMap keyCode
 	) for keyCode of keyDownFlags
-		
+
 	keyDownFlags = {}
 
 input.Key =
@@ -62,7 +62,7 @@ input.Key =
 	Dash: 45
 	Period: 46
 	Slash: 47
-	
+
 	0: 48
 	1: 49
 	2: 50
@@ -73,7 +73,7 @@ input.Key =
 	7: 55
 	8: 56
 	9: 57
-	
+
 	Colon: 58
 	Semicolon: 59
 	LessThan: 60
@@ -81,7 +81,7 @@ input.Key =
 	GreaterThan: 62
 	QuestionMark: 63
 	At: 64
-	
+
 	A: 65
 	B: 66
 	C: 67
@@ -108,22 +108,22 @@ input.Key =
 	X: 88
 	Y: 89
 	Z: 90
-	
+
 	BracketLeft: 91
 	Backslash: 92
 	BracketRight: 93
 	Caret: 94
 	Underscore: 95
 	Backtick: 96
-	
+
 	# Lowercase alphabet excluded...
-	
+
 	BraceLeft: 123
 	Pipe: 124
 	BraceRight: 125
 	Tilde: 126
 	Delete: 127
-	
+
 	F1: 256
 	F2: 257
 	F3: 258
@@ -139,18 +139,18 @@ input.Key =
 	F13: 268
 	F14: 269
 	F15: 270
-	
+
 	ArrowUp: 271
 	ArrowRight: 272
 	ArrowDown: 273
 	ArrowLeft: 274
-	
+
 	Insert: 275
 	Home: 276
 	End: 277
 	PageUp: 278
 	PageDown: 279
-	
+
 	ControlLeft: 280
 	AltLeft: 281
 	ShiftLeft: 282
@@ -160,13 +160,13 @@ input.Key =
 	ShiftRight: 286
 	SystemRight: 287
 	Menu: 288
-	
+
 	Pause: 289
 
 keyCodeMap = (keyCode) ->
-	
+
 	switch keyCode
-	
+
 		when 8 then input.Key.Backspace
 		when 9 then input.Key.Tab
 		when 13 then input.Key.Enter
@@ -187,7 +187,7 @@ keyCodeMap = (keyCode) ->
 		when 189 then input.Key.Dash
 		when 190 then input.Key.Period
 		when 191 then input.Key.Slash
-	
+
 		when 48 then input.Key['0']
 		when 49 then input.Key['1']
 		when 50 then input.Key['2']
@@ -198,7 +198,7 @@ keyCodeMap = (keyCode) ->
 		when 55 then input.Key['7']
 		when 56 then input.Key['8']
 		when 57 then input.Key['9']
-	
+
 #		when 58 then input.Key.Colon
 		when 186 then input.Key.Semicolon
 #		when 60 then input.Key.LessThan
@@ -206,7 +206,7 @@ keyCodeMap = (keyCode) ->
 #		when 62 then input.Key.GreaterThan
 #		when 63 then input.Key.QuestionMark
 #		when 64 then input.Key.At
-	
+
 		when 65 then input.Key.A
 		when 66 then input.Key.B
 		when 67 then input.Key.C
@@ -233,23 +233,23 @@ keyCodeMap = (keyCode) ->
 		when 88 then input.Key.X
 		when 89 then input.Key.Y
 		when 90 then input.Key.Z
-	
+
 		when 219 then input.Key.BracketLeft
 		when 220 then input.Key.Backslash
 		when 221 then input.Key.BracketRight
 #		when 94 then input.Key.Caret
 #		when 95 then input.Key.Underscore
 		when 192 then input.Key.Backtick
-	
+
 #		when 123 then input.Key.BraceLeft
-		
+
 		# Lowerwhen alphabet excluded...
-		
+
 #		when 124 then input.Key.Pipe
 #		when 125 then input.Key.BraceRight
 #		when 126 then input.Key.Tilde
 		when 46 then input.Key.Delete
-	
+
 		when 112 then input.Key.F1
 		when 113 then input.Key.F2
 		when 114 then input.Key.F3
@@ -265,18 +265,18 @@ keyCodeMap = (keyCode) ->
 		when 124 then input.Key.F13
 		when 125 then input.Key.F14
 		when 126 then input.Key.F15
-	
+
 		when 38 then input.Key.ArrowUp
 		when 39 then input.Key.ArrowRight
 		when 40 then input.Key.ArrowDown
 		when 37 then input.Key.ArrowLeft
-	
+
 		when 45 then input.Key.Insert
 		when 36 then input.Key.Home
 		when 35 then input.Key.End
 		when 33 then input.Key.PageUp
 		when 34 then input.Key.PageDown
-	
+
 		when 17 then input.Key.ControlLeft
 		when 18 then input.Key.AltLeft
 		when 16 then input.Key.ShiftLeft

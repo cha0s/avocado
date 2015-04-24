@@ -18,7 +18,7 @@ exports.compress = function (uncompressed) {
     for (i = 0; i < uncompressed.length; i += 1) {
         c = uncompressed.charAt(i);
         wc = w + c;
-        //Do not use dictionary[wc] because javascript arrays 
+        //Do not use dictionary[wc] because javascript arrays
         //will return values for array['pop'], array['push'] etc
        // if (dictionary[wc]) {
         if (dictionary.hasOwnProperty(wc)) {

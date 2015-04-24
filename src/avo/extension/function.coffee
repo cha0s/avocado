@@ -2,9 +2,9 @@
 _ = require 'avo/vendor/underscore'
 
 exports.fastApply = (f, args, that = null) ->
-	
+
 	return f.apply that, args if args.length > 5
-		
+
 	if args.length is 0
 		f.call that
 	else if args.length is 1

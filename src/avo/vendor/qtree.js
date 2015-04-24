@@ -8,7 +8,7 @@ function QuadTree(x, y, w, h, options) {
 	w = 10;
     if( typeof h != 'number' || isNaN(h) )
 	h = 10;
-    
+
     var maxchildren = 25;
     var leafratio = 0.5;
     if( options ) {
@@ -65,15 +65,15 @@ function QuadTree(x, y, w, h, options) {
     function distance(x1, y1, x2, y2) {
 	return Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
     }
-    
+
     // calculate distance between a point and a line (segment)
     function distancePL(x, y, x1, y1, dx1, dy1, len1 ) {
-	if( !len1 ) // in case length is not provided, assume a line 
+	if( !len1 ) // in case length is not provided, assume a line
 	    len1 = -1;
-	
+
 	// x = x1 + s * dx1 + t * dy1
 	// y = y1 + s * dy1 - t * dx1
-	// x * dy1 - y * dx1 = x1 * dy1 - y1 * dx1 + 
+	// x * dy1 - y * dx1 = x1 * dy1 - y1 * dx1 +
         //                     t * ( dy1 * dy1 + dx1 * dx1 )
 	var t = dx1 * dx1 + dy1 * dy1;
 	if( t == 0 )
@@ -92,7 +92,7 @@ function QuadTree(x, y, w, h, options) {
 		    y: y1 + s * dy1,
 		    dist: Math.abs(t)
 		};
-	    else if( s < 0 ) { 
+	    else if( s < 0 ) {
 		var dist = distance(x, y, x1, y1);
 		return {
 		    s: s,
@@ -100,7 +100,7 @@ function QuadTree(x, y, w, h, options) {
 		};
 	    } else {
 		var dist = distance(x, y,
-				    x1 + len1*dx1, 
+				    x1 + len1*dx1,
 				    y1 + len1*dy1);
 		return {
 		    s: s,
@@ -109,7 +109,7 @@ function QuadTree(x, y, w, h, options) {
 	    }
 	}
     }
-    
+
     // does a line and a rectangle overlap ?
     function overlap_line(o1, o2, buf) {
 	if( !o1 || !o2 )
@@ -160,7 +160,7 @@ function QuadTree(x, y, w, h, options) {
 		} else
 		    childnode = node.nodes[ni];
 	    }
-	
+
 	return { leaf: leaf,
 		 childnode: childnode };
     }
@@ -217,7 +217,7 @@ function QuadTree(x, y, w, h, options) {
 
 	if( node.nodes.length == 0 ) {
 	    node.children.push(obj);
-	    
+
 	    // subdivide
 	    if( node.children.length > maxchildren ) {
 		var w2 = node.w / 2;
@@ -226,11 +226,11 @@ function QuadTree(x, y, w, h, options) {
 				createnode(node.x + w2, node.y, w2, h2),
 				createnode(node.x, node.y + h2, w2, h2),
 				createnode(node.x + w2, node.y + h2, w2, h2));
-		for( var ci = 0; ci < node.children.length; ci++ ) 
+		for( var ci = 0; ci < node.children.length; ci++ )
 		    put_to_nodes(node, node.children[ci]);
 		node.children = [];
 	    }
-	} else 
+	} else
 	    put_to_nodes(node, obj);
     }
 

@@ -4,7 +4,7 @@ module.exports = (grunt) ->
 
 	grunt.initConfig
 		pkg: grunt.file.readJSON 'package.json'
-		
+
 		coffee:
 			avocado:
 				files: [
@@ -17,7 +17,7 @@ module.exports = (grunt) ->
 					expand: true
 					ext: '.js'
 				]
-				
+
 		copy:
 			avocado:
 				files: [
@@ -29,7 +29,7 @@ module.exports = (grunt) ->
 					dest: 'build/raw/dev'
 					expand: true
 				]
-		
+
 		uglify:
 			avocado:
 
@@ -52,18 +52,18 @@ module.exports = (grunt) ->
 
 				options:
 					wrapper: (filepath) ->
-						
+
 						moduleName = filepath.substr 'build/raw/dev/'.length
 						dirname = path.dirname moduleName
 						extname = path.extname moduleName
-						
-						moduleName = "#{dirname}/#{path.basename moduleName, extname}" 
-						
+
+						moduleName = "#{dirname}/#{path.basename moduleName, extname}"
+
 						if moduleName?
 							["__avocadoModules['#{moduleName}'] = function(module, exports, require, __dirname, __filename) {\n", '};\n']
 						else
 							['', '']
-				
+
 	grunt.loadNpmTasks 'grunt-contrib-clean'
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-concat'

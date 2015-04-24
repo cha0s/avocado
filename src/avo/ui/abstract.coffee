@@ -4,7 +4,7 @@ FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 
 module.exports = class UiAbstract
-	
+
 	mixins = [
 		EventEmitter
 	]
@@ -13,8 +13,8 @@ module.exports = class UiAbstract
 		mixin.call this for mixin in mixins
 
 	FunctionExt.fastApply Mixin, [@::].concat mixins
-	
+
 	hide: -> @_node.hide()
-	
+
 	show: -> @_node.show()
-	
+

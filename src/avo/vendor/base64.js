@@ -6,13 +6,13 @@
  *
  *  References:
  *    http://en.wikipedia.org/wiki/Base64
- *  
+ *
  *  Source:
  *    https://github.com/dankogai/js-base64
- *  
+ *
  *  Modified the buffer logic, since nodeJS module structure is presented even
  *  in the absence of node's modules.
- *  
+ *
  *  Modified to be specific to nodeJS structure.
  */
 
@@ -59,11 +59,11 @@ var btoa = global.btoa || function(b) {
     return b.replace(/[\s\S]{1,3}/g, cb_encode);
 };
 var _encode = buffer
-    ? function (u) { return (new buffer(u)).toString('base64') } 
+    ? function (u) { return (new buffer(u)).toString('base64') }
     : function (u) { return btoa(utob(u)) }
     ;
 var encode = function(u, urisafe) {
-    return !urisafe 
+    return !urisafe
         ? _encode(u)
         : _encode(u).replace(/[+\/]/g, function(m0) {
             return m0 == '+' ? '-' : '_';

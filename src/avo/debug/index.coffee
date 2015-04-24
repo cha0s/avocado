@@ -11,7 +11,7 @@ exports.setIsDebugging = (isDebugging_) ->
 
 	wasDebugging = isDebugging
 	isDebugging = isDebugging_
-	
+
 	@emit 'isDebuggingChanged', wasDebugging
 
 exports.isDebugging = -> isDebugging

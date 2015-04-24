@@ -7,34 +7,33 @@
 _ = require 'avo/vendor/underscore'
 
 module.exports = Matrix =
-	
+
 	copy: (matrix) -> JSON.parse JSON.stringify matrix
-		
+
 	equals: (l, r) ->
-		
+
 		return false unless l.length is r.length
-		
+
 		return true if l.length is 0
-		
+
 		return false unless l[0].length is r[0].length
-	
+
 		for lrow, y in l
 			rrow = r[y]
 			for lindex, x in lrow
 				return false unless lindex is rrow[x]
-				
+
 		true
-		
+
 	size: (matrix) ->
-		
+
 		return 0 if 0 is matrix.length
-		
+
 		matrix.length * matrix[0].length
 
 	sizeVector: (matrix) ->
-		
-		return [0, 0] if 0 is matrix.length
-		
-		[matrix[0].length, matrix.length] 
 
-		
+		return [0, 0] if 0 is matrix.length
+
+		[matrix[0].length, matrix.length]
+

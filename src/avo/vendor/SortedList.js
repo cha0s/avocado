@@ -188,7 +188,7 @@
 
 
   /**
-   * comparison functions 
+   * comparison functions
    **/
   SortedList.compares = {
     "number": function(a, b) {

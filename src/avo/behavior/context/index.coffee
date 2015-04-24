@@ -2,13 +2,13 @@
 defaultContext = {}
 
 exports.defaultContext = ->
-	
+
 	copy = {}
 	copy[k] = v for k, v of defaultContext
 	copy
 
 addDefaultKey = exports.addDefaultKey = (key, value) ->
-	
+
 	defaultContext[key] = value
 
 addDefaultKey 'global', require './global'

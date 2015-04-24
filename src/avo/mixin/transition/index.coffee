@@ -4,7 +4,7 @@
 # You can use this mixin like this:
 #
 #     Mixin yourObject, Transition
-#     
+#
 #     yourObject.transition(
 #       x: 100
 #       2000
@@ -14,7 +14,7 @@
 # The value of yourObject.x() will transition towards 100 over the course of
 # 2000 milliseconds. ***NOTE:*** yourObject **must** have the functions **x()**
 # and **setX()** defined.
-# 
+#
 # This function was heavily inspired by the existence of
 # [jQuery.animate](http://api.jquery.com/animate/), though the API is ***NOT***
 # compatible.
@@ -30,22 +30,22 @@ EventEmitter = require '../eventEmitter'
 Mixin = require '../index'
 
 TransitionResult = class TransitionResult
-	
+
 	mixins = [
 		EventEmitter
 	]
-	
+
 	constructor: (@_object, @_props, speed, easing) ->
-		
+
 		mixin.call this for mixin in mixins
-		
+
 		# Speed might not get passed. If it doesn't, default to 100
 		# milliseconds.
 		@_speed = if 'number' is typeof speed
 			speed
 		else
 			100
-	
+
 		# If easing isn't passed in as a function, attempt to look it up
 		# as a string key into Transition.easing. If that fails, then
 		# default to 'easeOutQuad'.
@@ -53,18 +53,18 @@ TransitionResult = class TransitionResult
 			Transition.easing[easing] ? Transition.easing['easeOutQuad']
 		else
 			easing
-		
+
 		@_original = {}
 		@_change = {}
 		@_method = {}
-		
+
 		for i, prop of @_props
 			value = @_object[i]()
-			
+
 			@_original[i] = value
 			@_change[i] = prop - value
 			@_method[i] = String.setterName i
-		
+
 		# Set up the transition object.
 		@_deferred = Promise.defer()
 		@promise = @_deferred.promise.cancellable().catch(
@@ -73,25 +73,25 @@ TransitionResult = class TransitionResult
 
 				Promise.reject error
 		)
-		
+
 		@_elapsed = 0
 		@_duration = @_speed / 1000
-		
+
 	FunctionExt.fastApply Mixin, [@::].concat mixins
 
 	# Immediately finish the transition. This will leave the object
 	# in the fully transitioned state.
 	skipTransition: ->
-	
+
 		# Just trick it into thinking the time passed and do one last
 		# tick.
 		@_elapsed = @_duration
 		@tick()
 
 	# Immediately stop the transition. This will leave the object in
-	# its current state; potentially partially transitioned.				
+	# its current state; potentially partially transitioned.
 	stopTransition: ->
-	
+
 		# Let any listeners know that the transition is complete.
 		@emit 'progress', [@_elapsed, @_duration]
 		@_deferred.resolve()
@@ -99,21 +99,21 @@ TransitionResult = class TransitionResult
 	# Tick callback. Called repeatedly while this transition is
 	# running.
 	tick: ->
-		
+
 		# Update the transition's elapsed time.
 		@_elapsed += @elapsedSinceLast()
-		
+
 		# If we've overshot the duration, we'll fix it up here, so
 		# things never transition too far (through the end point).
 		if @_elapsed >= @_duration
 			@_elapsed = @_duration
-			
+
 			for i of @_change
 				if @_change[i]
 					@_object[@_method[i]] @_props[i]
-					
+
 		else
-		
+
 			# Do easing for each property that actually changed.
 			for i of @_change
 				if @_change[i]
@@ -123,41 +123,41 @@ TransitionResult = class TransitionResult
 						@_change[i],
 						@_duration
 					)
-		
+
 		# Stop if we're done.
 		if @_elapsed is @_duration
 			@stopTransition()
 		else
 			@emit 'progress', [@_elapsed, @_duration]
 
-module.exports = Transition = class					
+module.exports = Transition = class
 
 	TransitionResultOutOfBand = class TransitionResultOutOfBand extends TransitionResult
-	
+
 		constructor: ->
 			super
-			
+
 			@_last = timing.elapsed()
 			@_interval = null
-			
+
 			@_startInterval()
-			
+
 		elapsedSinceLast: ->
-			
+
 			elapsed = timing.elapsed() - @_last
 			@_last = timing.elapsed()
 			elapsed
-			
+
 		_startInterval: (result) ->
-			
+
 			@_interval = window.setInterval (=> @tick()), 10
-		
+
 		stopTransition: ->
 			super
-		
+
 			# Stop the tick loop.
 			window.clearInterval @_interval
-		
+
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.
 	transition: (
@@ -165,17 +165,17 @@ module.exports = Transition = class
 		speed
 		easing
 	) ->
-		
+
 		new TransitionResultOutOfBand @, props, speed, easing
 
 Transition.OutOfBand = Transition
 
-Transition.InBand = class					
+Transition.InBand = class
 
 	TransitionResultInBand = class TransitionResultInBand extends TransitionResult
-	
+
 		elapsedSinceLast: -> timing.tickElapsed()
-	
+
 	# Transition a set of properties at the specified speed in milliseconds,
 	# using the specified easing function.
 	transition: (
@@ -183,7 +183,7 @@ Transition.InBand = class
 		speed
 		easing
 	) ->
-		
+
 		new TransitionResultInBand @, props, speed, easing
 
 # Registered easing functions. An easing function is a parametric equation
@@ -194,40 +194,40 @@ Transition.easing = {}
 ###
  *
  * jQuery Easing v1.3 - http://gsgd.co.uk/sandbox/jquery/easing/
- * 
+ *
  * Uses the built in easing capabilities added In jQuery 1.1
  * to offer multiple easing options
  *
  * TERMS OF USE - jQuery Easing
- * 
- * Open source under the BSD License. 
- * 
+ *
+ * Open source under the BSD License.
+ *
  * Copyright Â© 2008 George McGinley Smith
  * All rights reserved.
- * 
+ *
  * Modified by Ruben Rodriguez <cha0s@therealcha0s.net>
  *
- * Redistribution and use in source and binary forms, with or without modification, 
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
- * Redistributions of source code must retain the above copyright notice, this list of 
+ *
+ * Redistributions of source code must retain the above copyright notice, this list of
  * conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice, this list 
- * of conditions and the following disclaimer in the documentation and/or other materials 
+ * Redistributions in binary form must reproduce the above copyright notice, this list
+ * of conditions and the following disclaimer in the documentation and/or other materials
  * provided with the distribution.
- * 
- * Neither the name of the author nor the names of contributors may be used to endorse 
+ *
+ * Neither the name of the author nor the names of contributors may be used to endorse
  * or promote products derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
  *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- *  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+ *  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
  * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
- * OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *
 ###
@@ -339,7 +339,7 @@ Transition.easing = {
 		return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
 	},
 	easeInOutBack: function (t, b, c, d, s) {
-		if (s == undefined) s = 1.70158; 
+		if (s == undefined) s = 1.70158;
 		if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
 		return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
 	},
