@@ -8,24 +8,24 @@ Promise = require 'avo/vendor/bluebird'
 
 module.exports = class Routine extends BehaviorItem
 
-	constructor: ->
+  constructor: ->
 
-		@_actions = new Actions()
-		@_rules = new Rules()
+  	@_actions = new Actions()
+  	@_rules = new Rules()
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		Promise.allAsap [
-			@_rules.fromObject O.rules ? []
-			@_actions.fromObject O.actions ? []
-		], => this
+  	Promise.allAsap [
+  		@_rules.fromObject O.rules ? []
+  		@_actions.fromObject O.actions ? []
+  	], => this
 
-	invoke: (context) ->
+  invoke: (context) ->
 
-		@_rules.invoke context
-		@_actions.invoke context
+  	@_rules.invoke context
+  	@_actions.invoke context
 
-	toJSON: ->
+  toJSON: ->
 
-		rules: @_rules.toJSON()
-		actions: @_actions.toJSON()
+  	rules: @_rules.toJSON()
+  	actions: @_actions.toJSON()

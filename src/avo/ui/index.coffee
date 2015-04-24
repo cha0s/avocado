@@ -10,45 +10,45 @@ ui = module.exports
 
 ui.addCss = (href) ->
 
-	link = window.document.createElement 'link'
-	link.id = href.replace /[^0-9a-zA-Z_]/g, '-'
-	link.rel = 'stylesheet'
-	link.type = 'text/css'
-	link.href = href
-	link.media = 'all'
+  link = window.document.createElement 'link'
+  link.id = href.replace /[^0-9a-zA-Z_]/g, '-'
+  link.rel = 'stylesheet'
+  link.type = 'text/css'
+  link.href = href
+  link.media = 'all'
 
-	head = window.document.getElementsByTagName('head')[0]
-	head.appendChild link
+  head = window.document.getElementsByTagName('head')[0]
+  head.appendChild link
 
 ui.loadNode = (uri) ->
 
-	fs.readUi(uri).then (html) ->
+  fs.readUi(uri).then (html) ->
 
-		ui.addCss "#{config.get 'fs:uiPath'}#{uri.replace /.html$/, '.css'}"
+  	ui.addCss "#{config.get 'fs:uiPath'}#{uri.replace /.html$/, '.css'}"
 
-		node = new Node html
+  	node = new Node html
 
-		# Set defaults.
-		node.hide()
-		node.setIsSelectable false
-		node.setPosition [0, 0]
+  	# Set defaults.
+  	node.hide()
+  	node.setIsSelectable false
+  	node.setPosition [0, 0]
 
-		# Add a class, e.g. /test/thing.html -> test-thing
-		nodeClass = uri.substr(1).replace '.html', ''
-		nodeClass = nodeClass.replace '/', '-'
-		node.addClass nodeClass
+  	# Add a class, e.g. /test/thing.html -> test-thing
+  	nodeClass = uri.substr(1).replace '.html', ''
+  	nodeClass = nodeClass.replace '/', '-'
+  	node.addClass nodeClass
 
-		# Add the node to the UI container.
-		uiContainer = window_.uiContainer()
-		uiContainer.appendChild node.element()
+  	# Add the node to the UI container.
+  	uiContainer = window_.uiContainer()
+  	uiContainer.appendChild node.element()
 
-		node
+  	node
 
 ui.load = (name) ->
 
-	try
-		Class = require "avo/ui/#{name}"
-	catch error
-		Class = UiAbstract
+  try
+  	Class = require "avo/ui/#{name}"
+  catch error
+  	Class = UiAbstract
 
-	ui.loadNode("/#{name}.html").then (node) -> new Class node
+  ui.loadNode("/#{name}.html").then (node) -> new Class node

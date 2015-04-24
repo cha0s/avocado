@@ -4,119 +4,119 @@ Trait = require './Traits/Trait'
 
 describe 'Entity', ->
 
-	it "can instantiate without explicitly specifying traits, and defaults will be provided", ->
+  it "can instantiate without explicitly specifying traits, and defaults will be provided", ->
 
-		entity = new Entity()
+  	entity = new Entity()
 
-		O = traits: [ type: 'Existence' ]
-		expect(entity.toJSON()).toEqual O
-		expect(entity.hasTrait 'Existence').toBe true
-		expect(entity.position()).toEqual [-10000, -10000]
+  	O = traits: [ type: 'Existence' ]
+  	expect(entity.toJSON()).toEqual O
+  	expect(entity.hasTrait 'Existence').toBe true
+  	expect(entity.position()).toEqual [-10000, -10000]
 
-	describe 'trait-based functionality', ->
+  describe 'trait-based functionality', ->
 
-		entity = null
+  	entity = null
 
-		beforeEach ->
+  	beforeEach ->
 
-			entity = new Entity()
-			entity.extendTraits [type: 'Test']
+  		entity = new Entity()
+  		entity.extendTraits [type: 'Test']
 
-		it "can reset traits", ->
+  	it "can reset traits", ->
 
-			expect(entity.baz()).toBe 420
+  		expect(entity.baz()).toBe 420
 
-			entity.setBaz 69
-			expect(entity.baz()).toBe 69
+  		entity.setBaz 69
+  		expect(entity.baz()).toBe 69
 
-			entity.reset()
-			expect(entity.baz()).toBe 420
+  		entity.reset()
+  		expect(entity.baz()).toBe 420
 
-		it "can remove traits", ->
+  	it "can remove traits", ->
 
-			expect(entity.hasTrait 'Test').toBe true
+  		expect(entity.hasTrait 'Test').toBe true
 
-			entity.removeTrait 'Test'
-			expect(entity.hasTrait 'Test').toBe false
+  		entity.removeTrait 'Test'
+  		expect(entity.hasTrait 'Test').toBe false
 
-		it "can invoke hooks", ->
+  	it "can invoke hooks", ->
 
-			results = entity.invoke 'testHook', 'testing'
-			expect(results.length).toBe 1
-			expect(results[0]).toBe 'HOOK: testing'
+  		results = entity.invoke 'testHook', 'testing'
+  		expect(results.length).toBe 1
+  		expect(results[0]).toBe 'HOOK: testing'
 
-		it "can emit signals", ->
+  	it "can emit signals", ->
 
-			expect(entity.foo()).toBe true
+  		expect(entity.foo()).toBe true
 
-			entity.emit 'testSignal'
-			expect(entity.foo()).toBe 69
+  		entity.emit 'testSignal'
+  		expect(entity.foo()).toBe 69
 
-		it "can set trait variables", ->
+  	it "can set trait variables", ->
 
-			expect(entity.blah()).not.toBeDefined()
+  		expect(entity.blah()).not.toBeDefined()
 
-			entity.setTraitVariables foo: 69
-			expect(entity.blah()).not.toBeDefined()
+  		entity.setTraitVariables foo: 69
+  		expect(entity.blah()).not.toBeDefined()
 
-			entity.setTraitVariables blah: 69
-			expect(entity.blah()).toBe 69
+  		entity.setTraitVariables blah: 69
+  		expect(entity.blah()).toBe 69
 
-		it "can specify a trait dependency tree", ->
+  	it "can specify a trait dependency tree", ->
 
-			entity = new Entity()
-			entity.extendTraits [type: 'Dependency2']
+  		entity = new Entity()
+  		entity.extendTraits [type: 'Dependency2']
 
-			expect(entity.foo).toBeDefined()
+  		expect(entity.foo).toBeDefined()
 
-		it "can override trait loading", ->
+  	it "can override trait loading", ->
 
-			Trait.moduleMap['Override'] = 'Test'
+  		Trait.moduleMap['Override'] = 'Test'
 
-			entity = new Entity()
-			entity.extendTraits [type: 'Override']
+  		entity = new Entity()
+  		entity.extendTraits [type: 'Override']
 
-			expect(entity.foo).toBeDefined()
+  		expect(entity.foo).toBeDefined()
 
-	describe 'regressions', ->
+  describe 'regressions', ->
 
-		it "calls resetTrait() for all traits every time traits are extended", ->
+  	it "calls resetTrait() for all traits every time traits are extended", ->
 
-			Existence = require './Traits/Existence'
-			Test = require 'avocado/Entity/Traits/Test'
-			Test2 = require 'avocado/Entity/Traits/Test2'
+  		Existence = require './Traits/Existence'
+  		Test = require 'avocado/Entity/Traits/Test'
+  		Test2 = require 'avocado/Entity/Traits/Test2'
 
-			originalExistenceReset = Existence::resetTrait
-			originalTestReset = Test::resetTrait
-			originalTest2Reset = Test2::resetTrait
+  		originalExistenceReset = Existence::resetTrait
+  		originalTestReset = Test::resetTrait
+  		originalTest2Reset = Test2::resetTrait
 
-			existenceReset = Existence::resetTrait = jasmine.createSpy()
-			testReset = Test::resetTrait = jasmine.createSpy()
-			test2Reset = Test2::resetTrait = jasmine.createSpy()
+  		existenceReset = Existence::resetTrait = jasmine.createSpy()
+  		testReset = Test::resetTrait = jasmine.createSpy()
+  		test2Reset = Test2::resetTrait = jasmine.createSpy()
 
-			entity = new Entity()
-			entity.extendTraits [
-				type: 'Test'
-			,
-				type: 'Test2'
-			]
+  		entity = new Entity()
+  		entity.extendTraits [
+  			type: 'Test'
+  		,
+  			type: 'Test2'
+  		]
 
-			expect(existenceReset.calls.length).toEqual 2
-			expect(testReset.calls.length).toEqual 1
-			expect(test2Reset.calls.length).toEqual 1
+  		expect(existenceReset.calls.length).toEqual 2
+  		expect(testReset.calls.length).toEqual 1
+  		expect(test2Reset.calls.length).toEqual 1
 
-			Existence::resetTrait = originalExistenceReset
-			Test::resetTrait = originalTestReset
-			Test2::resetTrait = originalTest2Reset
+  		Existence::resetTrait = originalExistenceReset
+  		Test::resetTrait = originalTestReset
+  		Test2::resetTrait = originalTest2Reset
 
-		it "undefined state defaults should throw an exception as early as possible", ->
+  	it "undefined state defaults should throw an exception as early as possible", ->
 
-			StateDefaults = require 'avocado/Entity/Traits/StateDefaults'
+  		StateDefaults = require 'avocado/Entity/Traits/StateDefaults'
 
-			expect(->
-				(new Entity()).fromObject(
-					traits: [
-						type: 'StateDefaults'
-					]
-				).done()
-			).toThrow()
+  		expect(->
+  			(new Entity()).fromObject(
+  				traits: [
+  					type: 'StateDefaults'
+  				]
+  			).done()
+  		).toThrow()

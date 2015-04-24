@@ -5,37 +5,37 @@ Trait = require './trait'
 
 module.exports = class Visible extends Trait
 
-	stateDefaults: ->
+  stateDefaults: ->
 
-		alpha: 1
-		isVisible: true
-		scale: [1, 1]
+  	alpha: 1
+  	isVisible: true
+  	scale: [1, 1]
 
-	constructor: ->
-		super
+  constructor: ->
+  	super
 
-		@_localContainer = new Container()
+  	@_localContainer = new Container()
 
-	initialize: ->
+  initialize: ->
 
-		@entity.on 'traitsChanged', =>
+  	@entity.on 'traitsChanged', =>
 
-			@_localContainer.removeAllChildren()
+  		@_localContainer.removeAllChildren()
 
-			@entity.emit 'addToLocalContainer', @_localContainer
+  		@entity.emit 'addToLocalContainer', @_localContainer
 
-		@_localContainer.setIsVisible @state.isVisible
+  	@_localContainer.setIsVisible @state.isVisible
 
-	actions: ->
+  actions: ->
 
-		setIsVisible: (isVisible) ->
-			@state.isVisible = isVisible
-			@_localContainer.setIsVisible isVisible
+  	setIsVisible: (isVisible) ->
+  		@state.isVisible = isVisible
+  		@_localContainer.setIsVisible isVisible
 
-	values: ->
+  values: ->
 
-		localContainer: -> @_localContainer
+  	localContainer: -> @_localContainer
 
-		localRectangle: -> @_localContainer.localRectangle()
+  	localRectangle: -> @_localContainer.localRectangle()
 
-		isVisible: -> @_localContainer.isVisible()
+  	isVisible: -> @_localContainer.isVisible()

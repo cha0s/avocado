@@ -1,4 +1,4 @@
 
 module.exports = class AbstractValue
 
-	get: (context) -> this
+  get: (context) -> this

@@ -20,141 +20,141 @@ VectorMixin = require 'avo/mixin/vector'
 
 module.exports = Animation = class Animation
 
-	@load: (uri) ->
+  @load: (uri) ->
 
-		unless uri.match '.animation.json'
-			uri += '/index.animation.json'
+  	unless uri.match '.animation.json'
+  		uri += '/index.animation.json'
 
-		promise = fs.readJsonResource(uri).then (O) ->
-			O.uri = uri
-			(new Animation()).fromObject O
+  	promise = fs.readJsonResource(uri).then (O) ->
+  		O.uri = uri
+  		(new Animation()).fromObject O
 
-	mixins = [
-		EventEmitter
-		DirectionProperty = Property 'direction', 0
-		Property 'directionCount', 1
-		Property 'frameSize', [0, 0]
-		ImageProperty = Property 'image', null
-		VectorMixin 'position'
-		TimedIndex 'frame'
-		Property 'uri', ''
-	]
+  mixins = [
+  	EventEmitter
+  	DirectionProperty = Property 'direction', 0
+  	Property 'directionCount', 1
+  	Property 'frameSize', [0, 0]
+  	ImageProperty = Property 'image', null
+  	VectorMixin 'position'
+  	TimedIndex 'frame'
+  	Property 'uri', ''
+  ]
 
-	constructor: ->
+  constructor: ->
 
-		mixin.call @ for mixin in mixins
+  	mixin.call @ for mixin in mixins
 
-		@_interval = null
-		@_sprite = null
-		@_ticker = null
+  	@_interval = null
+  	@_sprite = null
+  	@_ticker = null
 
-		@on 'imageChanged', =>
-			if @_sprite?
-				@_sprite.setSource @image()
-			else
-				@_sprite = new Sprite @image()
+  	@on 'imageChanged', =>
+  		if @_sprite?
+  			@_sprite.setSource @image()
+  		else
+  			@_sprite = new Sprite @image()
 
-		@on 'positionChanged', => @_sprite.setPosition @position()
+  	@on 'positionChanged', => @_sprite.setPosition @position()
 
-		@on(
-			[
-				'directionChanged'
-				'frameSizeChanged'
-				'imageChanged'
-				'indexChanged'
-			]
-			=> @_sprite.setSourceRectangle @sourceRectangle()
-		)
+  	@on(
+  		[
+  			'directionChanged'
+  			'frameSizeChanged'
+  			'imageChanged'
+  			'indexChanged'
+  		]
+  		=> @_sprite.setSourceRectangle @sourceRectangle()
+  	)
 
-	FunctionExt.fastApply Mixin, [@::].concat mixins
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		O.imageUri ?= O.uri.replace '.animation.json', '.png'
-		for property in [
-			'directionCount', 'frameCount', 'frameRate', 'frameSize', 'uri'
-		]
-			@[String.setterName property] O[property] if O[property]?
+  	O.imageUri ?= O.uri.replace '.animation.json', '.png'
+  	for property in [
+  		'directionCount', 'frameCount', 'frameRate', 'frameSize', 'uri'
+  	]
+  		@[String.setterName property] O[property] if O[property]?
 
-		Image.loadWithoutCache(O.imageUri).then (image) =>
+  	Image.loadWithoutCache(O.imageUri).then (image) =>
 
-			@setImage image, O.frameSize
+  		@setImage image, O.frameSize
 
-			this
+  		this
 
-	clampDirection: (direction) ->
+  clampDirection: (direction) ->
 
-		return 0 if @directionCount() is 1
+  	return 0 if @directionCount() is 1
 
-		direction = Math.min 7, Math.max direction, 0
-		direction = {
-			4: 1
-			5: 1
-			6: 3
-			7: 3
-		}[direction] if @directionCount() is 4 and direction > 3
+  	direction = Math.min 7, Math.max direction, 0
+  	direction = {
+  		4: 1
+  		5: 1
+  		6: 3
+  		7: 3
+  	}[direction] if @directionCount() is 4 and direction > 3
 
-		direction
+  	direction
 
-	render: (
-		destination
-		index
-	) ->
+  render: (
+  	destination
+  	index
+  ) ->
 
-		return unless @frameCount() > 0
-		return unless @image()?
+  	return unless @frameCount() > 0
+  	return unless @image()?
 
-		if (index ?= @index()) isnt @index()
-			@_sprite.setSourceRectangle @sourceRectangle index
+  	if (index ?= @index()) isnt @index()
+  		@_sprite.setSourceRectangle @sourceRectangle index
 
-		@_sprite.setScale @scale()
+  	@_sprite.setScale @scale()
 
-		@_sprite.renderTo destination
+  	@_sprite.renderTo destination
 
-	setDirection: (direction) ->
-		DirectionProperty::setDirection.call(
-			@
-			@clampDirection direction
-		)
+  setDirection: (direction) ->
+  	DirectionProperty::setDirection.call(
+  		@
+  		@clampDirection direction
+  	)
 
-	setImage: (
-		image
-		frameSize
-	) ->
-		ImageProperty::setImage.call this, image
+  setImage: (
+  	image
+  	frameSize
+  ) ->
+  	ImageProperty::setImage.call this, image
 
-		# If the frame size isn't explicitly given, then calculate the
-		# size of one frame using the total number of frames and the total
-		# spritesheet size. Width is calculated by dividing the total
-		# spritesheet width by the number of frames, and the height is the
-		# height of the spritesheet divided by the number of directions
-		# in the animation.
-		@setFrameSize frameSize ? Vector.div(
-			@image().size()
-			[@frameCount(), @directionCount()]
-		)
+  	# If the frame size isn't explicitly given, then calculate the
+  	# size of one frame using the total number of frames and the total
+  	# spritesheet size. Width is calculated by dividing the total
+  	# spritesheet width by the number of frames, and the height is the
+  	# height of the spritesheet divided by the number of directions
+  	# in the animation.
+  	@setFrameSize frameSize ? Vector.div(
+  		@image().size()
+  		[@frameCount(), @directionCount()]
+  	)
 
-		return
+  	return
 
-	sourceRectangle: (index) ->
+  sourceRectangle: (index) ->
 
-		Rectangle.compose(
-			Vector.mul @frameSize(), [
-				(index ? @index()) % @frameCount()
-				@direction()
-			]
-			@frameSize()
-		)
+  	Rectangle.compose(
+  		Vector.mul @frameSize(), [
+  			(index ? @index()) % @frameCount()
+  			@direction()
+  		]
+  		@frameSize()
+  	)
 
-	sprite: -> @_sprite
+  sprite: -> @_sprite
 
-	toJSON: ->
+  toJSON: ->
 
-		defaultImageUri = @uri().replace '.animation.json', '.png'
-		imageUri = @image().uri() if @image().uri() isnt defaultImageUri
+  	defaultImageUri = @uri().replace '.animation.json', '.png'
+  	imageUri = @image().uri() if @image().uri() isnt defaultImageUri
 
-		directionCount: @directionCount()
-		frameRate: @frameRate()
-		frameCount: @frameCount()
-		frameSize: @frameSize()
-		imageUri: imageUri
+  	directionCount: @directionCount()
+  	frameRate: @frameRate()
+  	frameCount: @frameCount()
+  	frameSize: @frameSize()
+  	imageUri: imageUri

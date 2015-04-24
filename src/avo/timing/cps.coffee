@@ -12,26 +12,26 @@ Ticker = require './ticker'
 
 module.exports = class
 
-	# Instantiate the CPS counter. By default, it counts the cycles every 250
-	# milliseconds.
-	constructor: (frequency = 250) ->
+  # Instantiate the CPS counter. By default, it counts the cycles every 250
+  # milliseconds.
+  constructor: (frequency = 250) ->
 
-		@ticker = new Ticker.OutOfBand()
-		@ticker.setFrequency frequency
+  	@ticker = new Ticker.OutOfBand()
+  	@ticker.setFrequency frequency
 
-		@ticker.on 'tick', =>
-			@fps = @c * (1000 / frequency)
-			@c = 0
+  	@ticker.on 'tick', =>
+  		@fps = @c * (1000 / frequency)
+  		@c = 0
 
-		@fps = 0
-		@c = 0
+  	@fps = 0
+  	@c = 0
 
-	# Call every time the process you want to measure runs.
-	tick: ->
+  # Call every time the process you want to measure runs.
+  tick: ->
 
-		@ticker.tick()
+  	@ticker.tick()
 
-		@c++
+  	@c++
 
-	# Call to retrieve how many cycles the process runs per second.
-	count: -> @fps
+  # Call to retrieve how many cycles the process runs per second.
+  count: -> @fps

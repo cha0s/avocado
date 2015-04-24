@@ -4,48 +4,48 @@ Promise = require 'avo/vendor/bluebird'
 
 module.exports = Environment = class
 
-	@load: (uri) ->
+  @load: (uri) ->
 
-		fs.readJsonResource(uri).then (O) ->
-			O.uri = uri
+  	fs.readJsonResource(uri).then (O) ->
+  		O.uri = uri
 
-			environment = new Environment()
-			environment.fromObject O
+  		environment = new Environment()
+  		environment.fromObject O
 
-	constructor: ->
+  constructor: ->
 
-		@rooms_ = []
-		@name_ = ''
-		@description_ = ''
+  	@rooms_ = []
+  	@name_ = ''
+  	@description_ = ''
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		@["#{i}_"] = O[i] for i of O
+  	@["#{i}_"] = O[i] for i of O
 
-		@rooms_ = []
-		roomPromises = for roomO in O.rooms
-			room = new Environment.Room()
-			@addRoom room
-			room.fromObject roomO
+  	@rooms_ = []
+  	roomPromises = for roomO in O.rooms
+  		room = new Environment.Room()
+  		@addRoom room
+  		room.fromObject roomO
 
-		Promise.all(roomPromises).then => this
+  	Promise.all(roomPromises).then => this
 
-	addRoom: (room) -> @rooms_.push room
-	room: (index) -> @rooms_[index]
-	roomCount: -> @rooms_.length
+  addRoom: (room) -> @rooms_.push room
+  room: (index) -> @rooms_[index]
+  roomCount: -> @rooms_.length
 
-	name: -> if @name_ is '' then @uri_ else @name_
-	setName: (@name_) ->
+  name: -> if @name_ is '' then @uri_ else @name_
+  setName: (@name_) ->
 
-	description: -> @description_
-	setDescription: (@description_) ->
+  description: -> @description_
+  setDescription: (@description_) ->
 
-	uri: -> @uri_
-	setUri: (@uri_) ->
+  uri: -> @uri_
+  setUri: (@uri_) ->
 
-	toJSON: ->
+  toJSON: ->
 
-		name: @name_
-		rooms: @rooms_
+  	name: @name_
+  	rooms: @rooms_
 
 Environment.Room = require './room'

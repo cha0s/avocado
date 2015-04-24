@@ -3,40 +3,40 @@ Behavior = require './index'
 
 describe 'Behavior', ->
 
-	it "rules can be invoked", ->
+  it "rules can be invoked", ->
 
-		blah = 69
-		context = foo: bar: -> blah = 420
+  	blah = 69
+  	context = foo: bar: -> blah = 420
 
-		rule = Behavior.instantiate
+  	rule = Behavior.instantiate
 
-			ru:
+  		ru:
 
-				condition:
+  			condition:
 
-					operator: 'and'
-					operands: [
-						l: true
-					,
-						l: false
-					]
+  				operator: 'and'
+  				operands: [
+  					l: true
+  				,
+  					l: false
+  				]
 
 
-				actions: [
+  			actions: [
 
-					selector: 'foo:bar'
-					args: [
-						[]
-					]
+  				selector: 'foo:bar'
+  				args: [
+  					[]
+  				]
 
-				]
+  			]
 
-		rule.invoke context
+  	rule.invoke context
 
-		expect(blah).toBe 69
+  	expect(blah).toBe 69
 
-		rule.condition().setOperand 1, Behavior.instantiate l: true
+  	rule.condition().setOperand 1, Behavior.instantiate l: true
 
-		rule.invoke context
+  	rule.invoke context
 
-		expect(blah).toBe 420
+  	expect(blah).toBe 420

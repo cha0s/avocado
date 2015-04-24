@@ -3,15 +3,15 @@ Behavior = require './index'
 
 describe 'Behavior', ->
 
-	literal = null
+  literal = null
 
-	beforeEach -> literal = Behavior.instantiate l: 69
+  beforeEach -> literal = Behavior.instantiate l: 69
 
-	it "literals can be accessed", ->
+  it "literals can be accessed", ->
 
-		expect(literal.get()).toBe 69
+  	expect(literal.get()).toBe 69
 
-	it "literals can be modified", ->
+  it "literals can be modified", ->
 
-		literal.set 420
-		expect(literal.get()).toBe 420
+  	literal.set 420
+  	expect(literal.get()).toBe 420

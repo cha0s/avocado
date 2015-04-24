@@ -6,85 +6,85 @@ BehaviorItem = require './behaviorItem'
 
 module.exports = class Condition extends BehaviorItem
 
-	constructor: ->
+  constructor: ->
 
-		@_operator = ''
-		@_operands = []
+  	@_operator = ''
+  	@_operands = []
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		@_operator = O.operator
+  	@_operator = O.operator
 
-		Promise.allAsap(
-			Behavior.instantiate operand for operand in O.operands
-			(@_operands) => this
-		)
+  	Promise.allAsap(
+  		Behavior.instantiate operand for operand in O.operands
+  		(@_operands) => this
+  	)
 
-	get: (context) ->
+  get: (context) ->
 
-		switch @_operator
+  	switch @_operator
 
-			when 'is'
+  		when 'is'
 
-				@_operands[0].get(context) is @_operands[1].get(context)
+  			@_operands[0].get(context) is @_operands[1].get(context)
 
-			when 'isnt'
+  		when 'isnt'
 
-				@_operands[0].get(context) isnt @_operands[1].get(context)
+  			@_operands[0].get(context) isnt @_operands[1].get(context)
 
-			when '>'
+  		when '>'
 
-				@_operands[0].get(context) > @_operands[1].get(context)
+  			@_operands[0].get(context) > @_operands[1].get(context)
 
-			when '>='
+  		when '>='
 
-				@_operands[0].get(context) >= @_operands[1].get(context)
+  			@_operands[0].get(context) >= @_operands[1].get(context)
 
-			when '<'
+  		when '<'
 
-				@_operands[0].get(context) < @_operands[1].get(context)
+  			@_operands[0].get(context) < @_operands[1].get(context)
 
-			when '<='
+  		when '<='
 
-				@_operands[0].get(context) <= @_operands[1].get(context)
+  			@_operands[0].get(context) <= @_operands[1].get(context)
 
-			when 'or'
+  		when 'or'
 
-				return true if @_operands.length is 0
+  			return true if @_operands.length is 0
 
-				result = false
+  			result = false
 
-				index = 0
-				while not result and index < @_operands.length
-					result = result or !!@_operands[index].get context
-					index += 1
+  			index = 0
+  			while not result and index < @_operands.length
+  				result = result or !!@_operands[index].get context
+  				index += 1
 
-				result
+  			result
 
-			when 'and'
+  		when 'and'
 
-				result = true
+  			result = true
 
-				index = 0
-				while result and index < @_operands.length
-					result = result and !!@_operands[index].get context
-					index += 1
+  			index = 0
+  			while result and index < @_operands.length
+  				result = result and !!@_operands[index].get context
+  				index += 1
 
-				result
+  			result
 
-	operandCount: -> @_operands.length
+  operandCount: -> @_operands.length
 
-	operand: (index) -> @_operands[index]
+  operand: (index) -> @_operands[index]
 
-	operands: -> @_operands
+  operands: -> @_operands
 
-	operator: -> @_operator
+  operator: -> @_operator
 
-	setOperand: (index, operand) -> @_operands[index] = operand
+  setOperand: (index, operand) -> @_operands[index] = operand
 
-	setOperator: (operator) -> @_operator = operator
+  setOperator: (operator) -> @_operator = operator
 
-	toJSON: -> c:
+  toJSON: -> c:
 
-		operator: @_operator
-		operands: @_operands.map (operand) -> operand.toJSON()
+  	operator: @_operator
+  	operands: @_operands.map (operand) -> operand.toJSON()

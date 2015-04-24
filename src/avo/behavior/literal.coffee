@@ -4,17 +4,17 @@ ObjectExt = require 'avo/extension/object'
 
 module.exports = class Literal extends BehaviorItem
 
-	constructor: ->
+  constructor: ->
 
-		@_literal = null
+  	@_literal = null
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		@_literal = ObjectExt.deepCopy O
+  	@_literal = ObjectExt.deepCopy O
 
-		this
+  	this
 
-	get: (context) -> @_literal
-	set: (@_literal) ->
+  get: (context) -> @_literal
+  set: (@_literal) ->
 
-	toJSON: -> l: @_literal
+  toJSON: -> l: @_literal

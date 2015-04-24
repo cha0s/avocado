@@ -15,144 +15,144 @@ Primitives = require 'avo/graphics/primitives'
 
 module.exports = class ShapeList
 
-	mixins = [
-		VectorMixin 'position', 'x', 'y'
-		VectorMixin 'origin', 'originX', 'originY'
-		Property 'rotation', 0
-		Property 'scale', 1
-		EventEmitter
-	]
+  mixins = [
+  	VectorMixin 'position', 'x', 'y'
+  	VectorMixin 'origin', 'originX', 'originY'
+  	Property 'rotation', 0
+  	Property 'scale', 1
+  	EventEmitter
+  ]
 
-	constructor: ->
+  constructor: ->
 
-		mixin.call this for mixin in mixins
+  	mixin.call this for mixin in mixins
 
-		@_container = new Container()
-		@_primitives = new Primitives()
-		@_shapes = []
+  	@_container = new Container()
+  	@_primitives = new Primitives()
+  	@_shapes = []
 
-		@on 'positionChanged', =>
+  	@on 'positionChanged', =>
 
-			@_container.setPosition @positionWithOrigin()
+  		@_container.setPosition @positionWithOrigin()
 
-		@on 'aabbChanged', =>
+  	@on 'aabbChanged', =>
 
-			@_primitives.clear()
+  		@_primitives.clear()
 
-			@_primitives.drawRectangle(
-				Rectangle.translated(
-					@aabb()
-					Vector.scale @positionWithOrigin(), -1
-				)
-				Primitives.LineStyle color 255, 0, 255
-			)
+  		@_primitives.drawRectangle(
+  			Rectangle.translated(
+  				@aabb()
+  				Vector.scale @positionWithOrigin(), -1
+  			)
+  			Primitives.LineStyle color 255, 0, 255
+  		)
 
-		@on 'shapesChanged', =>
+  	@on 'shapesChanged', =>
 
-			@_container.removeAllChildren()
+  		@_container.removeAllChildren()
 
-			@_container.addChild @_primitives
+  		@_container.addChild @_primitives
 
-			for shape in @_shapes
+  		for shape in @_shapes
 
-				shape.on 'aabbChanged', => @emit 'aabbChanged'
+  			shape.on 'aabbChanged', => @emit 'aabbChanged'
 
-				@_container.addChild shape.primitives()
+  			@_container.addChild shape.primitives()
 
-		@on 'originChanged', =>
-			for shape in @_shapes
-				shape.setParentOrigin @origin()
+  	@on 'originChanged', =>
+  		for shape in @_shapes
+  			shape.setParentOrigin @origin()
 
-		@on 'rotationChanged', =>
-			for shape in @_shapes
-				shape.setParentRotation @rotation()
+  	@on 'rotationChanged', =>
+  		for shape in @_shapes
+  			shape.setParentRotation @rotation()
 
-		@on 'scaleChanged', =>
-			for shape in @_shapes
-				shape.setParentScale @scale()
+  	@on 'scaleChanged', =>
+  		for shape in @_shapes
+  			shape.setParentScale @scale()
 
-	FunctionExt.fastApply Mixin, [@::].concat mixins
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		@_shapes = []
+  	@_shapes = []
 
-		for shape in O.shapes
-			ShapeType = require "avo/physics/shape/#{shape.type}"
-			@_shapes.push (new ShapeType()).fromObject shape
+  	for shape in O.shapes
+  		ShapeType = require "avo/physics/shape/#{shape.type}"
+  		@_shapes.push (new ShapeType()).fromObject shape
 
-		@setOrigin O.origin if O.origin?
-		@setRotation O.rotation if O.rotation?
-		@setScale O.scale if O.scale?
+  	@setOrigin O.origin if O.origin?
+  	@setRotation O.rotation if O.rotation?
+  	@setScale O.scale if O.scale?
 
-		@emit 'shapesChanged'
+  	@emit 'shapesChanged'
 
-		this
+  	this
 
-	addShape: (shape) ->
+  addShape: (shape) ->
 
-		@_shapes.push shape
+  	@_shapes.push shape
 
-		@emit 'shapesChanged'
+  	@emit 'shapesChanged'
 
-	aabb: (translated = true) ->
+  aabb: (translated = true) ->
 
-		return [0, 0, 0, 0] if @_shapes.length is 0
+  	return [0, 0, 0, 0] if @_shapes.length is 0
 
-		min = [Infinity, Infinity]
-		max = [-Infinity, -Infinity]
+  	min = [Infinity, Infinity]
+  	max = [-Infinity, -Infinity]
 
-		for shape in @_shapes
+  	for shape in @_shapes
 
-			aabb = shape.aabb()
+  		aabb = shape.aabb()
 
-			min[0] = Math.min min[0], aabb[0]
-			min[1] = Math.min min[1], aabb[1]
-			max[0] = Math.max max[0], aabb[0] + aabb[2]
-			max[1] = Math.max max[1], aabb[1] + aabb[3]
+  		min[0] = Math.min min[0], aabb[0]
+  		min[1] = Math.min min[1], aabb[1]
+  		max[0] = Math.max max[0], aabb[0] + aabb[2]
+  		max[1] = Math.max max[1], aabb[1] + aabb[3]
 
-		Rectangle.translated(
-			[
-				min[0], min[1]
-				max[0] - min[0], max[1] - min[1]
-			]
-			@positionWithOrigin()
-		)
+  	Rectangle.translated(
+  		[
+  			min[0], min[1]
+  			max[0] - min[0], max[1] - min[1]
+  		]
+  		@positionWithOrigin()
+  	)
 
-	container: -> @_container
+  container: -> @_container
 
-	intersects: (shapeList) ->
+  intersects: (shapeList) ->
 
-		return false if @_shapes.length is 0
+  	return false if @_shapes.length is 0
 
-		return false unless Rectangle.intersects @aabb(), shapeList.aabb()
+  	return false unless Rectangle.intersects @aabb(), shapeList.aabb()
 
-		for shape in @_shapes
-			for otherShape in shapeList._shapes
-				if Rectangle.intersects(
-					Rectangle.translated(
-						shape.aabb()
-						@positionWithOrigin()
-					)
-					Rectangle.translated(
-						otherShape.aabb()
-						shapeList.positionWithOrigin()
-					)
-				)
-					return self: shape, other: otherShape
+  	for shape in @_shapes
+  		for otherShape in shapeList._shapes
+  			if Rectangle.intersects(
+  				Rectangle.translated(
+  					shape.aabb()
+  					@positionWithOrigin()
+  				)
+  				Rectangle.translated(
+  					otherShape.aabb()
+  					shapeList.positionWithOrigin()
+  				)
+  			)
+  				return self: shape, other: otherShape
 
-		false
+  	false
 
-	positionWithOrigin: -> Vector.sub @position(), @origin()
+  positionWithOrigin: -> Vector.sub @position(), @origin()
 
-	removeAtIndex: (index) ->
+  removeAtIndex: (index) ->
 
-		@_shapes.splice index, 1
+  	@_shapes.splice index, 1
 
-		@emit 'shapesChanged'
+  	@emit 'shapesChanged'
 
-	shapes: -> @_shapes
+  shapes: -> @_shapes
 
-	toJSON: ->
+  toJSON: ->
 
-		shapes: shape.toJSON() for shape in @_shapes
+  	shapes: shape.toJSON() for shape in @_shapes

@@ -8,60 +8,60 @@ Trait = require './trait'
 
 module.exports = Behavioral = class extends Trait
 
-	stateDefaults: ->
+  stateDefaults: ->
 
-		isBehaving: true
-		routineIndex: 'initial'
-		routines: {}
-		rules: []
-		staticActions: []
+  	isBehaving: true
+  	routineIndex: 'initial'
+  	routines: {}
+  	rules: []
+  	staticActions: []
 
-	constructor: (entity, state) ->
-		super
+  constructor: (entity, state) ->
+  	super
 
-		@_routines = new Routines()
-		@_rules = new Rules()
-		@_staticActions = new Actions()
+  	@_routines = new Routines()
+  	@_rules = new Rules()
+  	@_staticActions = new Actions()
 
-	initialize: ->
+  initialize: ->
 
-		Promise.allAsap [
-			@_routines.fromObject @state.routines
-			@_rules.fromObject @state.rules
-			@_staticActions.fromObject @state.staticActions
-		], =>
+  	Promise.allAsap [
+  		@_routines.fromObject @state.routines
+  		@_rules.fromObject @state.rules
+  		@_staticActions.fromObject @state.staticActions
+  	], =>
 
-			@_routines.setIndex @state.routineIndex
+  		@_routines.setIndex @state.routineIndex
 
-	properties: ->
+  properties: ->
 
-		isBehaving: {}
-		routineIndex:
+  	isBehaving: {}
+  	routineIndex:
 
-			set: (routineIndex) ->
+  		set: (routineIndex) ->
 
-				@_routines.setIndex @state.routineIndex = routineIndex
+  			@_routines.setIndex @state.routineIndex = routineIndex
 
-	actions: ->
+  actions: ->
 
-		parallel: (actions, state) ->
+  	parallel: (actions, state) ->
 
-			actions.invokeImmediately @entity.context(), state
+  		actions.invokeImmediately @entity.context(), state
 
-	handler: ->
+  handler: ->
 
-		ticker: ->
+  	ticker: ->
 
-			return unless @entity.isBehaving()
+  		return unless @entity.isBehaving()
 
-			context = @entity.context()
+  		context = @entity.context()
 
-			@_routines.routine().invoke context
-			@_rules.invoke context
-			@_staticActions.invoke context
+  		@_routines.routine().invoke context
+  		@_rules.invoke context
+  		@_staticActions.invoke context
 
-			return
+  		return
 
-	signals: ->
+  signals: ->
 
-		dying: -> @entity.setIsBehaving false
+  	dying: -> @entity.setIsBehaving false

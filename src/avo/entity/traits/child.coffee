@@ -5,52 +5,52 @@ Trait = require './trait'
 
 module.exports = class Child extends Trait
 
-	stateDefaults: ->
+  stateDefaults: ->
 
-		isAbove: true
-		isAttachedToParent: true
+  	isAbove: true
+  	isAttachedToParent: true
 
-	constructor: ->
-		super
+  constructor: ->
+  	super
 
-		@_parent = null
+  	@_parent = null
 
-	properties: ->
+  properties: ->
 
-		isAbove: {}
-		isAttachedToParent: {}
+  	isAbove: {}
+  	isAttachedToParent: {}
 
-	_setPositionFromParent: ->
+  _setPositionFromParent: ->
 
-		position = Vector.copy @_parent.position()
+  	position = Vector.copy @_parent.position()
 
 
-		position = Vector.add(
-			position
-			attachedOffset
-		) for attachedOffset in @entity.invoke 'attachedOffset'
+  	position = Vector.add(
+  		position
+  		attachedOffset
+  	) for attachedOffset in @entity.invoke 'attachedOffset'
 
-		@entity.setPosition position
+  	@entity.setPosition position
 
-		@entity.emit 'updateZIndex'
+  	@entity.emit 'updateZIndex'
 
-	actions: ->
+  actions: ->
 
-		setParent: (@_parent) ->
+  	setParent: (@_parent) ->
 
-			if @state.isAttachedToParent
-				@_setPositionFromParent()
-				@_parent.on 'positionChanged', => @_setPositionFromParent()
+  		if @state.isAttachedToParent
+  			@_setPositionFromParent()
+  			@_parent.on 'positionChanged', => @_setPositionFromParent()
 
-	values: ->
+  values: ->
 
-		customZIndex: ->
-			return @entity.y() unless (parent = @entity.parent())?
+  	customZIndex: ->
+  		return @entity.y() unless (parent = @entity.parent())?
 
-			if @state.isAbove
-				parent.y() + .0001
-			else
-				parent.y() - .0001
+  		if @state.isAbove
+  			parent.y() + .0001
+  		else
+  			parent.y() - .0001
 
-		parent: -> @_parent
+  	parent: -> @_parent
 

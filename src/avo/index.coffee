@@ -8,32 +8,32 @@ config = require 'avo/config'
 
 if 'node-webkit' is config.get 'platform'
 
-	util = require 'util'
+  util = require 'util'
 
-	# I am the opposite of a fan of how node-webkit hands all logging to
-	# webkit.
-	console.error = console.info = console.log = ->
+  # I am the opposite of a fan of how node-webkit hands all logging to
+  # webkit.
+  console.error = console.info = console.log = ->
 
-		for arg, i in arguments
+  	for arg, i in arguments
 
-			process.stderr.write ' ' if i > 0
+  		process.stderr.write ' ' if i > 0
 
-			if 'string' is typeof arg
-				process.stderr.write arg
-			else
-				process.stderr.write util.inspect arg
+  		if 'string' is typeof arg
+  			process.stderr.write arg
+  		else
+  			process.stderr.write util.inspect arg
 
-		process.stderr.write '\n'
+  	process.stderr.write '\n'
 
-	# Fix PIXI and we can remove these.
-	global.document = window.document
-	global.navigator = window.navigator
-	global.Image = window.Image
-	global.HTMLImageElement = window.HTMLImageElement
-	global.Float32Array = window.Float32Array
-	global.Uint16Array = window.Uint16Array
+  # Fix PIXI and we can remove these.
+  global.document = window.document
+  global.navigator = window.navigator
+  global.Image = window.Image
+  global.HTMLImageElement = window.HTMLImageElement
+  global.Float32Array = window.Float32Array
+  global.Uint16Array = window.Uint16Array
 
-	# Unfortunately, reloadDev() is broken in node-webkit 0.8.6
+  # Unfortunately, reloadDev() is broken in node-webkit 0.8.6
 
 #	# Hot reload the engine when source files change.
 #	{Gaze} = require 'gaze'
@@ -110,38 +110,38 @@ renderCps = new Cps()
 
 dispatchTick = ->
 
-	handleStateTransition()
-	stateInstance?.tick()
-	tickCps.tick()
+  handleStateTransition()
+  stateInstance?.tick()
+  tickCps.tick()
 
 tickCallback = ->
 
-	try
+  try
 
-		elapsed = timing.elapsed()
-		tickRemainder += elapsed - lastElapsed
-		lastElapsed = elapsed
+  	elapsed = timing.elapsed()
+  	tickRemainder += elapsed - lastElapsed
+  	lastElapsed = elapsed
 
-		while tickRemainder >= tickTargetSeconds
+  	while tickRemainder >= tickTargetSeconds
 
-			dispatchTick()
+  		dispatchTick()
 
-			tickRemainder -= tickTargetSeconds
+  		tickRemainder -= tickTargetSeconds
 
-	catch error
+  catch error
 
-		handleError error
+  	handleError error
 
 renderCallback = ->
 
-	try
+  try
 
-		stateInstance.render window_.renderer() if stateInstance?.render?
-		renderCps.tick()
+  	stateInstance.render window_.renderer() if stateInstance?.render?
+  	renderCps.tick()
 
-	catch error
+  catch error
 
-		handleError error
+  	handleError error
 
 originalRendersPerSecond = rendersPerSecond = config.get 'timing:rendersPerSecond'
 renderTicker = new Ticker 1000 / rendersPerSecond
@@ -157,40 +157,40 @@ tickSamples = []
 adjustmentTicker = new Ticker 1000
 adjustmentTicker.on 'tick', ->
 
-	renderSamples = renderSamples.filter (e) -> !!e
+  renderSamples = renderSamples.filter (e) -> !!e
 
-	actualRenderCps = renderSamples.reduce ((l, r) -> l + r), 0
-	actualRenderCps /= renderSamples.length
-	renderSamples = []
+  actualRenderCps = renderSamples.reduce ((l, r) -> l + r), 0
+  actualRenderCps /= renderSamples.length
+  renderSamples = []
 
-	if actualRenderCps < rendersPerSecond * .75
-		renderTicker.setFrequency 1000 / (rendersPerSecond *= .75)
+  if actualRenderCps < rendersPerSecond * .75
+  	renderTicker.setFrequency 1000 / (rendersPerSecond *= .75)
 
-	else
-		if rendersPerSecond * 1.25 <= originalRendersPerSecond
-			renderTicker.setFrequency 1000 / (rendersPerSecond *= 1.25)
-		else
-			renderTicker.setFrequency 1000 / originalRendersPerSecond
+  else
+  	if rendersPerSecond * 1.25 <= originalRendersPerSecond
+  		renderTicker.setFrequency 1000 / (rendersPerSecond *= 1.25)
+  	else
+  		renderTicker.setFrequency 1000 / originalRendersPerSecond
 
-	actualTickCps = tickSamples.reduce ((l, r) -> l + r), 0
-	actualTickCps /= tickSamples.length
-	tickSamples = []
+  actualTickCps = tickSamples.reduce ((l, r) -> l + r), 0
+  actualTickCps /= tickSamples.length
+  tickSamples = []
 
 sampleTicker = new Ticker 125
 sampleTicker.on 'tick', ->
 
-	renderSamples.push renderCps.count()
-	tickSamples.push tickCps.count()
+  renderSamples.push renderCps.count()
+  tickSamples.push tickCps.count()
 
 dispatcher = ->
 
-	timing.setElapsed elapsed = (Date.now() - originalTimestamp) / 1000
+  timing.setElapsed elapsed = (Date.now() - originalTimestamp) / 1000
 
-	tickTicker.tick()
-	renderTicker.tick()
+  tickTicker.tick()
+  renderTicker.tick()
 
-	sampleTicker.tick()
-	adjustmentTicker.tick()
+  sampleTicker.tick()
+  adjustmentTicker.tick()
 
 dispatcherInterval = window.setInterval dispatcher, 10
 
@@ -200,92 +200,92 @@ stateInstance = null
 stateInstanceCache = {}
 
 AbstractState::transitionToState = (name, args) ->
-	return if stateTransition?
-	stateTransition = name: name, args: args
+  return if stateTransition?
+  stateTransition = name: name, args: args
 
 handleStateTransition = ->
-	return unless stateTransition?
+  return unless stateTransition?
 
-	{name, args} = stateTransition
-	stateTransition = null
+  {name, args} = stateTransition
+  stateTransition = null
 
-	stateInstance?.leave stateName
-	stateInstance = null
+  stateInstance?.leave stateName
+  stateInstance = null
 
-	promise = Promise.asap(
+  promise = Promise.asap(
 
-		# If the State is already loaded and cached, fulfill the
-		# initialization immediately.
-		if stateInstanceCache[name]?
-			true
+  	# If the State is already loaded and cached, fulfill the
+  	# initialization immediately.
+  	if stateInstanceCache[name]?
+  		true
 
-		# Otherwise, instantiate and cache.
-		else
+  	# Otherwise, instantiate and cache.
+  	else
 
-			StateClass = require "state/#{name}"
-			stateInstanceCache[name] = new StateClass()
-			stateInstanceCache[name].initialize()
+  		StateClass = require "state/#{name}"
+  		stateInstanceCache[name] = new StateClass()
+  		stateInstanceCache[name].initialize()
 
-		->
+  	->
 
-			# Enter the state.
-			Promise.asap(
-				stateInstanceCache[name].enter args, stateName
-				-> stateInstance = stateInstanceCache[stateName = name]
-				(error) -> handleError error
-			)
+  		# Enter the state.
+  		Promise.asap(
+  			stateInstanceCache[name].enter args, stateName
+  			-> stateInstance = stateInstanceCache[stateName = name]
+  			(error) -> handleError error
+  		)
 
-		(error) -> handleError error
-	)
-	if Promise.is promise
-		promise.catch (error) -> handleError error
+  	(error) -> handleError error
+  )
+  if Promise.is promise
+  	promise.catch (error) -> handleError error
 
 # Read from config file.
 fs.readJsonResource('/config.json').then(
-	(O) -> config.mergeIn O
-	->
+  (O) -> config.mergeIn O
+  ->
 ).finally ->
 
-	window_.instantiate()
+  window_.instantiate()
 
-	bootstrapPromise = try
+  bootstrapPromise = try
 
-		bootstrap = require 'avo/bootstrap'
-		bootstrap.promise
+  	bootstrap = require 'avo/bootstrap'
+  	bootstrap.promise
 
-	catch error
+  catch error
 
-		unless error.message is "Cannot find module 'avo/bootstrap'"
-			throw error
+  	unless error.message is "Cannot find module 'avo/bootstrap'"
+  		throw error
 
-		null
+  	null
 
-	Promise.asap bootstrapPromise, ->
+  Promise.asap bootstrapPromise, ->
 
-		# Enter the 'initial' state. This is implemented by your game.
-		AbstractState::transitionToState 'initial'
+  	# Enter the 'initial' state. This is implemented by your game.
+  	AbstractState::transitionToState 'initial'
 
 handleError = (error) ->
-	console.log error.stack
+  console.log error.stack
 
-	if process? and process.env.watching
+  if process? and process.env.watching
 
-		halt()
-		console.info "Halted... waiting for source change"
+  	halt()
+  	console.info "Halted... waiting for source change"
 
-	else
+  else
 
-		quit()
+  	quit()
 
 window.onerror = (message, filename, lineNumber, _, error) ->
-	handleError error
-	true
+  handleError error
+  true
 
 halt = ->
 
-	window.clearInterval dispatcherInterval
+  window.clearInterval dispatcherInterval
 
 AbstractState::quit = quit = ->
-	halt()
+  halt()
 
-	window_.close()
+  window_.close()

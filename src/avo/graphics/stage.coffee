@@ -10,21 +10,21 @@ Renderable = require './renderable'
 
 module.exports = class Stage
 
-	constructor: ->
+  constructor: ->
 
-		@_stage = new PIXI.Stage()
-		@_stage.interactive = false
+  	@_stage = new PIXI.Stage()
+  	@_stage.interactive = false
 
-	addChild: (child) -> @_stage.addChild child.internal()
+  addChild: (child) -> @_stage.addChild child.internal()
 
-	removeChild: (child) -> @_stage.removeChild child.internal()
+  removeChild: (child) -> @_stage.removeChild child.internal()
 
-	removeAllChildren: ->
-		@_stage.removeChild child for child in @_stage.children
+  removeAllChildren: ->
+  	@_stage.removeChild child for child in @_stage.children
 
-	setBackgroundColor: (backgroundColor) ->
-		@_stage.setBackgroundColor backgroundColor.toInteger()
+  setBackgroundColor: (backgroundColor) ->
+  	@_stage.setBackgroundColor backgroundColor.toInteger()
 
-	backgroundColor: -> color.fromInteger @_stage.backgroundColor
+  backgroundColor: -> color.fromInteger @_stage.backgroundColor
 
-	internal: -> @_stage
+  internal: -> @_stage

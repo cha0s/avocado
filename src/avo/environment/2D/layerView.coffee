@@ -13,103 +13,103 @@ VectorMixin = require 'avo/mixin/vector'
 
 module.exports = class LayerView
 
-	mixins = [
-		EventEmitter
-		PositionProperty = VectorMixin 'position'
-		LayerProperty = Property 'layer', null
-	]
+  mixins = [
+  	EventEmitter
+  	PositionProperty = VectorMixin 'position'
+  	LayerProperty = Property 'layer', null
+  ]
 
-	constructor: (@_layer) ->
-		mixin.call @ for mixin in mixins
+  constructor: (@_layer) ->
+  	mixin.call @ for mixin in mixins
 
-		@_container = new SpriteContainer()
+  	@_container = new SpriteContainer()
 
-		@on 'positionChanged', (oldPosition) =>
-			return unless @_container?
+  	@on 'positionChanged', (oldPosition) =>
+  		return unless @_container?
 
-			@_container.setPosition Vector.scale @position(), -1
+  		@_container.setPosition Vector.scale @position(), -1
 
-		@on 'layerChanged', (oldSize) =>
+  	@on 'layerChanged', (oldSize) =>
 
-			@renderChunks()
+  		@renderChunks()
 
-	FunctionExt.fastApply Mixin, [@::].concat mixins
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
-	container: -> @_container
+  container: -> @_container
 
-	renderChunk: (rectangle) ->
-		return unless @_layer.tileIndices_?
-		return unless (tileset = @_layer.tileset())?
-		return unless tileset.image()?
+  renderChunk: (rectangle) ->
+  	return unless @_layer.tileIndices_?
+  	return unless (tileset = @_layer.tileset())?
+  	return unless tileset.image()?
 
-		texture = new PIXI.RenderTexture rectangle[2], rectangle[3]
+  	texture = new PIXI.RenderTexture rectangle[2], rectangle[3]
 
-		container = new PIXI.DisplayObjectContainer()
-		sprite = new Sprite @_layer.tileset().image()
-		container.addChild sprite.internal()
+  	container = new PIXI.DisplayObjectContainer()
+  	sprite = new Sprite @_layer.tileset().image()
+  	container.addChild sprite.internal()
 
-		tileSize = @_layer.tileset_.tileSize()
+  	tileSize = @_layer.tileset_.tileSize()
 
-		offset = Vector.scale(
-			Vector.mod rectangle, tileSize
-			-1
-		)
+  	offset = Vector.scale(
+  		Vector.mod rectangle, tileSize
+  		-1
+  	)
 
-		start = Vector.floor Vector.div rectangle, tileSize
+  	start = Vector.floor Vector.div rectangle, tileSize
 
-		area = Vector.floor Vector.div(
-			Rectangle.size rectangle
-			tileSize
-		)
+  	area = Vector.floor Vector.div(
+  		Rectangle.size rectangle
+  		tileSize
+  	)
 
-		for i in [0..1]
-			area[i] += 2
+  	for i in [0..1]
+  		area[i] += 2
 
-		for y in [0...area[1]]
+  	for y in [0...area[1]]
 
-			for x in [0...area[0]]
+  		for x in [0...area[0]]
 
-				if index = @_layer.tileIndex start
+  			if index = @_layer.tileIndex start
 
-					tileBox = tileset.tileBox index
+  				tileBox = tileset.tileBox index
 
-					sprite.setPosition offset
-					sprite.setSourceRectangle tileBox
+  				sprite.setPosition offset
+  				sprite.setSourceRectangle tileBox
 
-					texture.render container
+  				texture.render container
 
-				offset[0] += tileSize[0]
-				start[0] += 1
+  			offset[0] += tileSize[0]
+  			start[0] += 1
 
-			offset[0] -= tileSize[0] * area[0]
-			offset[1] += tileSize[1]
+  		offset[0] -= tileSize[0] * area[0]
+  		offset[1] += tileSize[1]
 
-			start[0] -= area[0]
-			start[1] += 1
+  		start[0] -= area[0]
+  		start[1] += 1
 
-		Image.fromTexture texture
+  	Image.fromTexture texture
 
-	renderChunks: ->
+  renderChunks: ->
 
-		chunkSize = [1024, 1024]
+  	chunkSize = [1024, 1024]
 
-		chunkArea = Vector.ceil Vector.div(
-			@_layer.sizeInPx()
-			chunkSize
-		)
+  	chunkArea = Vector.ceil Vector.div(
+  		@_layer.sizeInPx()
+  		chunkSize
+  	)
 
-		for y in [0...chunkArea[1]]
-			for x in [0...chunkArea[0]]
+  	for y in [0...chunkArea[1]]
+  		for x in [0...chunkArea[0]]
 
-				position = Vector.mul [x, y], chunkSize
+  			position = Vector.mul [x, y], chunkSize
 
-				sprite = new Sprite @renderChunk Rectangle.compose(
-					position
-					chunkSize
-				)
+  			sprite = new Sprite @renderChunk Rectangle.compose(
+  				position
+  				chunkSize
+  			)
 
-				sprite.setPosition position
+  			sprite.setPosition position
 
-				@_container.addChild sprite
+  			@_container.addChild sprite
 
-		return
+  	return

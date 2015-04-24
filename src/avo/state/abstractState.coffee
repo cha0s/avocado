@@ -11,33 +11,33 @@ Promise = require 'avo/vendor/bluebird'
 
 module.exports = class
 
-	# ##### initialize
-	# When the state is first loaded, initialize is called. This is used to
-	# initialize the State. You can load resources that are to remain as
-	# persistent for the life of the application.
-	#
-	# If you need to do something asynchronously, return a promise. If you
-	# don't return a promise, the engine will continue immediately.
-	initialize: ->
+  # ##### initialize
+  # When the state is first loaded, initialize is called. This is used to
+  # initialize the State. You can load resources that are to remain as
+  # persistent for the life of the application.
+  #
+  # If you need to do something asynchronously, return a promise. If you
+  # don't return a promise, the engine will continue immediately.
+  initialize: ->
 
-	# ##### enter
-	# When the State is entered by the engine, enter is called. You can use
-	# this to register input handlers and load resources that should be loaded
-	# every time this State is entered by the engine. After this State is
-	# entered, it becomes the active State.
-	#
-	# If you need to do something asynchronously, return a promise. If you
-	# don't return a promise, the engine will continue immediately.
-	enter: (args, previousStateName) ->
+  # ##### enter
+  # When the State is entered by the engine, enter is called. You can use
+  # this to register input handlers and load resources that should be loaded
+  # every time this State is entered by the engine. After this State is
+  # entered, it becomes the active State.
+  #
+  # If you need to do something asynchronously, return a promise. If you
+  # don't return a promise, the engine will continue immediately.
+  enter: (args, previousStateName) ->
 
-	# ##### tick
-	# Called repeatedly by the engine while this State is the active
-	# State. This is where the game is updated. You might run your enemy
-	# behavior logic here, for instance.
-	tick: ->
+  # ##### tick
+  # Called repeatedly by the engine while this State is the active
+  # State. This is where the game is updated. You might run your enemy
+  # behavior logic here, for instance.
+  tick: ->
 
-	# ##### leave
-	# Called when the engine loads another State. This gives the State an
-	# opportunity to clean up any resources loaded or input handlers loaded
-	# or registered in enter().
-	leave: ->
+  # ##### leave
+  # Called when the engine loads another State. This gives the State an
+  # opportunity to clean up any resources loaded or input handlers loaded
+  # or registered in enter().
+  leave: ->

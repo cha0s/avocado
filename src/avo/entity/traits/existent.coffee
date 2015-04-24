@@ -12,52 +12,52 @@ Trait = require './trait'
 
 module.exports = Existent = class extends Trait
 
-	stateDefaults: ->
+  stateDefaults: ->
 
-		name: 'Untitled'
+  	name: 'Untitled'
 
-	properties: ->
+  properties: ->
 
-		name: {}
+  	name: {}
 
-	actions: ->
+  actions: ->
 
-		destroy: -> @entity.emit 'destroyed'
+  	destroy: -> @entity.emit 'destroyed'
 
-		lfo: (properties, duration, state) ->
+  	lfo: (properties, duration, state) ->
 
-			lfo = FunctionExt.fastApply Lfo.InBand::lfo, arguments, @entity
+  		lfo = FunctionExt.fastApply Lfo.InBand::lfo, arguments, @entity
 
-			state.setPromise lfo.promise
-			state.setTicker -> lfo.tick()
+  		state.setPromise lfo.promise
+  		state.setTicker -> lfo.tick()
 
-		transition: (properties, duration, easing, state) ->
+  	transition: (properties, duration, easing, state) ->
 
-			unless state?
-				state = easing
-				easing = null
+  		unless state?
+  			state = easing
+  			easing = null
 
-			transition = FunctionExt.fastApply(
-				Transition.InBand::transition
-				[properties, duration, easing]
-				@entity
-			)
+  		transition = FunctionExt.fastApply(
+  			Transition.InBand::transition
+  			[properties, duration, easing]
+  			@entity
+  		)
 
-			state.setPromise transition.promise
-			state.setTicker -> transition.tick()
+  		state.setPromise transition.promise
+  		state.setTicker -> transition.tick()
 
-		signal: -> FunctionExt.fastApply @entity.emit, arguments, @entity
+  	signal: -> FunctionExt.fastApply @entity.emit, arguments, @entity
 
-		waitMs:
+  	waitMs:
 
-			f: (ms, state) ->
+  		f: (ms, state) ->
 
-				deferred = Promise.defer()
+  			deferred = Promise.defer()
 
-				waited = 0
+  			waited = 0
 
-				state.setPromise deferred.promise
-				state.setTicker ->
+  			state.setPromise deferred.promise
+  			state.setTicker ->
 
-					waited += Timing.TimingService.tickElapsed() * 1000
-					deferred.resolve() if waited >= ms
+  				waited += Timing.TimingService.tickElapsed() * 1000
+  				deferred.resolve() if waited >= ms

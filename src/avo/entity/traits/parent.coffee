@@ -5,47 +5,47 @@ Trait = require './trait'
 
 module.exports = class Parent extends Trait
 
-	stateDefaults: ->
+  stateDefaults: ->
 
-		children: []
+  	children: []
 
-	constructor: ->
-		super
+  constructor: ->
+  	super
 
-		@_children = []
+  	@_children = []
 
-	initialize: ->
+  initialize: ->
 
-		for {uri, traitExtensions} in @state.children
+  	for {uri, traitExtensions} in @state.children
 
-			Entity.load(uri, traitExtensions).then (child) =>
+  		Entity.load(uri, traitExtensions).then (child) =>
 
-				child.setParent @entity
-				@_children.push child
+  			child.setParent @entity
+  			@_children.push child
 
-	actions: ->
+  actions: ->
 
-		addChild: (child) ->
+  	addChild: (child) ->
 
-			@_children.push child
-			child.setParent @entity
+  		@_children.push child
+  		child.setParent @entity
 
-			@entity.emit 'childrenChanged'
+  		@entity.emit 'childrenChanged'
 
-		removeChild: (child) ->
+  	removeChild: (child) ->
 
-			return if -1 is (index = @_children.indexOf child)
+  		return if -1 is (index = @_children.indexOf child)
 
-			@_children.splice index, 1
+  		@_children.splice index, 1
 
-			@entity.emit 'childrenChanged'
+  		@entity.emit 'childrenChanged'
 
-	values: ->
+  values: ->
 
-		children: -> @_children
+  	children: -> @_children
 
-		hasChild: (child) -> -1 isnt @_children.indexOf child
+  	hasChild: (child) -> -1 isnt @_children.indexOf child
 
-	hooks: ->
+  hooks: ->
 
-		takesHarmFrom: (entity) -> not @entity.hasChild entity
+  	takesHarmFrom: (entity) -> not @entity.hasChild entity

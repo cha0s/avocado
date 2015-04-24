@@ -4,7 +4,7 @@ FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 
 mixins = [
-	EventEmitter
+  EventEmitter
 ]
 
 input = module.exports

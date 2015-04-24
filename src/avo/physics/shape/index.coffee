@@ -12,40 +12,40 @@ Primitives = require 'avo/graphics/primitives'
 
 module.exports = class Shape
 
-	mixins = [
-		VectorMixin 'origin', 'originX', 'originY'
-		VectorMixin 'parentOrigin', 'parentOriginX', 'parentOriginY'
-		Property 'parentRotation', 0
-		Property 'parentScale', 1
-		Property 'rotation', 0
-		Property 'scale', 1
-		Property 'type', 'index'
-		EventEmitter
-	]
+  mixins = [
+  	VectorMixin 'origin', 'originX', 'originY'
+  	VectorMixin 'parentOrigin', 'parentOriginX', 'parentOriginY'
+  	Property 'parentRotation', 0
+  	Property 'parentScale', 1
+  	Property 'rotation', 0
+  	Property 'scale', 1
+  	Property 'type', 'index'
+  	EventEmitter
+  ]
 
-	constructor: ->
+  constructor: ->
 
-		mixin.call this for mixin in mixins
+  	mixin.call this for mixin in mixins
 
-		@_primitives = new Primitives()
+  	@_primitives = new Primitives()
 
-	FunctionExt.fastApply Mixin, [@::].concat mixins
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
-	aabb: (position) -> [0, 0, 0, 0]
+  aabb: (position) -> [0, 0, 0, 0]
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		@setOrigin O.origin if O.origin?
-		@setRotation O.rotation if O.rotation?
-		@setScale O.scale if O.scale?
+  	@setOrigin O.origin if O.origin?
+  	@setRotation O.rotation if O.rotation?
+  	@setScale O.scale if O.scale?
 
-		this
+  	this
 
-	primitives: -> @_primitives
+  primitives: -> @_primitives
 
-	toJSON: ->
+  toJSON: ->
 
-		type: @type()
-		origin: @origin()
-		rotation: @rotation()
-		scale: @scale()
+  	type: @type()
+  	origin: @origin()
+  	rotation: @rotation()
+  	scale: @scale()

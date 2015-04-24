@@ -7,61 +7,61 @@ BehaviorItem = require './behaviorItem'
 
 module.exports = class Invocation extends BehaviorItem
 
-	constructor: ->
+  constructor: ->
 
-		@_key = ''
-		@_selector = []
-		@_args = []
+  	@_key = ''
+  	@_selector = []
+  	@_args = []
 
-	fromObject: (O) ->
+  fromObject: (O) ->
 
-		[@_key, @_selector...] = O.selector.split ':'
+  	[@_key, @_selector...] = O.selector.split ':'
 
-		Promise.allAsap(
-			args.map((arg) -> Behavior.instantiate arg) for args in O.args
-			(@_args) => this
-		)
+  	Promise.allAsap(
+  		args.map((arg) -> Behavior.instantiate arg) for args in O.args
+  		(@_args) => this
+  	)
 
-	invoke: (context, state) ->
-		return unless context?
-		return unless (O = context[@_key])?
-		return O if @_selector.length is 0
+  invoke: (context, state) ->
+  	return unless context?
+  	return unless (O = context[@_key])?
+  	return O if @_selector.length is 0
 
-		step = 0
-		holder = O
+  	step = 0
+  	holder = O
 
-		invoke = =>
-			return O if 'function' isnt typeof O
+  	invoke = =>
+  		return O if 'function' isnt typeof O
 
-			args = (arg.get context for arg in @_args[step - 1]) ? []
-			args.push state
+  		args = (arg.get context for arg in @_args[step - 1]) ? []
+  		args.push state
 
-			FunctionExt.fastApply O, args, holder
+  		FunctionExt.fastApply O, args, holder
 
-		while step < @_selector.length
-			O = O[@_selector[step++]]
-			holder = O = invoke()
+  	while step < @_selector.length
+  		O = O[@_selector[step++]]
+  		holder = O = invoke()
 
-		invoke()
+  	invoke()
 
-	toJSON: -> v:
+  toJSON: -> v:
 
-		selector: [@_key].concat(@_selector).join ':'
-		args: @_args.map (args) -> args.map (arg) -> arg.toJSON()
+  	selector: [@_key].concat(@_selector).join ':'
+  	args: @_args.map (args) -> args.map (arg) -> arg.toJSON()
 
 class Invocation.State
 
-	constructor: ->
+  constructor: ->
 
-		@_cleanup = null
-		@_promise = null
-		@_ticker = null
+  	@_cleanup = null
+  	@_promise = null
+  	@_ticker = null
 
-	cleanUp: -> @_cleanup?()
-	setCleanup: (@_cleanup) ->
+  cleanUp: -> @_cleanup?()
+  setCleanup: (@_cleanup) ->
 
-	promise: -> @_promise
-	setPromise: (@_promise) ->
+  promise: -> @_promise
+  setPromise: (@_promise) ->
 
-	tick: -> @_ticker?()
-	setTicker: (@_ticker) ->
+  tick: -> @_ticker?()
+  setTicker: (@_ticker) ->

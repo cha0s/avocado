@@ -3,32 +3,32 @@ module.exports = config = {}
 
 config.fs =
 
-	resourcePath: 'resource'
-	uiPath: 'ui'
+  resourcePath: 'resource'
+  uiPath: 'ui'
 
 config.graphics =
 
-	resolution: [1280, 720]
-	renderer: 'auto'
+  resolution: [1280, 720]
+  renderer: 'auto'
 
 config.input =
 
-	mouseMovePerSecond: 50
+  mouseMovePerSecond: 50
 
 config.timing =
 
-	ticksPerSecond: 60
-	rendersPerSecond: 60
+  ticksPerSecond: 60
+  rendersPerSecond: 60
 
 config.promises =
 
-	longStackTraces: true
+  longStackTraces: true
 
 if process? and process.versions['node-webkit']
 
-	config.platform = 'node-webkit'
+  config.platform = 'node-webkit'
 
 else
 
-	config.platform = 'browser'
+  config.platform = 'browser'
 

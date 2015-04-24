@@ -8,87 +8,87 @@ Trait = require './trait'
 
 module.exports = class extends Trait
 
-	stateDefaults: ->
+  stateDefaults: ->
 
-		isMobile: true
-		isMoving: false
-		mobilityAnimationIndex: 'moving'
-		movingSpeed: 0
+  	isMobile: true
+  	isMoving: false
+  	mobilityAnimationIndex: 'moving'
+  	movingSpeed: 0
 
-	properties: ->
+  properties: ->
 
-		isMobile: {}
-		isMoving: {}
-		mobilityAnimationIndex: {}
-		movingSpeed: {}
+  	isMobile: {}
+  	isMoving: {}
+  	mobilityAnimationIndex: {}
+  	movingSpeed: {}
 
-	actions: ->
+  actions: ->
 
-		move: (vector) ->
+  	move: (vector) ->
 
-			isZero = Vector.isZero vector
+  		isZero = Vector.isZero vector
 
-			@entity.setDirection(
-				Vector.toDirection vector, @entity.directionCount()
-			) unless isZero
+  		@entity.setDirection(
+  			Vector.toDirection vector, @entity.directionCount()
+  		) unless isZero
 
-			@entity.setIsMoving @entity.isMobile() and not isZero
+  		@entity.setIsMoving @entity.isMobile() and not isZero
 
-			return unless @entity.isMobile()
+  		return unless @entity.isMobile()
 
-			if @entity.physicsApplyMovement?
+  		if @entity.physicsApplyMovement?
 
-				@entity.physicsApplyMovement vector, @entity.movingSpeed()
+  			@entity.physicsApplyMovement vector, @entity.movingSpeed()
 
-			else
+  		else
 
-				@entity.applyImpulse vector, @entity.movingSpeed()
+  			@entity.applyImpulse vector, @entity.movingSpeed()
 
-		moveTo:
+  	moveTo:
 
-			f: (destination, state) ->
+  		f: (destination, state) ->
 
-				deferred = Promise.defer()
+  			deferred = Promise.defer()
 
-				hypotenuse = Vector.hypotenuse(
-					destination
-					@entity.position()
-				)
+  			hypotenuse = Vector.hypotenuse(
+  				destination
+  				@entity.position()
+  			)
 
-				checkMovementEnd = =>
+  			checkMovementEnd = =>
 
-					entityPosition = @entity.position()
-					for i in [0, 1] when hypotenuse[i] isnt 0
+  				entityPosition = @entity.position()
+  				for i in [0, 1] when hypotenuse[i] isnt 0
 
-						if hypotenuse[i] < 0
-							if entityPosition[i] < destination[i]
-								entityPosition[i] = destination[i]
+  					if hypotenuse[i] < 0
+  						if entityPosition[i] < destination[i]
+  							entityPosition[i] = destination[i]
 
-						if hypotenuse[i] > 0
-							if entityPosition[i] > destination[i]
-								entityPosition[i] = destination[i]
+  					if hypotenuse[i] > 0
+  						if entityPosition[i] > destination[i]
+  							entityPosition[i] = destination[i]
 
-					diff = Vector.abs Vector.sub destination, entityPosition
-					if diff[0] <= 1 and diff[1] <= 1
+  				diff = Vector.abs Vector.sub destination, entityPosition
+  				if diff[0] <= 1 and diff[1] <= 1
 
-						@entity.off 'afterPhysicsTick', checkMovementEnd
-						@entity.setPosition destination
+  					@entity.off 'afterPhysicsTick', checkMovementEnd
+  					@entity.setPosition destination
 
-						deferred.resolve()
+  					deferred.resolve()
 
-				@entity.on 'afterPhysicsTick', checkMovementEnd
+  			@entity.on 'afterPhysicsTick', checkMovementEnd
 
-				state.setPromise deferred.promise
+  			state.setPromise deferred.promise
 
-				state.setTicker =>
+  			state.setTicker =>
 
-					@entity.move hypotenuse = Vector.hypotenuse(
-						destination
-						@entity.position()
-					)
+  				@entity.move hypotenuse = Vector.hypotenuse(
+  					destination
+  					@entity.position()
+  				)
 
-		pursue:
+  	pursue:
 
-			f: (entity) ->
+  		f: (entity) ->
 
-				@entity.move @entity.hypotenuseToEntity entity
+  			@entity.move @entity.hypotenuseToEntity entity

@@ -6,80 +6,80 @@ config = require 'avo/config'
 
 module.exports = class Sound
 
-	@load: (uri) ->
+  @load: (uri) ->
 
-		new Promise (resolve, reject) ->
+  	new Promise (resolve, reject) ->
 
-			_sound = new buzz.sound "#{config.get 'fs:resourcePath'}#{uri}", formats: [
-				'ogg', 'mp3', 'aac', 'wav'
-			]
+  		_sound = new buzz.sound "#{config.get 'fs:resourcePath'}#{uri}", formats: [
+  			'ogg', 'mp3', 'aac', 'wav'
+  		]
 
-			_sound.bind 'error', -> reject sound.error
+  		_sound.bind 'error', -> reject sound.error
 
-			_sound.bind 'canplaythrough', ->
+  		_sound.bind 'canplaythrough', ->
 
-				sound = new Sound()
+  			sound = new Sound()
 
-				sound._sound = _sound
+  			sound._sound = _sound
 
-				resolve sound
+  			resolve sound
 
-	play: ->
+  play: ->
 
-		@_sound.play()
+  	@_sound.play()
 
-		this
+  	this
 
-	pause: ->
+  pause: ->
 
-		@_sound.pause()
+  	@_sound.pause()
 
-		this
+  	this
 
-	stop: ->
+  stop: ->
 
-		@_sound.stop()
+  	@_sound.stop()
 
-		this
+  	this
 
-	loop: ->
+  loop: ->
 
-		@_sound.loop()
+  	@_sound.loop()
 
-		this
+  	this
 
-	unloop: ->
+  unloop: ->
 
-		@_sound.unloop()
+  	@_sound.unloop()
 
-		this
+  	this
 
-	mute: ->
+  mute: ->
 
-		@_sound.mute()
+  	@_sound.mute()
 
-		this
+  	this
 
-	unmute: ->
+  unmute: ->
 
-		@_sound.unmute()
+  	@_sound.unmute()
 
-		this
+  	this
 
-	setVolume: (volume) ->
+  setVolume: (volume) ->
 
-		@_sound.setVolume volume
+  	@_sound.setVolume volume
 
-		this
+  	this
 
-	fadeIn: (duration, fn) ->
+  fadeIn: (duration, fn) ->
 
-		@_sound.fadeIn duration, fn
+  	@_sound.fadeIn duration, fn
 
-		this
+  	this
 
-	fadeOut: (duration, fn) ->
+  fadeOut: (duration, fn) ->
 
-		@_sound.fadeOut duration, fn
+  	@_sound.fadeOut duration, fn
 
-		this
+  	this

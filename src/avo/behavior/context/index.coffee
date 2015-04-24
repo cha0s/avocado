@@ -3,13 +3,13 @@ defaultContext = {}
 
 exports.defaultContext = ->
 
-	copy = {}
-	copy[k] = v for k, v of defaultContext
-	copy
+  copy = {}
+  copy[k] = v for k, v of defaultContext
+  copy
 
 addDefaultKey = exports.addDefaultKey = (key, value) ->
 
-	defaultContext[key] = value
+  defaultContext[key] = value
 
 addDefaultKey 'global', require './global'
 addDefaultKey 'Rectangle', require 'avo/extension/rectangle'

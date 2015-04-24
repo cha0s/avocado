@@ -31,160 +31,160 @@ Mixin = require '../index'
 
 TransitionResult = class TransitionResult
 
-	mixins = [
-		EventEmitter
-	]
+  mixins = [
+  	EventEmitter
+  ]
 
-	constructor: (@_object, @_props, speed, easing) ->
+  constructor: (@_object, @_props, speed, easing) ->
 
-		mixin.call this for mixin in mixins
+  	mixin.call this for mixin in mixins
 
-		# Speed might not get passed. If it doesn't, default to 100
-		# milliseconds.
-		@_speed = if 'number' is typeof speed
-			speed
-		else
-			100
+  	# Speed might not get passed. If it doesn't, default to 100
+  	# milliseconds.
+  	@_speed = if 'number' is typeof speed
+  		speed
+  	else
+  		100
 
-		# If easing isn't passed in as a function, attempt to look it up
-		# as a string key into Transition.easing. If that fails, then
-		# default to 'easeOutQuad'.
-		@_easing = if 'function' isnt typeof easing
-			Transition.easing[easing] ? Transition.easing['easeOutQuad']
-		else
-			easing
+  	# If easing isn't passed in as a function, attempt to look it up
+  	# as a string key into Transition.easing. If that fails, then
+  	# default to 'easeOutQuad'.
+  	@_easing = if 'function' isnt typeof easing
+  		Transition.easing[easing] ? Transition.easing['easeOutQuad']
+  	else
+  		easing
 
-		@_original = {}
-		@_change = {}
-		@_method = {}
+  	@_original = {}
+  	@_change = {}
+  	@_method = {}
 
-		for i, prop of @_props
-			value = @_object[i]()
+  	for i, prop of @_props
+  		value = @_object[i]()
 
-			@_original[i] = value
-			@_change[i] = prop - value
-			@_method[i] = String.setterName i
+  		@_original[i] = value
+  		@_change[i] = prop - value
+  		@_method[i] = String.setterName i
 
-		# Set up the transition object.
-		@_deferred = Promise.defer()
-		@promise = @_deferred.promise.cancellable().catch(
-			Promise.CancellationError, (error) =>
-				@skipTransition()
+  	# Set up the transition object.
+  	@_deferred = Promise.defer()
+  	@promise = @_deferred.promise.cancellable().catch(
+  		Promise.CancellationError, (error) =>
+  			@skipTransition()
 
-				Promise.reject error
-		)
+  			Promise.reject error
+  	)
 
-		@_elapsed = 0
-		@_duration = @_speed / 1000
+  	@_elapsed = 0
+  	@_duration = @_speed / 1000
 
-	FunctionExt.fastApply Mixin, [@::].concat mixins
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
-	# Immediately finish the transition. This will leave the object
-	# in the fully transitioned state.
-	skipTransition: ->
+  # Immediately finish the transition. This will leave the object
+  # in the fully transitioned state.
+  skipTransition: ->
 
-		# Just trick it into thinking the time passed and do one last
-		# tick.
-		@_elapsed = @_duration
-		@tick()
+  	# Just trick it into thinking the time passed and do one last
+  	# tick.
+  	@_elapsed = @_duration
+  	@tick()
 
-	# Immediately stop the transition. This will leave the object in
-	# its current state; potentially partially transitioned.
-	stopTransition: ->
+  # Immediately stop the transition. This will leave the object in
+  # its current state; potentially partially transitioned.
+  stopTransition: ->
 
-		# Let any listeners know that the transition is complete.
-		@emit 'progress', [@_elapsed, @_duration]
-		@_deferred.resolve()
+  	# Let any listeners know that the transition is complete.
+  	@emit 'progress', [@_elapsed, @_duration]
+  	@_deferred.resolve()
 
-	# Tick callback. Called repeatedly while this transition is
-	# running.
-	tick: ->
+  # Tick callback. Called repeatedly while this transition is
+  # running.
+  tick: ->
 
-		# Update the transition's elapsed time.
-		@_elapsed += @elapsedSinceLast()
+  	# Update the transition's elapsed time.
+  	@_elapsed += @elapsedSinceLast()
 
-		# If we've overshot the duration, we'll fix it up here, so
-		# things never transition too far (through the end point).
-		if @_elapsed >= @_duration
-			@_elapsed = @_duration
+  	# If we've overshot the duration, we'll fix it up here, so
+  	# things never transition too far (through the end point).
+  	if @_elapsed >= @_duration
+  		@_elapsed = @_duration
 
-			for i of @_change
-				if @_change[i]
-					@_object[@_method[i]] @_props[i]
+  		for i of @_change
+  			if @_change[i]
+  				@_object[@_method[i]] @_props[i]
 
-		else
+  	else
 
-			# Do easing for each property that actually changed.
-			for i of @_change
-				if @_change[i]
-					@_object[@_method[i]] @_easing(
-						@_elapsed,
-						@_original[i],
-						@_change[i],
-						@_duration
-					)
+  		# Do easing for each property that actually changed.
+  		for i of @_change
+  			if @_change[i]
+  				@_object[@_method[i]] @_easing(
+  					@_elapsed,
+  					@_original[i],
+  					@_change[i],
+  					@_duration
+  				)
 
-		# Stop if we're done.
-		if @_elapsed is @_duration
-			@stopTransition()
-		else
-			@emit 'progress', [@_elapsed, @_duration]
+  	# Stop if we're done.
+  	if @_elapsed is @_duration
+  		@stopTransition()
+  	else
+  		@emit 'progress', [@_elapsed, @_duration]
 
 module.exports = Transition = class
 
-	TransitionResultOutOfBand = class TransitionResultOutOfBand extends TransitionResult
+  TransitionResultOutOfBand = class TransitionResultOutOfBand extends TransitionResult
 
-		constructor: ->
-			super
+  	constructor: ->
+  		super
 
-			@_last = timing.elapsed()
-			@_interval = null
+  		@_last = timing.elapsed()
+  		@_interval = null
 
-			@_startInterval()
+  		@_startInterval()
 
-		elapsedSinceLast: ->
+  	elapsedSinceLast: ->
 
-			elapsed = timing.elapsed() - @_last
-			@_last = timing.elapsed()
-			elapsed
+  		elapsed = timing.elapsed() - @_last
+  		@_last = timing.elapsed()
+  		elapsed
 
-		_startInterval: (result) ->
+  	_startInterval: (result) ->
 
-			@_interval = window.setInterval (=> @tick()), 10
+  		@_interval = window.setInterval (=> @tick()), 10
 
-		stopTransition: ->
-			super
+  	stopTransition: ->
+  		super
 
-			# Stop the tick loop.
-			window.clearInterval @_interval
+  		# Stop the tick loop.
+  		window.clearInterval @_interval
 
-	# Transition a set of properties at the specified speed in milliseconds,
-	# using the specified easing function.
-	transition: (
-		props
-		speed
-		easing
-	) ->
+  # Transition a set of properties at the specified speed in milliseconds,
+  # using the specified easing function.
+  transition: (
+  	props
+  	speed
+  	easing
+  ) ->
 
-		new TransitionResultOutOfBand @, props, speed, easing
+  	new TransitionResultOutOfBand @, props, speed, easing
 
 Transition.OutOfBand = Transition
 
 Transition.InBand = class
 
-	TransitionResultInBand = class TransitionResultInBand extends TransitionResult
+  TransitionResultInBand = class TransitionResultInBand extends TransitionResult
 
-		elapsedSinceLast: -> timing.tickElapsed()
+  	elapsedSinceLast: -> timing.tickElapsed()
 
-	# Transition a set of properties at the specified speed in milliseconds,
-	# using the specified easing function.
-	transition: (
-		props
-		speed
-		easing
-	) ->
+  # Transition a set of properties at the specified speed in milliseconds,
+  # using the specified easing function.
+  transition: (
+  	props
+  	speed
+  	easing
+  ) ->
 
-		new TransitionResultInBand @, props, speed, easing
+  	new TransitionResultInBand @, props, speed, easing
 
 # Registered easing functions. An easing function is a parametric equation
 # that determines the value of a property over the time length of the
@@ -234,132 +234,132 @@ Transition.easing = {}
 # Not worth the trouble of translating.
 `
 Transition.easing = {
-	linear: function (t, b, c, d) {
-		return b + c * t/d
-	},
-	easeInQuad: function (t, b, c, d) {
-		return c*(t/=d)*t + b;
-	},
-	easeOutQuad: function (t, b, c, d) {
-		return -c *(t/=d)*(t-2) + b;
-	},
-	easeInOutQuad: function (t, b, c, d) {
-		if ((t/=d/2) < 1) return c/2*t*t + b;
-		return -c/2 * ((--t)*(t-2) - 1) + b;
-	},
-	easeInCubic: function (t, b, c, d) {
-		return c*(t/=d)*t*t + b;
-	},
-	easeOutCubic: function (t, b, c, d) {
-		return c*((t=t/d-1)*t*t + 1) + b;
-	},
-	easeInOutCubic: function (t, b, c, d) {
-		if ((t/=d/2) < 1) return c/2*t*t*t + b;
-		return c/2*((t-=2)*t*t + 2) + b;
-	},
-	easeInQuart: function (t, b, c, d) {
-		return c*(t/=d)*t*t*t + b;
-	},
-	easeOutQuart: function (t, b, c, d) {
-		return -c * ((t=t/d-1)*t*t*t - 1) + b;
-	},
-	easeInOutQuart: function (t, b, c, d) {
-		if ((t/=d/2) < 1) return c/2*t*t*t*t + b;
-		return -c/2 * ((t-=2)*t*t*t - 2) + b;
-	},
-	easeInQuint: function (t, b, c, d) {
-		return c*(t/=d)*t*t*t*t + b;
-	},
-	easeOutQuint: function (t, b, c, d) {
-		return c*((t=t/d-1)*t*t*t*t + 1) + b;
-	},
-	easeInOutQuint: function (t, b, c, d) {
-		if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
-		return c/2*((t-=2)*t*t*t*t + 2) + b;
-	},
-	easeInSine: function (t, b, c, d) {
-		return -c * Math.cos(t/d * (Math.PI/2)) + c + b;
-	},
-	easeOutSine: function (t, b, c, d) {
-		return c * Math.sin(t/d * (Math.PI/2)) + b;
-	},
-	easeInOutSine: function (t, b, c, d) {
-		return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
-	},
-	easeInExpo: function (t, b, c, d) {
-		return (t==0) ? b : c * Math.pow(2, 10 * (t/d - 1)) + b;
-	},
-	easeOutExpo: function (t, b, c, d) {
-		return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
-	},
-	easeInOutExpo: function (t, b, c, d) {
-		if (t==0) return b;
-		if (t==d) return b+c;
-		if ((t/=d/2) < 1) return c/2 * Math.pow(2, 10 * (t - 1)) + b;
-		return c/2 * (-Math.pow(2, -10 * --t) + 2) + b;
-	},
-	easeInCirc: function (t, b, c, d) {
-		return -c * (Math.sqrt(1 - (t/=d)*t) - 1) + b;
-	},
-	easeOutCirc: function (t, b, c, d) {
-		return c * Math.sqrt(1 - (t=t/d-1)*t) + b;
-	},
-	easeInOutCirc: function (t, b, c, d) {
-		if ((t/=d/2) < 1) return -c/2 * (Math.sqrt(1 - t*t) - 1) + b;
-		return c/2 * (Math.sqrt(1 - (t-=2)*t) + 1) + b;
-	},
-	easeInElastic: function (t, b, c, d) {
-		var s=1.70158;var p=0;var a=c;
-		if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
-		if (a < Math.abs(c)) { a=c; var s=p/4; }
-		else var s = p/(2*Math.PI) * Math.asin (c/a);
-		return -(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
-	},
-	easeOutElastic: function (t, b, c, d) {
-		var s=1.70158;var p=0;var a=c;
-		if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
-		if (a < Math.abs(c)) { a=c; var s=p/4; }
-		else var s = p/(2*Math.PI) * Math.asin (c/a);
-		return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
-	},
-	easeInOutElastic: function (t, b, c, d) {
-		var s=1.70158;var p=0;var a=c;
-		if (t==0) return b;  if ((t/=d/2)==2) return b+c;  if (!p) p=d*(.3*1.5);
-		if (a < Math.abs(c)) { a=c; var s=p/4; }
-		else var s = p/(2*Math.PI) * Math.asin (c/a);
-		if (t < 1) return -.5*(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
-		return a*Math.pow(2,-10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )*.5 + c + b;
-	},
-	easeInBack: function (t, b, c, d, s) {
-		if (s == undefined) s = 1.70158;
-		return c*(t/=d)*t*((s+1)*t - s) + b;
-	},
-	easeOutBack: function (t, b, c, d, s) {
-		if (s == undefined) s = 1.70158;
-		return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
-	},
-	easeInOutBack: function (t, b, c, d, s) {
-		if (s == undefined) s = 1.70158;
-		if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
-		return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
-	},
-	easeInBounce: function (t, b, c, d) {
-		return c - easing.easeOutBounce (d-t, 0, c, d) + b;
-	},
-	easeOutBounce: function (t, b, c, d) {
-		if ((t/=d) < (1/2.75)) {
-			return c*(7.5625*t*t) + b;
-		} else if (t < (2/2.75)) {
-			return c*(7.5625*(t-=(1.5/2.75))*t + .75) + b;
-		} else if (t < (2.5/2.75)) {
-			return c*(7.5625*(t-=(2.25/2.75))*t + .9375) + b;
-		} else {
-			return c*(7.5625*(t-=(2.625/2.75))*t + .984375) + b;
-		}
-	},
-	easeInOutBounce: function (t, b, c, d) {
-		if (t < d/2) return easing.easeInBounce (t*2, 0, c, d) * .5 + b;
-		return easing.easeOutBounce (t*2-d, 0, c, d) * .5 + c*.5 + b;
-	}
+  linear: function (t, b, c, d) {
+  	return b + c * t/d
+  },
+  easeInQuad: function (t, b, c, d) {
+  	return c*(t/=d)*t + b;
+  },
+  easeOutQuad: function (t, b, c, d) {
+  	return -c *(t/=d)*(t-2) + b;
+  },
+  easeInOutQuad: function (t, b, c, d) {
+  	if ((t/=d/2) < 1) return c/2*t*t + b;
+  	return -c/2 * ((--t)*(t-2) - 1) + b;
+  },
+  easeInCubic: function (t, b, c, d) {
+  	return c*(t/=d)*t*t + b;
+  },
+  easeOutCubic: function (t, b, c, d) {
+  	return c*((t=t/d-1)*t*t + 1) + b;
+  },
+  easeInOutCubic: function (t, b, c, d) {
+  	if ((t/=d/2) < 1) return c/2*t*t*t + b;
+  	return c/2*((t-=2)*t*t + 2) + b;
+  },
+  easeInQuart: function (t, b, c, d) {
+  	return c*(t/=d)*t*t*t + b;
+  },
+  easeOutQuart: function (t, b, c, d) {
+  	return -c * ((t=t/d-1)*t*t*t - 1) + b;
+  },
+  easeInOutQuart: function (t, b, c, d) {
+  	if ((t/=d/2) < 1) return c/2*t*t*t*t + b;
+  	return -c/2 * ((t-=2)*t*t*t - 2) + b;
+  },
+  easeInQuint: function (t, b, c, d) {
+  	return c*(t/=d)*t*t*t*t + b;
+  },
+  easeOutQuint: function (t, b, c, d) {
+  	return c*((t=t/d-1)*t*t*t*t + 1) + b;
+  },
+  easeInOutQuint: function (t, b, c, d) {
+  	if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
+  	return c/2*((t-=2)*t*t*t*t + 2) + b;
+  },
+  easeInSine: function (t, b, c, d) {
+  	return -c * Math.cos(t/d * (Math.PI/2)) + c + b;
+  },
+  easeOutSine: function (t, b, c, d) {
+  	return c * Math.sin(t/d * (Math.PI/2)) + b;
+  },
+  easeInOutSine: function (t, b, c, d) {
+  	return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
+  },
+  easeInExpo: function (t, b, c, d) {
+  	return (t==0) ? b : c * Math.pow(2, 10 * (t/d - 1)) + b;
+  },
+  easeOutExpo: function (t, b, c, d) {
+  	return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
+  },
+  easeInOutExpo: function (t, b, c, d) {
+  	if (t==0) return b;
+  	if (t==d) return b+c;
+  	if ((t/=d/2) < 1) return c/2 * Math.pow(2, 10 * (t - 1)) + b;
+  	return c/2 * (-Math.pow(2, -10 * --t) + 2) + b;
+  },
+  easeInCirc: function (t, b, c, d) {
+  	return -c * (Math.sqrt(1 - (t/=d)*t) - 1) + b;
+  },
+  easeOutCirc: function (t, b, c, d) {
+  	return c * Math.sqrt(1 - (t=t/d-1)*t) + b;
+  },
+  easeInOutCirc: function (t, b, c, d) {
+  	if ((t/=d/2) < 1) return -c/2 * (Math.sqrt(1 - t*t) - 1) + b;
+  	return c/2 * (Math.sqrt(1 - (t-=2)*t) + 1) + b;
+  },
+  easeInElastic: function (t, b, c, d) {
+  	var s=1.70158;var p=0;var a=c;
+  	if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+  	if (a < Math.abs(c)) { a=c; var s=p/4; }
+  	else var s = p/(2*Math.PI) * Math.asin (c/a);
+  	return -(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
+  },
+  easeOutElastic: function (t, b, c, d) {
+  	var s=1.70158;var p=0;var a=c;
+  	if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+  	if (a < Math.abs(c)) { a=c; var s=p/4; }
+  	else var s = p/(2*Math.PI) * Math.asin (c/a);
+  	return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
+  },
+  easeInOutElastic: function (t, b, c, d) {
+  	var s=1.70158;var p=0;var a=c;
+  	if (t==0) return b;  if ((t/=d/2)==2) return b+c;  if (!p) p=d*(.3*1.5);
+  	if (a < Math.abs(c)) { a=c; var s=p/4; }
+  	else var s = p/(2*Math.PI) * Math.asin (c/a);
+  	if (t < 1) return -.5*(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
+  	return a*Math.pow(2,-10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )*.5 + c + b;
+  },
+  easeInBack: function (t, b, c, d, s) {
+  	if (s == undefined) s = 1.70158;
+  	return c*(t/=d)*t*((s+1)*t - s) + b;
+  },
+  easeOutBack: function (t, b, c, d, s) {
+  	if (s == undefined) s = 1.70158;
+  	return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
+  },
+  easeInOutBack: function (t, b, c, d, s) {
+  	if (s == undefined) s = 1.70158;
+  	if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
+  	return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
+  },
+  easeInBounce: function (t, b, c, d) {
+  	return c - easing.easeOutBounce (d-t, 0, c, d) + b;
+  },
+  easeOutBounce: function (t, b, c, d) {
+  	if ((t/=d) < (1/2.75)) {
+  		return c*(7.5625*t*t) + b;
+  	} else if (t < (2/2.75)) {
+  		return c*(7.5625*(t-=(1.5/2.75))*t + .75) + b;
+  	} else if (t < (2.5/2.75)) {
+  		return c*(7.5625*(t-=(2.25/2.75))*t + .9375) + b;
+  	} else {
+  		return c*(7.5625*(t-=(2.625/2.75))*t + .984375) + b;
+  	}
+  },
+  easeInOutBounce: function (t, b, c, d) {
+  	if (t < d/2) return easing.easeInBounce (t*2, 0, c, d) * .5 + b;
+  	return easing.easeOutBounce (t*2-d, 0, c, d) * .5 + c*.5 + b;
+  }
 }
 `
