@@ -2352,7 +2352,7 @@ PIXI.MovieClip.prototype.constructor = PIXI.MovieClip;
 Object.defineProperty( PIXI.MovieClip.prototype, 'totalFrames', {
   get: function() {
 
-  	return this.textures.length;
+    return this.textures.length;
   }
 });
 
@@ -4259,9 +4259,9 @@ PIXI.EventTarget = function () {
      * @param type {string} A string representing the event type which will have all its listeners removed
      */
   this.removeAllEventListeners = function( type ) {
-  	var a = listeners[type];
-  	if (a)
-  		a.length = 0;
+    var a = listeners[type];
+    if (a)
+      a.length = 0;
   };
 };
 

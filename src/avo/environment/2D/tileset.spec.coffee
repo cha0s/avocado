@@ -1,44 +1,46 @@
 
-{Image} = require 'avocado/Graphics'
-Tileset = require 'avocado/./Tileset'
+AvoImage = require 'avo/graphics/image'
+Promise = require 'avo/vendor/bluebird'
+Tileset = require './tileset'
 
 describe 'Tileset', ->
 
+  image = null
   tileset = null
 
   beforeEach ->
 
-  	tileset = new Tileset()
+    tileset = new Tileset()
 
   it "can chop up a tileset image into tiles", (done) ->
 
-  	tileset.fromObject(
-  		tileSize: [16, 16]
-  		image: new Image [256, 256]
-  	).then ->
+    tileset.fromObject(
+      tileSize: [16, 16]
+      image: new AvoImage [256, 256]
+    ).then ->
 
-  		expect(tileset.tileCount()).toBe 256
-  		expect(tileset.tiles()).toEqual [16, 16]
-  		expect(tileset.tileBox 18).toEqual [32, 16, 16, 16]
+      expect(tileset.tileCount()).toBe 256
+      expect(tileset.tiles()).toEqual [16, 16]
+      expect(tileset.tileBox 18).toEqual [32, 16, 16, 16]
 
-  		done()
+      done()
 
   it "can be invalid", (done) ->
 
-  	expect(tileset.isValid()).toBe false
+    expect(tileset.isValid()).toBe false
 
-  	tileset.fromObject(
-  		tileSize: [16, 16]
-  		image: new Image()
-  	).then ->
+    tileset.fromObject(
+      tileSize: [16, 16]
+      image: new AvoImage()
+    ).then ->
 
-  		expect(tileset.isValid()).toBe false
+      expect(tileset.isValid()).toBe false
 
-  		tileset.fromObject(
-  			tileSize: [16, 16]
-  			image: new Image [256, 256]
-  		).then ->
+      tileset.fromObject(
+        tileSize: [16, 16]
+        image: new AvoImage [256, 256]
+      ).then ->
 
-  			expect(tileset.isValid()).toBe true
+        expect(tileset.isValid()).toBe true
 
-  			done()
+        done()

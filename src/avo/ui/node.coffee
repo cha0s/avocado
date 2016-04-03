@@ -10,44 +10,44 @@ window_ = require 'avo/graphics/window'
 module.exports = class DomNode
 
   mixins = [
-  	EventEmitter
-  	Transition
+    EventEmitter
+    Transition
   ]
 
   constructor: (htmlOrElement) ->
-  	mixin.call this for mixin in mixins
+    mixin.call this for mixin in mixins
 
-  	if _.isString htmlOrElement
+    if _.isString htmlOrElement
 
-  		@_node = window.document.createElement 'div'
-  		@_node.innerHTML = htmlOrElement
+      @_node = window.document.createElement 'div'
+      @_node.innerHTML = htmlOrElement
 
-  		@_node.style.position = 'absolute'
-  		@_node.style.height = '100%'
-  		@_node.style.width = '100%'
+      @_node.style.position = 'absolute'
+      @_node.style.height = '100%'
+      @_node.style.width = '100%'
 
-  	else
+    else
 
-  		@_node = htmlOrElement
+      @_node = htmlOrElement
 
-  	@_node.$ = $(@_node)
+    @_node.$ = $(@_node)
 
   FunctionExt.fastApply Mixin, [@::].concat mixins
 
   destroy: ->
 
-  	container = window_.container()
-  	container.removeChild @_node
+    container = window_.container()
+    container.removeChild @_node
 
   addClass: (classNames) -> $(@_node).addClass classNames
 
   css: ->
 
-  	FunctionExt.fastApply(
-  		@_node.$.css
-  		arg for arg in arguments
-  		@_node.$
-  	)
+    FunctionExt.fastApply(
+      @_node.$.css
+      arg for arg in arguments
+      @_node.$
+    )
 
   element: -> @_node
 
@@ -63,26 +63,26 @@ module.exports = class DomNode
 
   setIsSelectable: (isSelectable) ->
 
-  	if isSelectable
+    if isSelectable
 
-  		@removeClass 'unselectable'
-  		@_node.removeAttribute 'unselectable'
-  		@_node.removeAttribute 'onselectstart'
+      @removeClass 'unselectable'
+      @_node.removeAttribute 'unselectable'
+      @_node.removeAttribute 'onselectstart'
 
-  		@_node.style.cursor = 'auto'
+      @_node.style.cursor = 'auto'
 
-  	else
+    else
 
-  		@addClass 'unselectable'
-  		@_node.unselectable = 'yes'
-  		@_node.onselectstart = 'return false;'
+      @addClass 'unselectable'
+      @_node.unselectable = 'yes'
+      @_node.onselectstart = 'return false;'
 
-  		@_node.style.cursor = 'default'
+      @_node.style.cursor = 'default'
 
   _parsePx: (px) ->
-  	parsed = px.match /^-?[0-9.]+/
-  	return 0 unless parsed?
-  	parseFloat parsed
+    parsed = px.match /^-?[0-9.]+/
+    return 0 unless parsed?
+    parseFloat parsed
 
   x: -> @_parsePx @_node.style.left
   setX: (x) -> @_node.style.left = "#{x}px"
@@ -92,23 +92,24 @@ module.exports = class DomNode
 
   position: -> [@x(), @y()]
   setPosition: (position) ->
-  	@setX position[0]
-  	@setY position[1]
+    @setX position[0]
+    @setY position[1]
 
-  opacity: -> @_node.style.opacity
+  opacity: -> parseInt (@_node.style.opacity or 0)
+
   setOpacity: (opacity) -> @_node.style.opacity = opacity
 
   setScale: (scale) ->
 
-  	for prefix in ['-moz-', '-ms-', '-webkit-', '-o-', '']
+    for prefix in ['-moz-', '-ms-', '-webkit-', '-o-', '']
 
-  		@_node.style["#{prefix}transform"] = "scale(#{
-  			scale[0]
-  		}, #{
-  			scale[1]
-  		})"
+      @_node.style["#{prefix}transform"] = "scale(#{
+        scale[0]
+      }, #{
+        scale[1]
+      })"
 
-  		@_node.style["#{prefix}transform-origin"] = "0 0 0"
-  		@_node.style["#{prefix}transformOrigin"] = "0 0 0"
+      @_node.style["#{prefix}transform-origin"] = "0 0 0"
+      @_node.style["#{prefix}transformOrigin"] = "0 0 0"
 
-  	return
+    return

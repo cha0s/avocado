@@ -43,39 +43,39 @@ class Config
 
   constructor: ->
 
-  	@_config = {}
+    @_config = {}
 
   mergeIn: (config) ->
 
-  	merge = (defaults, toMerge) ->
+    merge = (defaults, toMerge) ->
 
-  		merged = {}
+      merged = {}
 
-  		if defaults and 'object' is typeof defaults
+      if defaults and 'object' is typeof defaults
 
-  			for key in Object.keys defaults
+        for key in Object.keys defaults
 
-  				merged[key] = defaults[key]
+          merged[key] = defaults[key]
 
-  		for key in Object.keys toMerge
+      for key in Object.keys toMerge
 
-  			if 'object' isnt typeof toMerge[key] or not toMerge[key]
+        if 'object' isnt typeof toMerge[key] or not toMerge[key]
 
-  				merged[key] = toMerge[key]
+          merged[key] = toMerge[key]
 
-  			else
+        else
 
-  				if defaults[key]
+          if defaults[key]
 
-  					merged[key] = merge defaults[key], toMerge[key]
+            merged[key] = merge defaults[key], toMerge[key]
 
-  				else
+          else
 
-  					merged[key] = toMerge[key]
+            merged[key] = toMerge[key]
 
-  		return merged
+      return merged
 
-  	@_config = merge @_config, config
+    @_config = merge @_config, config
 
   # ### .get
   #
@@ -84,9 +84,25 @@ class Config
   # * (string) `key` - The key to look up, e.g. parent:child:grandchild
   get: (key) ->
 
-  	current = @_config
-  	current = current?[part] for part in key.split ':'
-  	current
+    current = @_config
+    current = current?[part] for part in key.split ':'
+    current
+
+  # ### .getOrCreate
+  #
+  # *Get a value by key if it exists, or create it if it doesn't already.*
+  #
+  # * (string) `key` - The key to look up, e.g. parent:child:grandchild
+  # * (any) `value` - The value to set if the key has to be created
+  getOrCreate: (key, value) ->
+
+    parts = key.split ':'
+    lastPart = parts.pop()
+
+    c = @_config
+    for part in parts
+      c = if c[part]? then c[part] else c[part] = {}
+    if c[lastPart]? then c[lastPart] else c[lastPart] = value
 
   # ### .has
   #
@@ -95,12 +111,12 @@ class Config
   # * (string) `key` - The key to look up, e.g. parent:child:grandchild
   has: (key) ->
 
-  	current = @_config
-  	for part in key.split ':'
-  		return false unless part of current
-  		current = current[part]
+    current = @_config
+    for part in key.split ':'
+      return false unless part of current
+      current = current[part]
 
-  	return true
+    return true
 
   # ### .set
   #
@@ -110,13 +126,15 @@ class Config
   # * (any) `value` - The value to store at the key location.
   set: (key, value) ->
 
-  	[parts..., last] = key.split ':'
-  	current = @_config
-  	for part in parts
-  		current = (current[part] ?= {})
+    [parts..., last] = key.split ':'
+    current = @_config
+    for part in parts
+      current = (current[part] ?= {})
 
-  	current[last] = value
+    current[last] = value
 
 module.exports = config = new Config()
+
+config.Config = Config
 
 config.mergeIn require './defaults'

@@ -10,10 +10,10 @@ window.addEventListener 'keydown', (event) ->
   keyDownFlags[event.keyCode] = true
 
   input.emit(
-  	'keyDown'
-  	keyCode: keyCodeMap event.keyCode
-  	preventDefault: -> event.preventDefault()
-  	repeat: repeat
+    'keyDown'
+    keyCode: keyCodeMap event.keyCode
+    preventDefault: -> event.preventDefault()
+    repeat: repeat
   )
 
   return
@@ -24,9 +24,9 @@ window.addEventListener 'keyup', (event) ->
   delete keyDownFlags[event.keyCode]
 
   input.emit(
-  	'keyUp'
-  	keyCode: keyCodeMap event.keyCode
-  	preventDefault: -> event.preventDefault()
+    'keyUp'
+    keyCode: keyCodeMap event.keyCode
+    preventDefault: -> event.preventDefault()
   )
 
   return
@@ -34,8 +34,8 @@ window.addEventListener 'keyup', (event) ->
 window.addEventListener 'blur', ->
 
   input.emit(
-  	'keyUp'
-  	keyCode: keyCodeMap keyCode
+    'keyUp'
+    keyCode: keyCodeMap keyCode
   ) for keyCode of keyDownFlags
 
   keyDownFlags = {}
@@ -167,122 +167,122 @@ keyCodeMap = (keyCode) ->
 
   switch keyCode
 
-  	when 8 then input.Key.Backspace
-  	when 9 then input.Key.Tab
-  	when 13 then input.Key.Enter
-  	when 27 then input.Key.Escape
-  	when 32 then input.Key.Space
-#		when 33 then input.Key.ExclamationMark
-#		when 34 then input.Key.QuotationMark
-#		when 35 then input.Key.NumberSign
-#		when 36 then input.Key.DollarSign
-#		when 37 then input.Key.PercentSign
-#		when 38 then input.Key.Ampersand
-  	when 222 then input.Key.Apostrophe
-#		when 40 then input.Key.ParenthesisLeft
-#		when 41 then input.Key.ParenthesisRight
-#		when 42 then input.Key.Asterisk
-#		when 43 then input.Key.Plus
-  	when 188 then input.Key.Comma
-  	when 189 then input.Key.Dash
-  	when 190 then input.Key.Period
-  	when 191 then input.Key.Slash
+    when 8 then input.Key.Backspace
+    when 9 then input.Key.Tab
+    when 13 then input.Key.Enter
+    when 27 then input.Key.Escape
+    when 32 then input.Key.Space
+#    when 33 then input.Key.ExclamationMark
+#    when 34 then input.Key.QuotationMark
+#    when 35 then input.Key.NumberSign
+#    when 36 then input.Key.DollarSign
+#    when 37 then input.Key.PercentSign
+#    when 38 then input.Key.Ampersand
+    when 222 then input.Key.Apostrophe
+#    when 40 then input.Key.ParenthesisLeft
+#    when 41 then input.Key.ParenthesisRight
+#    when 42 then input.Key.Asterisk
+#    when 43 then input.Key.Plus
+    when 188 then input.Key.Comma
+    when 189 then input.Key.Dash
+    when 190 then input.Key.Period
+    when 191 then input.Key.Slash
 
-  	when 48 then input.Key['0']
-  	when 49 then input.Key['1']
-  	when 50 then input.Key['2']
-  	when 51 then input.Key['3']
-  	when 52 then input.Key['4']
-  	when 53 then input.Key['5']
-  	when 54 then input.Key['6']
-  	when 55 then input.Key['7']
-  	when 56 then input.Key['8']
-  	when 57 then input.Key['9']
+    when 48 then input.Key['0']
+    when 49 then input.Key['1']
+    when 50 then input.Key['2']
+    when 51 then input.Key['3']
+    when 52 then input.Key['4']
+    when 53 then input.Key['5']
+    when 54 then input.Key['6']
+    when 55 then input.Key['7']
+    when 56 then input.Key['8']
+    when 57 then input.Key['9']
 
-#		when 58 then input.Key.Colon
-  	when 186 then input.Key.Semicolon
-#		when 60 then input.Key.LessThan
-  	when 61 then input.Key.EqualsSign
-#		when 62 then input.Key.GreaterThan
-#		when 63 then input.Key.QuestionMark
-#		when 64 then input.Key.At
+#    when 58 then input.Key.Colon
+    when 186 then input.Key.Semicolon
+#    when 60 then input.Key.LessThan
+    when 61 then input.Key.EqualsSign
+#    when 62 then input.Key.GreaterThan
+#    when 63 then input.Key.QuestionMark
+#    when 64 then input.Key.At
 
-  	when 65 then input.Key.A
-  	when 66 then input.Key.B
-  	when 67 then input.Key.C
-  	when 68 then input.Key.D
-  	when 69 then input.Key.E
-  	when 70 then input.Key.F
-  	when 71 then input.Key.G
-  	when 72 then input.Key.H
-  	when 73 then input.Key.I
-  	when 74 then input.Key.J
-  	when 75 then input.Key.K
-  	when 76 then input.Key.L
-  	when 77 then input.Key.M
-  	when 78 then input.Key.N
-  	when 79 then input.Key.O
-  	when 80 then input.Key.P
-  	when 81 then input.Key.Q
-  	when 82 then input.Key.R
-  	when 83 then input.Key.S
-  	when 84 then input.Key.T
-  	when 85 then input.Key.U
-  	when 86 then input.Key.V
-  	when 87 then input.Key.W
-  	when 88 then input.Key.X
-  	when 89 then input.Key.Y
-  	when 90 then input.Key.Z
+    when 65 then input.Key.A
+    when 66 then input.Key.B
+    when 67 then input.Key.C
+    when 68 then input.Key.D
+    when 69 then input.Key.E
+    when 70 then input.Key.F
+    when 71 then input.Key.G
+    when 72 then input.Key.H
+    when 73 then input.Key.I
+    when 74 then input.Key.J
+    when 75 then input.Key.K
+    when 76 then input.Key.L
+    when 77 then input.Key.M
+    when 78 then input.Key.N
+    when 79 then input.Key.O
+    when 80 then input.Key.P
+    when 81 then input.Key.Q
+    when 82 then input.Key.R
+    when 83 then input.Key.S
+    when 84 then input.Key.T
+    when 85 then input.Key.U
+    when 86 then input.Key.V
+    when 87 then input.Key.W
+    when 88 then input.Key.X
+    when 89 then input.Key.Y
+    when 90 then input.Key.Z
 
-  	when 219 then input.Key.BracketLeft
-  	when 220 then input.Key.Backslash
-  	when 221 then input.Key.BracketRight
-#		when 94 then input.Key.Caret
-#		when 95 then input.Key.Underscore
-  	when 192 then input.Key.Backtick
+    when 219 then input.Key.BracketLeft
+    when 220 then input.Key.Backslash
+    when 221 then input.Key.BracketRight
+#    when 94 then input.Key.Caret
+#    when 95 then input.Key.Underscore
+    when 192 then input.Key.Backtick
 
-#		when 123 then input.Key.BraceLeft
+#    when 123 then input.Key.BraceLeft
 
-  	# Lowerwhen alphabet excluded...
+    # Lowerwhen alphabet excluded...
 
-#		when 124 then input.Key.Pipe
-#		when 125 then input.Key.BraceRight
-#		when 126 then input.Key.Tilde
-  	when 46 then input.Key.Delete
+#    when 124 then input.Key.Pipe
+#    when 125 then input.Key.BraceRight
+#    when 126 then input.Key.Tilde
+    when 46 then input.Key.Delete
 
-  	when 112 then input.Key.F1
-  	when 113 then input.Key.F2
-  	when 114 then input.Key.F3
-  	when 115 then input.Key.F4
-  	when 116 then input.Key.F5
-  	when 117 then input.Key.F6
-  	when 118 then input.Key.F7
-  	when 119 then input.Key.F8
-  	when 120 then input.Key.F9
-  	when 121 then input.Key.F10
-  	when 122 then input.Key.F11
-  	when 123 then input.Key.F12
-  	when 124 then input.Key.F13
-  	when 125 then input.Key.F14
-  	when 126 then input.Key.F15
+    when 112 then input.Key.F1
+    when 113 then input.Key.F2
+    when 114 then input.Key.F3
+    when 115 then input.Key.F4
+    when 116 then input.Key.F5
+    when 117 then input.Key.F6
+    when 118 then input.Key.F7
+    when 119 then input.Key.F8
+    when 120 then input.Key.F9
+    when 121 then input.Key.F10
+    when 122 then input.Key.F11
+    when 123 then input.Key.F12
+    when 124 then input.Key.F13
+    when 125 then input.Key.F14
+    when 126 then input.Key.F15
 
-  	when 38 then input.Key.ArrowUp
-  	when 39 then input.Key.ArrowRight
-  	when 40 then input.Key.ArrowDown
-  	when 37 then input.Key.ArrowLeft
+    when 38 then input.Key.ArrowUp
+    when 39 then input.Key.ArrowRight
+    when 40 then input.Key.ArrowDown
+    when 37 then input.Key.ArrowLeft
 
-  	when 45 then input.Key.Insert
-  	when 36 then input.Key.Home
-  	when 35 then input.Key.End
-  	when 33 then input.Key.PageUp
-  	when 34 then input.Key.PageDown
+    when 45 then input.Key.Insert
+    when 36 then input.Key.Home
+    when 35 then input.Key.End
+    when 33 then input.Key.PageUp
+    when 34 then input.Key.PageDown
 
-  	when 17 then input.Key.ControlLeft
-  	when 18 then input.Key.AltLeft
-  	when 16 then input.Key.ShiftLeft
-  	when 91 then input.Key.SystemLeft
-  	when 17 then input.Key.ControlRight
-  	when 18 then input.Key.AltRight
-  	when 16 then input.Key.ShiftRight
-  	when 91 then input.Key.SystemRight
-  	when 93 then input.Key.Menu
+    when 17 then input.Key.ControlLeft
+    when 18 then input.Key.AltLeft
+    when 16 then input.Key.ShiftLeft
+    when 91 then input.Key.SystemLeft
+    when 17 then input.Key.ControlRight
+    when 18 then input.Key.AltRight
+    when 16 then input.Key.ShiftRight
+    when 91 then input.Key.SystemRight
+    when 93 then input.Key.Menu

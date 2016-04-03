@@ -1,7 +1,8 @@
 
 Actions = require 'avo/behavior/actions'
 Routines = require 'avo/behavior/routines'
-Rules = require 'avo/behavior/rules'
+
+{State: InvocationState} = require 'avo/behavior/invocation'
 
 Promise = require 'avo/vendor/bluebird'
 Trait = require './trait'
@@ -10,58 +11,85 @@ module.exports = Behavioral = class extends Trait
 
   stateDefaults: ->
 
-  	isBehaving: true
-  	routineIndex: 'initial'
-  	routines: {}
-  	rules: []
-  	staticActions: []
+    isBehaving: true
+    routineIndex: 'initial'
+    routines: {}
+    staticSerialActions: []
+    staticParallelActions: []
 
-  constructor: (entity, state) ->
-  	super
+  constructor: ->
+    super
 
-  	@_routines = new Routines()
-  	@_rules = new Rules()
-  	@_staticActions = new Actions()
+    @_routines = new Routines()
+    @_staticSerialActions = new Actions()
+    @_staticParallelActions = new Actions()
+    @_staticParallelState = new InvocationState()
+
+  _startStaticParallelActions: ->
+    return unless @_staticParallelActions.count() > 0
+
+    @_staticParallelActions.parallel @entity.context(), @_staticParallelState
+
+    Promise.asap(
+      @_staticParallelState.promise()
+      =>
+        @_staticParallelState = new InvocationState()
+        @_startStaticParallelActions()
+    )
+
+    return
 
   initialize: ->
 
-  	Promise.allAsap [
-  		@_routines.fromObject @state.routines
-  		@_rules.fromObject @state.rules
-  		@_staticActions.fromObject @state.staticActions
-  	], =>
+    Promise.allAsap [
+      @_routines.fromObject @state.routines
+      @_staticSerialActions.fromObject @state.staticSerialActions
+      @_staticParallelActions.fromObject @state.staticParallelActions
+    ], =>
 
-  		@_routines.setIndex @state.routineIndex
+      @_startStaticParallelActions() if @state.isBehaving
 
   properties: ->
 
-  	isBehaving: {}
-  	routineIndex:
+    isBehaving:
+      set: (isBehaving) ->
+        return if @state.isBehaving is isBehaving
 
-  		set: (routineIndex) ->
+        @_staticParallelState = new InvocationState()
+        @_startStaticParallelActions() if @state.isBehaving = isBehaving
 
-  			@_routines.setIndex @state.routineIndex = routineIndex
+    routineIndex:
+
+      set: (routineIndex) ->
+
+        @state.routineIndex = routineIndex
 
   actions: ->
 
-  	parallel: (actions, state) ->
+    parallel: (actions, state) -> actions.parallel @entity.context(), state
 
-  		actions.invokeImmediately @entity.context(), state
+    serial: (actions, state) ->
+      self = this
+
+      state.setTicker (elapsed) -> actions.tick self.entity.context(), elapsed
+      state.setPromise new Promise (resolve) ->
+        actions.on 'actionsFinished', resolve
 
   handler: ->
 
-  	ticker: ->
+    ticker: (elapsed) ->
+      return unless @entity.isBehaving()
 
-  		return unless @entity.isBehaving()
+      @_routines.routine(@state.routineIndex).tick @entity.context(), elapsed
+      @_staticSerialActions.tick @entity.context(), elapsed
+      @_staticParallelState.tick elapsed
 
-  		context = @entity.context()
-
-  		@_routines.routine().invoke context
-  		@_rules.invoke context
-  		@_staticActions.invoke context
-
-  		return
+      return
 
   signals: ->
 
-  	dying: -> @entity.setIsBehaving false
+    isBehavingChanged: (isBehaving) ->
+
+      @_startStaticParallelActions() if @state.isBehaving
+
+    dying: -> @entity.setIsBehaving false

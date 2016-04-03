@@ -22,29 +22,29 @@ module.exports = RectangleMixin = (
 
   class
 
-  	mixins = [
-  		PositionProperty = VectorMixin position, x, y
-  		SizeProperty = VectorMixin size, width, height
-  	]
+    mixins = [
+      PositionProperty = VectorMixin position, x, y
+      SizeProperty = VectorMixin size, width, height
+    ]
 
-  	constructor: ->
-  		mixin.call @ for mixin in mixins
+    constructor: ->
+      mixin.call @ for mixin in mixins
 
-  	FunctionExt.fastApply Mixin, [@::].concat mixins
+    FunctionExt.fastApply Mixin, [@::].concat mixins
 
-  	@::[rectangle] = -> Rectangle.compose @[position](), @[size]()
-  	@::[_setRectangle] = (_rectangle) ->
-  		oldRectangle = @[rectangle]()
-  		PositionProperty::[_setPosition].call this, Rectangle.position _rectangle
-  		SizeProperty::[_setSize].call this, Rectangle.size _rectangle
-  		@emit? "#{rectangle}Changed" unless Rectangle.equals oldRectangle, _rectangle
+    @::[rectangle] = -> Rectangle.compose @[position](), @[size]()
+    @::[_setRectangle] = (_rectangle) ->
+      oldRectangle = @[rectangle]()
+      PositionProperty::[_setPosition].call this, Rectangle.position _rectangle
+      SizeProperty::[_setSize].call this, Rectangle.size _rectangle
+      @emit? "#{rectangle}Changed" unless Rectangle.equals oldRectangle, _rectangle
 
-  	@::[_setPosition] = (_position) ->
-  		oldPosition = @[position]()
-  		@[_setRectangle] Rectangle.compose _position, @[size]()
-  		@emit? "#{position}Changed" unless Vector.equals oldPosition, _position
+    @::[_setPosition] = (_position) ->
+      oldPosition = @[position]()
+      @[_setRectangle] Rectangle.compose _position, @[size]()
+      @emit? "#{position}Changed" unless Vector.equals oldPosition, _position
 
-  	@::[_setSize] = (_size) ->
-  		oldSize = @[size]()
-  		@[_setRectangle] Rectangle.compose @[position](), _size
-  		@emit? "#{size}Changed" unless Vector.equals oldSize, _size
+    @::[_setSize] = (_size) ->
+      oldSize = @[size]()
+      @[_setRectangle] Rectangle.compose @[position](), _size
+      @emit? "#{size}Changed" unless Vector.equals oldSize, _size

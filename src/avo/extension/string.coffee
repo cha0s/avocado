@@ -16,11 +16,11 @@ module.exports = String =
   #     'Ruben'
   capitalize: (string) ->
 
-  	string.substr(0, 1).toUpperCase() + string.substr 1
+    string.substr(0, 1).toUpperCase() + string.substr 1
 
   formatInteger: (integer, atLeast = 1) ->
 
-  	integerString = "#{integer}"
-  	for i in [0...atLeast - integerString.length]
-  		integerString = '0' + integerString
-  	integerString
+    integerString = "#{integer}"
+    for i in [0...atLeast - integerString.length]
+      integerString = '0' + integerString
+    integerString

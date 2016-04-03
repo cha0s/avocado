@@ -8,9 +8,9 @@ Renderable = require './renderable'
 module.exports = class Sprite extends Renderable
 
   constructor: (@_image) ->
-  	super
+    super
 
-  	@_sprite = new PIXI.Sprite @_image._texture
+    @_sprite = new PIXI.Sprite @_image._texture
 
   alpha: -> @_sprite.alpha
 
@@ -20,13 +20,13 @@ module.exports = class Sprite extends Renderable
 
   setOrigin: (origin) ->
 
-  	@_sprite.pivot.x = origin[0]
-  	@_sprite.pivot.y = origin[1]
+    @_sprite.pivot.x = origin[0]
+    @_sprite.pivot.y = origin[1]
 
   setRotation: (rotation) -> @_sprite.rotation = rotation
 
   setSourceRectangle: (rectangle) ->
 
-  	@_image._texture.setFrame Rectangle.toObject rectangle
+    @_image._texture.setFrame Rectangle.toObject rectangle
 
   internal: -> @_sprite

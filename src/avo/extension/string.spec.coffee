@@ -1,12 +1,12 @@
 
-String = require './String'
+String = require './string'
 
 describe 'String', ->
 
   it "can capitalize", ->
 
-  	expect(String.capitalize 'hello').toBe 'Hello'
+    expect(String.capitalize 'hello').toBe 'Hello'
 
   it "can generate a setter name from a property name", ->
 
-  	expect(String.setterName 'property').toBe 'setProperty'
+    expect(String.setterName 'property').toBe 'setProperty'

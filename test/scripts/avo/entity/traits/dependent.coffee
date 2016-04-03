@@ -1,8 +1,8 @@
 
-Trait = require 'Entity/Traits/Trait'
+Trait = require 'avo/entity/traits/trait'
 
 module.exports = class extends Trait
-	
+
 	@dependencies: [
-		'Test'
+		'testing'
 	]

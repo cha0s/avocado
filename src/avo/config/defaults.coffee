@@ -3,6 +3,7 @@ module.exports = config = {}
 
 config.fs =
 
+  srcRoot: '.'
   resourcePath: 'resource'
   uiPath: 'ui'
 
@@ -17,12 +18,12 @@ config.input =
 
 config.timing =
 
-  ticksPerSecond: 60
+  ticksPerSecond: 10
   rendersPerSecond: 60
 
 config.promises =
 
-  longStackTraces: true
+  longStackTraces: false
 
 if process? and process.versions['node-webkit']
 

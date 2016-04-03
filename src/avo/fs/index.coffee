@@ -7,29 +7,29 @@ readUri = (uri) ->
 
   new Promise (resolve, reject) ->
 
-  	request = new window.XMLHttpRequest()
-  	request.open 'GET', uri
-  	request.onreadystatechange = ->
+    request = new window.XMLHttpRequest()
+    request.open 'GET', uri
+    request.onreadystatechange = ->
 
-  		if request.readyState is 4
+      if request.readyState is 4
 
-  			switch request.status
+        switch request.status
 
-  				# Work around for old node-webkit behavior.
-  				# See: https://github.com/rogerwang/node-webkit/commit/08c6ce5ff3fcf1b4df0aca1e717bb80d617214a2
+          # Work around for old node-webkit behavior.
+          # See: https://github.com/rogerwang/node-webkit/commit/08c6ce5ff3fcf1b4df0aca1e717bb80d617214a2
 
-  				when 0, 200
+          when 0, 200
 
-  					if request.responseText
-  						resolve request.responseText
-  					else
-  						reject	new Error "Couldn't load #{uri}"
+            if request.responseText
+              resolve request.responseText
+            else
+              reject  new Error "Couldn't load #{uri}"
 
-  				else
+          else
 
-  					reject new Error "Couldn't load #{uri}"
+            reject new Error "Couldn't load #{uri}"
 
-  	request.send()
+    request.send()
 
 resourceCache = {}
 exports.readResource = (uri) ->
@@ -38,15 +38,15 @@ exports.readResource = (uri) ->
 
   new Promise (resolve, reject) ->
 
-  	if resourceCache[qualifiedUri]?
+    if resourceCache[qualifiedUri]?
 
-  		resolve resourceCache[qualifiedUri]
+      resolve resourceCache[qualifiedUri]
 
-  	else
+    else
 
-  		readUri(qualifiedUri).then (text) ->
+      readUri(qualifiedUri).then (text) ->
 
-  			resolve resourceCache[qualifiedUri] = text
+        resolve resourceCache[qualifiedUri] = text
 
 uiCache = {}
 exports.readUi = (uri) ->
@@ -55,15 +55,15 @@ exports.readUi = (uri) ->
 
   new Promise (resolve, reject) ->
 
-  	if uiCache[qualifiedUri]?
+    if uiCache[qualifiedUri]?
 
-  		resolve uiCache[qualifiedUri]
+      resolve uiCache[qualifiedUri]
 
-  	else
+    else
 
-  		readUri(qualifiedUri).then (text) ->
+      readUri(qualifiedUri).then (text) ->
 
-  			resolve uiCache[qualifiedUri] = text
+        resolve uiCache[qualifiedUri] = text
 
 # Reads a JSON resource. Returns a promise to be resolved with the parsed
 # JSON object.
@@ -71,16 +71,16 @@ exports.readJsonResource = (uri) ->
 
   @readResource(uri).then (O) ->
 
-  	try
+    try
 
-  		JSON.parse O
+      JSON.parse O
 
-  	catch error
+    catch error
 
-  		error.message = "Error parsing #{
-  			"#{config.get 'fs:resourcePath'}#{uri}"
-  		} -> #{
-  			error.message
-  		}"
+      error.message = "Error parsing #{
+        "#{config.get 'fs:resourcePath'}#{uri}"
+      } -> #{
+        error.message
+      }"
 
-  		throw error
+      throw error

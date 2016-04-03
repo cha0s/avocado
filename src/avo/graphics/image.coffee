@@ -11,72 +11,87 @@ config = require 'avo/config'
 
 module.exports = class AvoImage
 
-  constructor: (width, height) ->
+  constructor: ([width, height] = [0, 0]) ->
 
-  	@_uri = ''
-  	@_texture = null
+    @_uri = ''
+
+    # canvas = window.document.createElement 'canvas'
+    # console.log width, height
+    # canvas.width = 1
+    # canvas.height = 1
+    # canvas.width = width
+    # canvas.height = height
+
+
+    image = new window.Image()
+    image.width = width
+    image.height = height
+    baseTexture = new PIXI.BaseTexture image
+    baseTexture.width = width
+    baseTexture.height = height
+    @_texture = new PIXI.Texture baseTexture
 
   @fromTexture: (texture) ->
 
-  	image = new AvoImage()
+    image = new AvoImage()
 
-  	image._texture = texture
+    image._texture = texture
 
-  	image
+    image
 
   @load: (uri, fn) ->
 
-  	new Promise (resolve, reject) ->
+    new Promise (resolve, reject) ->
 
-  		texture = PIXI.Texture.fromImage "#{
-  			config.get 'fs:resourcePath'
-  		}#{
-  			uri
-  		}"
+      texture = PIXI.Texture.fromImage "#{
+        config.get 'fs:resourcePath'
+      }#{
+        uri
+      }"
 
-  		onloadProxy = texture.baseTexture.source.onload
-  		texture.baseTexture.source.onload = ->
-  			onloadProxy?()
+      onloadProxy = texture.baseTexture.source.onload
+      texture.baseTexture.source.onload = ->
+        onloadProxy?()
 
-  			image = new AvoImage()
+        image = new AvoImage()
 
-  			image._uri = uri
-  			image._texture = texture
+        image._uri = uri
+        image._texture = texture
 
-  			resolve image
+        resolve image
 
-  		onerrorProxy = texture.baseTexture.source.onerror
-  		texture.baseTexture.source.onerror = ->
-  			onerrorProxy?()
+      onerrorProxy = texture.baseTexture.source.onerror
+      texture.baseTexture.source.onerror = ->
+        onerrorProxy?()
 
-  			reject new Error "Couldn't load Image: #{uri}"
+        reject new Error "Couldn't load Image: #{uri}"
 
   @loadWithoutCache: (uri, fn) ->
 
-  	new Promise (resolve, reject) ->
+    new Promise (resolve, reject) ->
 
-  		texture = new PIXI.Texture PIXI.BaseTexture.fromImage "#{
-  			config.get 'fs:resourcePath'
-  		}#{
-  			uri
-  		}"
+      texture = new PIXI.Texture PIXI.BaseTexture.fromImage "#{
+        config.get 'fs:resourcePath'
+      }#{
+        uri
+      }"
 
-  		onloadProxy = texture.baseTexture.source.onload
-  		texture.baseTexture.source.onload = ->
-  			onloadProxy?()
+      onloadProxy = texture.baseTexture.source.onload
+      texture.baseTexture.source.onload = ->
+        onloadProxy?()
 
-  			image = new AvoImage()
+        image = new AvoImage()
 
-  			image._uri = uri
-  			image._texture = texture
+        image._uri = uri
+        image._texture = texture
 
-  			resolve image
+        resolve image
 
-  		onerrorProxy = texture.baseTexture.source.onerror
-  		texture.baseTexture.source.onerror = ->
-  			onerrorProxy?()
+      onerrorProxy = texture.baseTexture.source.onerror
+      texture.baseTexture.source.onerror = ->
+        onerrorProxy?()
 
-  			reject new Error "Couldn't load Image: #{uri}"
+        reject new Error "Couldn't load Image: #{uri}"
 
   height: -> @_texture.baseTexture.height
 

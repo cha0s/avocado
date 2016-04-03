@@ -10,32 +10,32 @@ module.exports = (key) ->
 
   class Collection extends BehaviorItem
 
-  	constructor: ->
+    constructor: ->
 
-  		this["_#{key}"] = []
+      this["_#{key}"] = []
 
-  	@::[singleKey] = (index) -> this["_#{key}"][index]
+    @::[singleKey] = (index) -> this["_#{key}"][index]
 
-  	count: -> this["_#{key}"].length
+    count: -> this["_#{key}"].length
 
-  	fromObject: (Os) ->
+    fromObject: (Os) ->
 
-  		Promise.allAsap(
+      Promise.allAsap(
 
-  			for O in Os
+        for O in Os
 
-  				Thing = require "avo/behavior/#{singleKey}"
-  				thing = new Thing()
-  				thing.fromObject O
+          Thing = require "avo/behavior/#{singleKey}"
+          thing = new Thing()
+          thing.fromObject O
 
-  			(things) =>
+        (things) =>
 
-  				this["_#{key}"] = things
-  				this
-  		)
+          this["_#{key}"] = things
+          this
+      )
 
-  	toJSON: ->
+    toJSON: ->
 
-  		O = {}
-  		O[key] = this["_#{key}"].map (_) -> _.toJSON()
-  		O
+      O = {}
+      O[key] = this["_#{key}"].map (_) -> _.toJSON()
+      O

@@ -6,11 +6,11 @@ Mixin = require 'avo/mixin'
 module.exports = class UiAbstract
 
   mixins = [
-  	EventEmitter
+    EventEmitter
   ]
 
   constructor: (@_node) ->
-  	mixin.call this for mixin in mixins
+    mixin.call this for mixin in mixins
 
   FunctionExt.fastApply Mixin, [@::].concat mixins
 

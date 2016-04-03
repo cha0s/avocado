@@ -5,7 +5,7 @@ Mixin = require './index'
 Property = require './property'
 Ticker = require 'avo/timing/ticker'
 
-module.exports = Animation = (
+module.exports = TimedIndex = (
   indexName = 'index'
 ) ->
 
@@ -14,63 +14,44 @@ module.exports = Animation = (
 
   class
 
-  	mixins = [
-  		EventEmitter
-  		Property 'async', true
-  		IndexProperty = Property 'index', 0
-  		Property _indexCount, 0
-  		Property _indexRate, 100
-  	]
+    mixins = [
+      EventEmitter
+      IndexProperty = Property 'index', 0
+      Property _indexCount, 0
+      Property _indexRate, 100
+    ]
 
-  	constructor: ->
+    constructor: ->
 
-  		mixin.call this for mixin in mixins
+      mixin.call this for mixin in mixins
 
-  		@_interval = null
-  		@_ticker = null
+      @_ticking = false
 
-  	FunctionExt.fastApply Mixin, [@::].concat mixins
+      @_ticker = new Ticker()
+      @_ticker.setFrequency @[_indexRate]()
+      @_ticker.on 'tick', @_tick, @
 
-  	_tick: ->
+      @on 'indexRateChanged', (indexRate) -> @_ticker.setFrequency indexRate
 
-  		index = @index() + 1
-  		@setIndex Math.floor index % @[_indexCount]()
-  		@emit 'rolledOver' if index >= @[_indexCount]()
+    FunctionExt.fastApply Mixin, [@::].concat mixins
 
-  	setIndex: (index, reset = true) ->
+    _tick: ->
 
-  		IndexProperty::setIndex.call(
-  			@
-  			index % @[_indexCount]()
-  		)
+      index = @index() + 1
+      @setIndex Math.floor index % @[_indexCount]()
+      @emit 'rolledOver' if index >= @[_indexCount]()
 
-  		@_ticker.reset() if reset
+    setIndex: (index, reset = true) ->
 
-  	start: ->
-  		return if @_interval?
+      IndexProperty::setIndex.call(
+        @
+        index % @[_indexCount]()
+      )
 
-  		if @async()
+      @_ticker.reset() if reset
 
-  			type = 'OutOfBand'
-  			@_interval = setInterval (=> @tick()), 10
+    start: -> @_ticking = true
 
-  		else
+    stop: -> @_ticking = false
 
-  			type = 'InBand'
-  			@_interval = true
-
-  		@_ticker = new Ticker[type]()
-  		@_ticker.setFrequency @[_indexRate]()
-
-  		@_ticker.on 'tick', @_tick, @
-
-  	stop: ->
-  		return unless @_interval?
-
-  		clearInterval @_interval if @_interval isnt true
-  		@_interval = null
-
-  		@_ticker.off 'tick'
-  		@_ticker = null
-
-  	tick: -> @_ticker?.tick()
+    tick: (elapsed) -> @_ticker.tick  elapsed if @_ticking

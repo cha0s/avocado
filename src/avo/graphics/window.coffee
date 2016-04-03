@@ -1,4 +1,6 @@
 
+Promise = require 'avo/vendor/bluebird'
+
 PIXI = require 'avo/vendor/pixi'
 Vector = require 'avo/extension/vector'
 
@@ -17,10 +19,10 @@ exports.close = ->
 
   if 'node-webkit' is config.get 'platform'
 
-  	{Window} = global.window.nwDispatcher.requireNwGui()
-  	window_ = Window.get()
+    {Window} = global.window.nwDispatcher.requireNwGui()
+    window_ = Window.get()
 
-  	window_.close()
+    window_.close()
 
 exports.container = -> container
 
@@ -28,18 +30,18 @@ exports.hide = ->
 
   if 'node-webkit' is config.get 'platform'
 
-  	{Window} = global.window.nwDispatcher.requireNwGui()
-  	window_ = Window.get()
+    {Window} = global.window.nwDispatcher.requireNwGui()
+    window_ = Window.get()
 
-  	window_.hide()
+    window_.hide()
 
 exports.instantiate = ->
   return if instantiated
   instantiated = true
 
   renderer = new Renderer(
-  	config.get 'graphics:resolution'
-  	config.get 'graphics:renderer'
+    config.get 'graphics:resolution'
+    config.get 'graphics:renderer'
   )
 
   container = window.document.createElement 'div'
@@ -62,48 +64,48 @@ exports.instantiate = ->
   rendererSize = renderer.size()
 
   ratios = [
-  	rendererSize[0] / rendererSize[1]
-  	rendererSize[1] / rendererSize[0]
+    rendererSize[0] / rendererSize[1]
+    rendererSize[1] / rendererSize[0]
   ]
 
   centerCanvas = ->
 
-  	windowSize = [
-  		window.innerWidth
-  		window.innerHeight
-  	]
+    windowSize = [
+      window.innerWidth
+      window.innerHeight
+    ]
 
-  	calculatedSize = [
-  		windowSize[1] * ratios[0]
-  		windowSize[1]
-  	]
+    calculatedSize = [
+      windowSize[1] * ratios[0]
+      windowSize[1]
+    ]
 
-  	if calculatedSize[0] > windowSize[0]
-  		calculatedSize = [
-  			windowSize[0]
-  			windowSize[0] * ratios[1]
-  		]
+    if calculatedSize[0] > windowSize[0]
+      calculatedSize = [
+        windowSize[0]
+        windowSize[0] * ratios[1]
+      ]
 
-  	calculatedSize = Vector.round calculatedSize
-  	container.style.width = "#{calculatedSize[0]}px"
-  	container.style.height = "#{calculatedSize[1]}px"
+    calculatedSize = Vector.round calculatedSize
+    container.style.width = "#{calculatedSize[0]}px"
+    container.style.height = "#{calculatedSize[1]}px"
 
-  	uiContainerNode.setScale Vector.div calculatedSize, renderer.size()
+    uiContainerNode.setScale Vector.div calculatedSize, renderer.size()
 
-  	containerReverseScale = Vector.div renderer.size(), calculatedSize
-  	input.setMousePositionScale containerReverseScale
+    containerReverseScale = Vector.div renderer.size(), calculatedSize
+    input.setMousePositionScale containerReverseScale
 
-  	containerSize = Vector.scale containerReverseScale, 100
-  	uiContainer.style.width = "#{containerSize[0]}%"
-  	uiContainer.style.height = "#{containerSize[1]}%"
+    containerSize = Vector.scale containerReverseScale, 100
+    uiContainer.style.width = "#{containerSize[0]}%"
+    uiContainer.style.height = "#{containerSize[1]}%"
 
-  	offset = Vector.scale Vector.sub(windowSize, calculatedSize), .5
-  	container.style.left = "#{offset[0]}px"
-  	container.style.top = "#{offset[1]}px"
+    offset = Vector.scale Vector.sub(windowSize, calculatedSize), .5
+    container.style.left = "#{offset[0]}px"
+    container.style.top = "#{offset[1]}px"
 
   do window.onresize = centerCanvas
 
-  return
+  return new Promise (resolve) -> window.onload = resolve
 
 exports.offset = -> Vector.copy offset
 
@@ -113,10 +115,10 @@ exports.show = ->
 
   if 'node-webkit' is config.get 'platform'
 
-  	{Window} = global.window.nwDispatcher.requireNwGui()
-  	window_ = Window.get()
+    {Window} = global.window.nwDispatcher.requireNwGui()
+    window_ = Window.get()
 
-  	window_.show()
+    window_.show()
 
 exports.size = -> renderer.size()
 

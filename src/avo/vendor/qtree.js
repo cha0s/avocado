@@ -14,10 +14,10 @@ function QuadTree(x, y, w, h, options) {
     if( options ) {
   if( typeof options.maxchildren == 'number' )
       if( options.maxchildren > 0 )
-  	maxchildren = options.maxchildren;
+    maxchildren = options.maxchildren;
   if( typeof options.leafratio == 'number' )
       if( options.leafratio >= 0 )
-  	leafratio = options.leafratio;
+    leafratio = options.leafratio;
     }
 
     // validate an input object
@@ -81,31 +81,31 @@ function QuadTree(x, y, w, h, options) {
   else {
       t = ( x * dy1 - y * dx1 - x1 * dy1 + y1 * dx1 ) / t;
       if( Math.abs(dx1) > Math.abs(dy1) )
-  	var s = ( x - x1 - t * dy1 ) / dx1;
+    var s = ( x - x1 - t * dy1 ) / dx1;
       else
-  	var s = ( y - y1 + t * dx1 ) / dy1;
+    var s = ( y - y1 + t * dx1 ) / dy1;
       if( ( s >= 0 && s <= len1 ) || len1 < 0 )
-  	return {
-  	    s: s,
-  	    t: t,
-  	    x: x1 + s * dx1,
-  	    y: y1 + s * dy1,
-  	    dist: Math.abs(t)
-  	};
+    return {
+        s: s,
+        t: t,
+        x: x1 + s * dx1,
+        y: y1 + s * dy1,
+        dist: Math.abs(t)
+    };
       else if( s < 0 ) {
-  	var dist = distance(x, y, x1, y1);
-  	return {
-  	    s: s,
-  	    dist: dist
-  	};
+    var dist = distance(x, y, x1, y1);
+    return {
+        s: s,
+        dist: dist
+    };
       } else {
-  	var dist = distance(x, y,
-  			    x1 + len1*dx1,
-  			    y1 + len1*dy1);
-  	return {
-  	    s: s,
-  	    dist: dist
-  	};
+    var dist = distance(x, y,
+            x1 + len1*dx1,
+            y1 + len1*dy1);
+    return {
+        s: s,
+        dist: dist
+    };
       }
   }
     }
@@ -115,14 +115,14 @@ function QuadTree(x, y, w, h, options) {
   if( !o1 || !o2 )
       return true;
   var dist = distancePL(o2.x + 0.5 * o2.w,
-  		      o2.y + 0.5 * o2.h,
-  		      o1.x, o1.y, o1.dx, o1.dy, o1.dist);
+            o2.y + 0.5 * o2.h,
+            o1.x, o1.y, o1.dx, o1.dy, o1.dist);
   if( dist ) {
       dist.dist -= buf;
       if( dist.dist < 0 )
-  	return true;
+    return true;
       if( dist.dist * dist.dist <= o2.w * o2.w + o2.h * o2.h )
-  	return true;
+    return true;
   }
   return false;
     }
@@ -154,15 +154,15 @@ function QuadTree(x, y, w, h, options) {
   var childnode = null;
   for( var ni = 0; ni < node.nodes.length; ni++ )
       if( overlap_rect(obj, node.nodes[ni], 0) ) {
-  	if( childnode ) { // multiple hits
-  	    leaf = true;
-  	    break;
-  	} else
-  	    childnode = node.nodes[ni];
+    if( childnode ) { // multiple hits
+        leaf = true;
+        break;
+    } else
+        childnode = node.nodes[ni];
       }
 
   return { leaf: leaf,
-  	 childnode: childnode };
+     childnode: childnode };
     }
 
     // put an object to one of the child nodes of this node
@@ -189,18 +189,18 @@ function QuadTree(x, y, w, h, options) {
   var count = 0;
   for( var ci = 0; ci < node.children.length; ci++ )
       if( ( attr && node.children[ci][attr] == obj[attr] ) ||
-  	( !attr && isequal(node.children[ci], obj) ) ) {
-  	count++;
-  	node.children.splice(ci, 1);
-  	ci--;
+    ( !attr && isequal(node.children[ci], obj) ) ) {
+    count++;
+    node.children.splice(ci, 1);
+    ci--;
       }
 
   for( var ci = 0; ci < node.leafs.length; ci++ )
       if( ( attr && node.leafs[ci][attr] == obj[attr] ) ||
-  	( !attr && isequal(node.leafs[ci], obj) ) ) {
-  	count++;
-  	node.leafs.splice(ci, 1);
-  	ci--;
+    ( !attr && isequal(node.leafs[ci], obj) ) ) {
+    count++;
+    node.leafs.splice(ci, 1);
+    ci--;
       }
 
   var leaf = isleaf(node, obj);
@@ -220,15 +220,15 @@ function QuadTree(x, y, w, h, options) {
 
       // subdivide
       if( node.children.length > maxchildren ) {
-  	var w2 = node.w / 2;
-  	var h2 = node.h / 2;
-  	node.nodes.push(createnode(node.x, node.y, w2, h2),
-  			createnode(node.x + w2, node.y, w2, h2),
-  			createnode(node.x, node.y + h2, w2, h2),
-  			createnode(node.x + w2, node.y + h2, w2, h2));
-  	for( var ci = 0; ci < node.children.length; ci++ )
-  	    put_to_nodes(node, node.children[ci]);
-  	node.children = [];
+    var w2 = node.w / 2;
+    var h2 = node.h / 2;
+    node.nodes.push(createnode(node.x, node.y, w2, h2),
+        createnode(node.x + w2, node.y, w2, h2),
+        createnode(node.x, node.y + h2, w2, h2),
+        createnode(node.x + w2, node.y + h2, w2, h2));
+    for( var ci = 0; ci < node.children.length; ci++ )
+        put_to_nodes(node, node.children[ci]);
+    node.children = [];
       }
   } else
       put_to_nodes(node, obj);
@@ -239,16 +239,16 @@ function QuadTree(x, y, w, h, options) {
     function getter(overlapfun, node, obj, buf, strict, callback) {
   for( var li = 0; li < node.leafs.length; li++ )
       if( !strict || overlapfun(obj, node.leafs[li], buf) )
-  	if( !callback(node.leafs[li]) )
-  	    return false;
+    if( !callback(node.leafs[li]) )
+        return false;
   for( var li = 0; li < node.children.length; li++ )
       if( !strict || overlapfun(obj, node.children[li], buf) )
-  	if( !callback(node.children[li]) )
-  	    return false;
+    if( !callback(node.children[li]) )
+        return false;
   for( var ni = 0; ni < node.nodes.length; ni++ ) {
       if( overlapfun(obj, node.nodes[ni], buf) ) {
-  	if( !getter(overlapfun, node.nodes[ni], obj, buf, strict, callback) )
-  	    return false;
+    if( !getter(overlapfun, node.nodes[ni], obj, buf, strict, callback) )
+        return false;
       }
   }
   return true;
@@ -276,16 +276,16 @@ function QuadTree(x, y, w, h, options) {
   if( obj == null )
       get_rect(node, obj, buf, callback);
   else if( typeof obj.x == 'number' &&
-  	 typeof obj.y == 'number' &&
+     typeof obj.y == 'number' &&
            !isNaN(obj.x) && !isNaN(obj.y) ) {
       if( typeof obj.dx == 'number' &&
-  	typeof obj.dy == 'number' &&
+    typeof obj.dy == 'number' &&
           !isNaN(obj.dx) && !isNaN(obj.dy) )
-  	get_line(node, obj, buf, callback);
+    get_line(node, obj, buf, callback);
       else if( typeof obj.w == 'number' &&
-  	     typeof obj.h == 'number' &&
-  	     !isNaN(obj.w) && !isNaN(obj.h) )
-  	get_rect(node, obj, buf, callback);
+         typeof obj.h == 'number' &&
+         !isNaN(obj.w) && !isNaN(obj.h) )
+    get_rect(node, obj, buf, callback);
   }
     }
 

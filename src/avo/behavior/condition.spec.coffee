@@ -1,69 +1,70 @@
 
-Behavior = require './index'
+Behavior = require 'avo/behavior'
+Condition = require './condition'
 
 describe 'Behavior', ->
 
   describe 'conditions', ->
 
-  	it "can do binary compares", ->
+    it "can do binary compares", ->
 
-  		condition = new Behavior.Condition()
-  		condition.fromObject
+      condition = new Condition()
+      condition.fromObject
 
-  			operator: '>'
-  			operands: [
-  				l: 500
-  			,
-  				l: 420
-  			]
+        operator: '>'
+        operands: [
+          literal: 500
+        ,
+          literal: 420
+        ]
 
-  		expect(condition.get()).toBe true
+      expect(condition.check()).toBe true
 
-  		condition.setOperator '<'
-  		expect(condition.get()).toBe false
+      condition.setOperator '<'
+      expect(condition.check()).toBe false
 
-  		condition.setOperator '<='
-  		expect(condition.get()).toBe false
+      condition.setOperator '<='
+      expect(condition.check()).toBe false
 
-  		condition.setOperator '>='
-  		expect(condition.get()).toBe true
+      condition.setOperator '>='
+      expect(condition.check()).toBe true
 
-  		condition.setOperator 'is'
-  		expect(condition.get()).toBe false
+      condition.setOperator 'is'
+      expect(condition.check()).toBe false
 
-  		condition.setOperator 'isnt'
-  		expect(condition.get()).toBe true
+      condition.setOperator 'isnt'
+      expect(condition.check()).toBe true
 
-  	it "can do varnary compares", ->
+    it "can do varnary compares", ->
 
-  		condition = new Behavior.Condition()
-  		condition.fromObject
+      condition = new Condition()
+      condition.fromObject
 
-  			operator: 'and'
-  			operands: [
-  				l: true
-  			,
-  				l: true
-  			,
-  				l: false
-  			]
+        operator: 'and'
+        operands: [
+          literal: true
+        ,
+          literal: true
+        ,
+          literal: false
+        ]
 
-  		expect(condition.get()).toBe false
+      expect(condition.check()).toBe false
 
-  		condition.setOperator 'or'
-  		expect(condition.get()).toBe true
+      condition.setOperator 'or'
+      expect(condition.check()).toBe true
 
-  		condition.setOperand 2, Behavior.instantiate l: true
+      condition.setOperand 2, Behavior.instantiate literal: true
 
-  		expect(condition.get()).toBe true
+      expect(condition.check()).toBe true
 
-  		condition.setOperator 'and'
-  		expect(condition.get()).toBe true
+      condition.setOperator 'and'
+      expect(condition.check()).toBe true
 
-  		for i in [0...3]
-  			condition.setOperand i, Behavior.instantiate l: false
+      for i in [0...3]
+        condition.setOperand i, Behavior.instantiate literal: false
 
-  		expect(condition.get()).toBe false
+      expect(condition.check()).toBe false
 
-  		condition.setOperator 'or'
-  		expect(condition.get()).toBe false
+      condition.setOperator 'or'
+      expect(condition.check()).toBe false

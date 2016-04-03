@@ -1,6 +1,4 @@
 
-timing = require 'avo/timing'
-
 Promise = require 'avo/vendor/bluebird'
 Vector = require 'avo/extension/vector'
 
@@ -10,85 +8,121 @@ module.exports = class extends Trait
 
   stateDefaults: ->
 
-  	isMobile: true
-  	isMoving: false
-  	mobilityAnimationIndex: 'moving'
-  	movingSpeed: 0
+    isMobile: true
+    isMoving: false
+    mobilityAnimationIndex: 'moving'
+    movingSpeed: 0
+
+  constructor: ->
+    super
+
+    @_move = null
+    @_movementHandler = null
 
   properties: ->
 
-  	isMobile: {}
-  	isMoving: {}
-  	mobilityAnimationIndex: {}
-  	movingSpeed: {}
+    isMobile: {}
+    isMoving: {}
+    mobilityAnimationIndex: {}
+    movingSpeed: {}
 
   actions: ->
 
-  	move: (vector) ->
+    move: (vector) ->
 
-  		isZero = Vector.isZero vector
+      isZero = Vector.isZero vector
 
-  		@entity.setDirection(
-  			Vector.toDirection vector, @entity.directionCount()
-  		) unless isZero
+      @entity.setDirection(
+        Vector.toDirection vector, @entity.directionCount()
+      ) unless isZero
 
-  		@entity.setIsMoving @entity.isMobile() and not isZero
+      @entity.setIsMoving @entity.isMobile() and not isZero
 
-  		return unless @entity.isMobile()
+      return unless @entity.isMobile()
 
-  		if @entity.physicsApplyMovement?
+      @entity.applyForce vector, @entity.movingSpeed()
 
-  			@entity.physicsApplyMovement vector, @entity.movingSpeed()
+      return
 
-  		else
+      # if @_movementHandler?
 
-  			@entity.applyImpulse vector, @entity.movingSpeed()
+      #   @_movementHandler vector, @entity
 
-  	moveTo:
+      # else
 
-  		f: (destination, state) ->
+      #   @entity.setPosition Vector.add(
+      #     @entity.position()
+      #     Vector.scale vector, timing.tickElapsed() * force
+      #   )
 
-  			deferred = Promise.defer()
 
-  			hypotenuse = Vector.hypotenuse(
-  				destination
-  				@entity.position()
-  			)
+      # if @entity.physicsApplyMovement?
 
-  			checkMovementEnd = =>
+      #   @entity.physicsApplyMovement vector, @entity.movingSpeed()
 
-  				entityPosition = @entity.position()
-  				for i in [0, 1] when hypotenuse[i] isnt 0
+      # else
 
-  					if hypotenuse[i] < 0
-  						if entityPosition[i] < destination[i]
-  							entityPosition[i] = destination[i]
+      #   @entity.applyImpulse vector, @entity.movingSpeed()
 
-  					if hypotenuse[i] > 0
-  						if entityPosition[i] > destination[i]
-  							entityPosition[i] = destination[i]
+    moveTo:
 
-  				diff = Vector.abs Vector.sub destination, entityPosition
-  				if diff[0] <= 1 and diff[1] <= 1
+      f: (destination, state) ->
 
-  					@entity.off 'afterPhysicsTick', checkMovementEnd
-  					@entity.setPosition destination
+        deferred = Promise.defer()
 
-  					deferred.resolve()
+        hypotenuse = Vector.hypotenuse(
+          destination
+          @entity.position()
+        )
 
-  			@entity.on 'afterPhysicsTick', checkMovementEnd
+        checkMovementEnd = =>
 
-  			state.setPromise deferred.promise
+          entityPosition = @entity.position()
+          for i in [0, 1] when hypotenuse[i] isnt 0
 
-  			state.setTicker =>
+            if hypotenuse[i] < 0
+              if entityPosition[i] < destination[i]
+                entityPosition[i] = destination[i]
 
-  				@entity.move hypotenuse = Vector.hypotenuse(
-  					destination
-  					@entity.position()
-  				)
+            if hypotenuse[i] > 0
+              if entityPosition[i] > destination[i]
+                entityPosition[i] = destination[i]
 
-  	pursue:
+          diff = Vector.abs Vector.sub destination, entityPosition
+          if diff[0] <= 1 and diff[1] <= 1
 
-  		f: (entity) ->
+            @entity.off 'afterPhysicsTick', checkMovementEnd
+            @entity.setPosition destination
 
-  			@entity.move @entity.hypotenuseToEntity entity
+            deferred.resolve()
+
+        @entity.on 'afterPhysicsTick', checkMovementEnd
+
+        state.setPromise deferred.promise
+
+        state.setTicker =>
+
+          @entity.move hypotenuse = Vector.hypotenuse(
+            destination
+            @entity.position()
+          )
+
+    pursue:
+
+      f: (entity) -> @entity.move @entity.hypotenuseToEntity entity
+
+    pursueFor:
+
+      f: (entity, ms, track, state) ->
+        self = this
+
+        hypotenuse = null
+        do doTracking = -> hypotenuse = self.entity.hypotenuseToEntity entity
+
+        state.setPromise (deferred = Promise.defer()).promise
+
+        waited = 0
+        state.setTicker (elapsed) ->
+          doTracking() if track
+          self.entity.move hypotenuse
+          deferred.resolve() if (waited += elapsed) >= ms

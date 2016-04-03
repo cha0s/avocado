@@ -8,30 +8,23 @@ module.exports = class Routines extends BehaviorItem
 
   constructor: ->
 
-  	@_index = null
-  	@_routines = {}
+    @_routines = {}
 
   fromObject: (O) ->
 
-  	Promise.allAsap(
+    Promise.allAsap(
 
-  		for index, routine of O
-  			@_index = index unless @_index?
+      for index, routine of O
+        (@_routines[index] = new Routine()).fromObject routine
 
-  			@_routines[index] = new Routine()
-  			@_routines[index].fromObject routine
+      => this
+    )
 
-  		=> this
-  	)
-
-  index: -> @_index
-  setIndex: (@_index) ->
-
-  routine: (index = @_index) -> @_routines[index]
+  routine: (index) -> @_routines[index]
 
   toJSON: ->
 
-  	O = routines: {}
-  	for index, routine of @_routines
-  		O.routines[index] = routine.toJSON()
-  	O
+    O = routines: {}
+    for index, routine of @_routines
+      O.routines[index] = routine.toJSON()
+    O

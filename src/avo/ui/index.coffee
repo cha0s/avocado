@@ -24,31 +24,31 @@ ui.loadNode = (uri) ->
 
   fs.readUi(uri).then (html) ->
 
-  	ui.addCss "#{config.get 'fs:uiPath'}#{uri.replace /.html$/, '.css'}"
+    ui.addCss "#{config.get 'fs:uiPath'}#{uri.replace /.html$/, '.css'}"
 
-  	node = new Node html
+    node = new Node html
 
-  	# Set defaults.
-  	node.hide()
-  	node.setIsSelectable false
-  	node.setPosition [0, 0]
+    # Set defaults.
+    node.hide()
+    node.setIsSelectable false
+    node.setPosition [0, 0]
 
-  	# Add a class, e.g. /test/thing.html -> test-thing
-  	nodeClass = uri.substr(1).replace '.html', ''
-  	nodeClass = nodeClass.replace '/', '-'
-  	node.addClass nodeClass
+    # Add a class, e.g. /test/thing.html -> test-thing
+    nodeClass = uri.substr(1).replace '.html', ''
+    nodeClass = nodeClass.replace '/', '-'
+    node.addClass nodeClass
 
-  	# Add the node to the UI container.
-  	uiContainer = window_.uiContainer()
-  	uiContainer.appendChild node.element()
+    # Add the node to the UI container.
+    uiContainer = window_.uiContainer()
+    uiContainer.appendChild node.element()
 
-  	node
+    node
 
 ui.load = (name) ->
 
   try
-  	Class = require "avo/ui/#{name}"
+    Class = require "avo/ui/#{name}"
   catch error
-  	Class = UiAbstract
+    Class = UiAbstract
 
   ui.loadNode("/#{name}.html").then (node) -> new Class node

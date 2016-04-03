@@ -16,22 +16,23 @@ module.exports = class
   # milliseconds.
   constructor: (frequency = 250) ->
 
-  	@ticker = new Ticker.OutOfBand()
-  	@ticker.setFrequency frequency
+    previous = Date.now()
 
-  	@ticker.on 'tick', =>
-  		@fps = @c * (1000 / frequency)
-  		@c = 0
+    setInterval =>
 
-  	@fps = 0
-  	@c = 0
+      now = Date.now()
+      elapsed = now - previous
+      previous = now
+      @fps = @c * (1000 / elapsed)
+      @c = 0
+
+    , frequency
+
+    @fps = 0
+    @c = 0
 
   # Call every time the process you want to measure runs.
-  tick: ->
-
-  	@ticker.tick()
-
-  	@c++
+  tick: -> @c++
 
   # Call to retrieve how many cycles the process runs per second.
   count: -> @fps

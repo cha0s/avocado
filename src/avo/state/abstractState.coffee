@@ -9,7 +9,21 @@
 # you delete them explicitly!**
 Promise = require 'avo/vendor/bluebird'
 
-module.exports = class
+EventEmitter = require 'avo/mixin/eventEmitter'
+FunctionExt = require 'avo/extension/function'
+Mixin = require 'avo/mixin'
+
+module.exports = class AbstractState
+
+  mixins = [
+    EventEmitter
+  ]
+
+  FunctionExt.fastApply Mixin, [@::].concat mixins
+
+  # ##### constructor
+  # Make sure to call this from your subclass.
+  constructor: -> mixin.call @ for mixin in mixins
 
   # ##### initialize
   # When the state is first loaded, initialize is called. This is used to
@@ -29,6 +43,8 @@ module.exports = class
   # If you need to do something asynchronously, return a promise. If you
   # don't return a promise, the engine will continue immediately.
   enter: (args, previousStateName) ->
+
+  render: (renderer) ->
 
   # ##### tick
   # Called repeatedly by the engine while this State is the active

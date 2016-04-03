@@ -5,17 +5,17 @@ module.exports = Property = (key, defaultValue) ->
 
   class
 
-  	constructor: ->
-  		@["_#{key}"] = defaultValue
+    constructor: ->
+      @["_#{key}"] = defaultValue
 
-  	@::[key] = -> @["_#{key}"]
+    @::[key] = -> @["_#{key}"]
 
-  	@::[String.setterName key] = (value) ->
+    @::[String.setterName key] = (value) ->
 
-  		oldValue = @["_#{key}"]
-  		@["_#{key}"] = value
+      oldValue = @["_#{key}"]
+      @["_#{key}"] = value
 
-  		if oldValue isnt value
-  			@emit? "#{key}Changed", oldValue
+      if oldValue isnt value
+        @emit? "#{key}Changed", oldValue
 
-  		return
+      return

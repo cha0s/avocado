@@ -17,29 +17,29 @@ module.exports = VectorMixin = (
 
   class
 
-  	mixins = [
-  		XProperty = Property x, 0
-  		YProperty = Property y, 0
-  	]
+    mixins = [
+      XProperty = Property x, 0
+      YProperty = Property y, 0
+    ]
 
-  	constructor: ->
-  		mixin.call @ for mixin in mixins
+    constructor: ->
+      mixin.call @ for mixin in mixins
 
-  	FunctionExt.fastApply Mixin, [@::].concat mixins
+    FunctionExt.fastApply Mixin, [@::].concat mixins
 
-  	@::[vector] = -> [@[x](), @[y]()]
-  	@::[_setVector] = (_vector) ->
-  		oldVector = @[vector]()
-  		XProperty::[_setX].call this, _vector[0]
-  		YProperty::[_setY].call this, _vector[1]
-  		@emit? "#{vector}Changed" unless Vector.equals oldVector, _vector
+    @::[vector] = -> [@[x](), @[y]()]
+    @::[_setVector] = (_vector) ->
+      oldVector = @[vector]()
+      XProperty::[_setX].call this, _vector[0]
+      YProperty::[_setY].call this, _vector[1]
+      @emit? "#{vector}Changed" unless Vector.equals oldVector, _vector
 
-  	@::[_setX] = (_x) ->
-  		oldX = @[x]()
-  		@[_setVector] [_x, @[y]()]
-  		@emit? "#{x}Changed" if oldX isnt _x
+    @::[_setX] = (_x) ->
+      oldX = @[x]()
+      @[_setVector] [_x, @[y]()]
+      @emit? "#{x}Changed" if oldX isnt _x
 
-  	@::[_setY] = (_y) ->
-  		oldY = @[y]()
-  		@[_setVector] [@[x](), _y]
-  		@emit? "#{y}Changed" if oldY isnt _y
+    @::[_setY] = (_y) ->
+      oldY = @[y]()
+      @[_setVector] [@[x](), _y]
+      @emit? "#{y}Changed" if oldY isnt _y

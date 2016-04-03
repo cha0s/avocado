@@ -6,13 +6,13 @@ module.exports = class Literal extends BehaviorItem
 
   constructor: ->
 
-  	@_literal = null
+    @_literal = null
 
   fromObject: (O) ->
 
-  	@_literal = ObjectExt.deepCopy O
+    @_literal = ObjectExt.deepCopy O
 
-  	this
+    this
 
   get: (context) -> @_literal
   set: (@_literal) ->

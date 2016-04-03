@@ -6,58 +6,65 @@ FunctionExt = require 'avo/extension/function'
 Transition = require 'avo/mixin/transition'
 Lfo = require 'avo/mixin/lfo'
 
+behaviorContext = require 'avo/behavior/context'
 Timing = require 'avo/timing'
 
 Trait = require './trait'
 
 module.exports = Existent = class extends Trait
 
+  constructor: (entity) ->
+    super
+
+    @_variables = {}
+
+    @_context = behaviorContext.defaultContext()
+    @_context.entity = entity
+
   stateDefaults: ->
 
-  	name: 'Untitled'
+    name: 'Untitled'
+    isTicking: true
 
   properties: ->
 
-  	name: {}
+    name: {}
+    isTicking: {}
 
   actions: ->
 
-  	destroy: -> @entity.emit 'destroyed'
+    destroy: -> @entity.emit 'destroyed'
 
-  	lfo: (properties, duration, state) ->
+    setVariable: (key, value) ->
 
-  		lfo = FunctionExt.fastApply Lfo.InBand::lfo, arguments, @entity
+      @_variables[key] = value
 
-  		state.setPromise lfo.promise
-  		state.setTicker -> lfo.tick()
+    lfo: (properties, duration, state) ->
 
-  	transition: (properties, duration, easing, state) ->
+      lfo = FunctionExt.fastApply Lfo::lfo, arguments, @entity
 
-  		unless state?
-  			state = easing
-  			easing = null
+      state.setPromise lfo.promise
+      state.setTicker (elapsed) -> lfo.tick elapsed
 
-  		transition = FunctionExt.fastApply(
-  			Transition.InBand::transition
-  			[properties, duration, easing]
-  			@entity
-  		)
+    transition: (properties, duration, easing, state) ->
 
-  		state.setPromise transition.promise
-  		state.setTicker -> transition.tick()
+      unless state?
+        state = easing
+        easing = null
 
-  	signal: -> FunctionExt.fastApply @entity.emit, arguments, @entity
+      transition = FunctionExt.fastApply(
+        Transition::transition
+        [properties, duration, easing]
+        @entity
+      )
 
-  	waitMs:
+      state.setPromise transition.promise
+      state.setTicker (elapsed) -> transition.tick elapsed
 
-  		f: (ms, state) ->
+    signal: -> FunctionExt.fastApply @entity.emit, arguments, @entity
 
-  			deferred = Promise.defer()
+  values: ->
 
-  			waited = 0
+    context: -> @_context
 
-  			state.setPromise deferred.promise
-  			state.setTicker ->
-
-  				waited += Timing.TimingService.tickElapsed() * 1000
-  				deferred.resolve() if waited >= ms
+    variable: (key) -> @_variables[key]

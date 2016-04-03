@@ -1,65 +1,54 @@
 
 Promise = require 'avo/vendor/bluebird'
 
-Collection = require './collection'
-Invocation = require './invocation'
+EventEmitter = require 'avo/mixin/eventEmitter'
+FunctionExt = require 'avo/extension/function'
+Mixin = require 'avo/mixin'
 
-module.exports = class Actions extends Collection 'actions'
+Invocation = require './invocation'
+Invocations = require './invocations'
+
+module.exports = class Actions extends Invocations
+
+  mixins = [
+    EventEmitter
+  ]
 
   constructor: ->
-  	super
+    super
 
-  	@_index = 0
-  	@_state = null
+    mixin.call this for mixin in mixins
+
+    @_index = 0
+    @_state = null
+
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   index: -> @_index
 
-  _finalize: (increment) ->
+  setIndex: (@_index) ->
 
-  	@_state.cleanUp() if @_state?
+  tick: (context, elapsed) ->
+    return if @_invocations.length is 0
+    return @_state.tick elapsed if @_state?
 
-  	@setIndex (@_index + increment) % @_actions.length
+    # Actions execute immediately until a promise is made, or they're all
+    # executed.
+    while true
+      @_invocations[@_index++].invoke context, @_state = new Invocation.State()
 
-  	@_state = null
+      if Promise.is @_state.promise()
+        @_state.promise().then => @_prologue()
+        @_state.promise().catch (error) -> throw error
+        break
 
-  invoke: (context) ->
-  	return if @_actions.length is 0
+      @_prologue()
+      break if @_index is 0
 
-  	if @_state?
+    return
 
-  		@_state.tick()
-  		return
+  _prologue: ->
+    @_state.cleanUp()
+    @_state = null
 
-  	state = new Invocation.State()
-  	@_actions[@_index].invoke context, state
-
-  	# Waiting...
-  	if (promise = state.promise())?
-
-  		promise.then (result) => @_finalize result?.increment ? 1
-
-  		@_state = state
-
-  	else
-
-  		# Otherwise, just increment by 1.
-  		@_finalize 1
-
-  	promise
-
-  invokeImmediately: (context, state) ->
-
-  	actionStates = for action in @_actions
-  		action.invoke context, actionState = new Invocation.State()
-  		actionState
-
-  	# Any actual action promises?
-  	if actionStates.reduce ((l, r) -> r.promise()? and l), true
-
-  		state.setTicker ->
-  			for actionState in actionStates
-  				actionState.tick()
-
-  		state.setPromise Promise.all actionStates.map (e) -> e.promise()
-
-  setIndex: (index) -> @_index = index
+    @emit 'actionsFinished' if 0 is @_index = @_index % @_invocations.length

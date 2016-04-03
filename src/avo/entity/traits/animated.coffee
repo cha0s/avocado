@@ -10,143 +10,144 @@ Trait = require './trait'
 module.exports = class Animated extends Trait
 
   @dependencies: [
-  	'corporeal'
-  	'visible'
+    'corporeal'
+    'visible'
   ]
 
   constructor: ->
-  	super
+    super
 
-  	@_animations = {}
+    @_animations = {}
 
   stateDefaults: ->
 
-  	animations: {}
-  	animationIndex: 'initial'
-  	preserveFrameWhenMoving: false
+    animations: {}
+    animationIndex: 'initial'
+    preserveFrameWhenMoving: false
 
   initialize: ->
 
-  	animationPromises = for animationIndex, O of @state.animations
+    animationPromises = for animationIndex, O of @state.animations
 
-  		# Look for animations in the entity directory if no URI was
-  		# explicitly given.
-  		O.uri = @entity.uri().replace(
-  			'.entity.json',
-  			'/' + animationIndex + '.animation.json'
-  		) unless O.uri?
+      # Look for animations in the entity directory if no URI was
+      # explicitly given.
+      O.uri = @entity.uri().replace(
+        '.entity.json',
+        '/' + animationIndex + '.animation.json'
+      ) unless O.uri?
 
-  		do (animationIndex, O) =>
-  			Animation.load(O.uri).then (animation) =>
+      do (animationIndex, O) =>
+        Animation.load(O.uri).then (animation) =>
 
-  				@_animations[animationIndex] = animation
+          @_animations[animationIndex] = animation
 
-  				animation.sprite().setOrigin(
-  					O.origin ? Vector.scale animation.frameSize(), .5
-  				)
+          animation.sprite().setOrigin(
+            O.origin ? Vector.scale animation.frameSize(), .5
+          )
 
-  				animation.setAsync false
-  				animation.start()
+          animation.start()
 
-  	Promise.all animationPromises
+    Promise.all animationPromises
 
   _snapPosition: ->
 
-  	for i, animation of @_animations
-  		animation.sprite().setPosition Vector.sub(
-  			@entity.position()
-  			Vector.add(
-  				@entity.offset()
-  				@state.animations[i].offset ? [0, 0]
-  			)
-  		)
+    for i, animation of @_animations
+      animation.sprite().setPosition Vector.sub(
+        @entity.position()
+        Vector.add(
+          @entity.offset()
+          @state.animations[i].offset ? [0, 0]
+        )
+      )
 
-  	return
+    return
 
   _snapRotation: ->
 
-  	for i, animation of @_animations
-  		animation.sprite().setRotation @entity.rotation()
+    for i, animation of @_animations
+      animation.sprite().setRotation @entity.rotation()
 
-  	return
+    return
 
   properties: ->
 
-  	animationIndex: {}
+    animationIndex: {}
 
   signals: ->
 
-  	traitsChanged: ->
+    traitsChanged: ->
 
-  		@_snapPosition()
-  		@_snapRotation()
+      @_snapPosition()
+      @_snapRotation()
 
-  	addToLocalContainer: (localContainer) ->
+    addToLocalContainer: (localContainer) ->
 
-  		for i, animation of @_animations
-  			animation.sprite().setIsVisible false
-  			localContainer.addChild animation.sprite()
+      for i, animation of @_animations
+        animation.sprite().setIsVisible false
+        localContainer.addChild animation.sprite()
 
-  		@_animations[@state.animationIndex].sprite().setIsVisible true
+      @_animations[@state.animationIndex].sprite().setIsVisible true
 
-  	animationIndexChanged: (oldIndex) ->
+    animationIndexChanged: (oldIndex) ->
 
-  		@_animations[oldIndex].sprite().setIsVisible false
-  		@_animations[@state.animationIndex].sprite().setIsVisible true
+      @_animations[oldIndex].sprite().setIsVisible false
+      @_animations[@state.animationIndex].sprite().setIsVisible true
 
-  	directionChanged: ->
+    directionChanged: ->
 
-  		for i, animation of @_animations
-  			animation.setDirection @entity.direction()
+      for i, animation of @_animations
+        animation.setDirection @entity.direction()
 
-  	isMovingChanged: ->
+    isMovingChanged: ->
 
-  		if @entity.isMoving()
+      if @entity.isMoving()
 
-  			index = if @state.preserveFrameWhenMoving
-  				@entity.animation()?.index()
-  			else
-  				0
+        index = if @state.preserveFrameWhenMoving
+          @entity.animation()?.index()
+        else
+          0
 
-  			@entity.setAnimationIndex @entity.mobilityAnimationIndex()
-  			@entity.animation()?.setIndex index
+        @entity.setAnimationIndex @entity.mobilityAnimationIndex()
+        @entity.animation()?.setIndex index
 
-  		else
+      else
 
-  			@entity.setAnimationIndex 'initial'
+        @entity.setAnimationIndex 'initial'
 
-  	positionChanged: -> @_snapPosition()
+    offsetChanged: -> @_snapPosition()
 
-  	rotationChanged: -> @_snapRotation()
+    positionChanged: -> @_snapPosition()
+
+    rotationChanged: -> @_snapRotation()
 
   values: ->
 
-  	animation: -> @_animations[@state.animationIndex]
+    animation: -> @_animations[@state.animationIndex]
 
   handler: ->
 
-  	ticker: ->
+    ticker: (elapsed) ->
 
-  		@entity.animation()?.tick()
+      @entity.animation()?.tick elapsed
 
   toJSON: ->
 
-  	O = super
-  	return O unless O.state?
+    O = super
+    return O unless O.state?
 
-  	state = O.state
-  	delete O.state
+    state = O.state
+    delete O.state
 
-  	# Delete animation URIs that are just using the entity's uri, since
-  	# that's the default.
-  	if state.animations?
-  		uri = @entity.uri().replace '.entity.json', ''
+    # Delete animation URIs that are just using the entity's uri, since
+    # that's the default.
+    if state.animations?
+      uri = @entity.uri().replace '.entity.json', ''
 
-  		for index, animation of state.animations
-  			if animation.uri is "#{uri}/#{index}.animation.json"
-  				delete animation.uri
+      for index, animation of state.animations
+        if animation.uri is "#{uri}/#{index}.animation.json"
+          delete animation.uri
 
-  		delete state.animations if _.isEmpty state.animations
+      delete state.animations if _.isEmpty state.animations
 
-  	O.state = state unless _.isEmpty state
-  	O
+    O.state = state unless _.isEmpty state
+    O

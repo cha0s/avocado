@@ -5,18 +5,20 @@ color = require 'avo/graphics/color'
 
 EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
+Lfo = require 'avo/mixin/lfo'
 Transition = require 'avo/mixin/transition'
 VectorMixin = require 'avo/mixin/vector'
 
 module.exports = class Renderable
 
   mixins = [
-  	EventEmitter
-  	Transition.InBand
+    EventEmitter
+    Lfo
+    Transition
   ]
 
   constructor: ->
-  	mixin.call this for mixin in mixins
+    mixin.call this for mixin in mixins
 
   FunctionExt.fastApply Mixin, [@::].concat mixins
 
@@ -26,25 +28,25 @@ module.exports = class Renderable
 
   localRectangle: ->
 
-  	bounds = @internal().getLocalBounds()
-  	[bounds.x, bounds.y, bounds.width, bounds.height]
+    bounds = @internal().getLocalBounds()
+    [bounds.x, bounds.y, bounds.width, bounds.height]
 
   position: ->
 
-  	internal = @internal()
-  	[internal.position.x, internal.position.y]
+    internal = @internal()
+    [internal.position.x, internal.position.y]
 
   rectangle: ->
 
-  	bounds = @internal().getBounds()
-  	[bounds.x, bounds.y, bounds.width, bounds.height]
+    bounds = @internal().getBounds()
+    [bounds.x, bounds.y, bounds.width, bounds.height]
 
   setPosition: (position) ->
 
-  	internal = @internal()
+    internal = @internal()
 
-  	internal.position.x = position[0]
-  	internal.position.y = position[1]
+    internal.position.x = position[0]
+    internal.position.y = position[1]
 
   setIsVisible: (isVisible) -> @internal().visible = isVisible
 
@@ -61,15 +63,15 @@ module.exports = class Renderable
   setOriginY: (y) -> @internal().pivot.y = y
 
   origin: ->
-  	internal = @internal()
+    internal = @internal()
 
-  	[internal.pivot.x, internal.pivot.y]
+    [internal.pivot.x, internal.pivot.y]
 
   setOrigin: (origin) ->
-  	internal = @internal()
+    internal = @internal()
 
-  	internal.pivot.x = origin[0]
-  	internal.pivot.y = origin[1]
+    internal.pivot.x = origin[0]
+    internal.pivot.y = origin[1]
 
   scaleX: -> @internal().scale.x
   setScaleX: (x) -> @internal().scale.x = x
@@ -77,15 +79,15 @@ module.exports = class Renderable
   setScaleY: (y) -> @internal().scale.y = y
 
   scale: ->
-  	internal = @internal()
+    internal = @internal()
 
-  	[internal.scale.x, internal.scale.y]
+    [internal.scale.x, internal.scale.y]
 
   setScale: (scale) ->
-  	internal = @internal()
+    internal = @internal()
 
-  	internal.scale.x = scale[0]
-  	internal.scale.y = scale[1]
+    internal.scale.x = scale[0]
+    internal.scale.y = scale[1]
 
   setX: (x) -> @internal().position.x = x
 
@@ -93,35 +95,35 @@ module.exports = class Renderable
 
   setTintRed: (red) ->
 
-  	color_ = color.fromInteger @internal().tint
-  	color_.setRed red
-  	@internal().tint = color_.toInteger()
+    color_ = color.fromInteger @internal().tint
+    color_.setRed red
+    @internal().tint = color_.toInteger()
 
   setTintGreen: (green) ->
 
-  	color_ = color.fromInteger @internal().tint
-  	color_.setGreen green
-  	@internal().tint = color_.toInteger()
+    color_ = color.fromInteger @internal().tint
+    color_.setGreen green
+    @internal().tint = color_.toInteger()
 
   setTintBlue: (blue) ->
 
-  	color_ = color.fromInteger @internal().tint
-  	color_.setBlue blue
-  	@internal().tint = color_.toInteger()
+    color_ = color.fromInteger @internal().tint
+    color_.setBlue blue
+    @internal().tint = color_.toInteger()
 
   setTint: (color) -> @internal().tint = color.toInteger()
 
   tintRed: ->
 
-  	color.fromInteger(@internal().tint).red()
+    color.fromInteger(@internal().tint).red()
 
   tintGreen: (green) ->
 
-  	color.fromInteger(@internal().tint).green()
+    color.fromInteger(@internal().tint).green()
 
   tintBlue: (blue) ->
 
-  	color.fromInteger(@internal().tint).blue()
+    color.fromInteger(@internal().tint).blue()
 
   tint: (color) -> color.fromInteger @internal().tint
 

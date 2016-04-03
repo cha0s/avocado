@@ -4,7 +4,7 @@
 module.exports = (instance, Mixins...) ->
 
   for Mixin in Mixins
-  	for own key of Mixin::
-  		instance[key] = Mixin::[key]
+    for own key of Mixin::
+      instance[key] = Mixin::[key]
 
   instance

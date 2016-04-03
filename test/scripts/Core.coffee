@@ -1,4 +1,0 @@
-
-exports.CoreService = class
-
-	'readJsonResource': ->

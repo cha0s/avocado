@@ -49,10 +49,10 @@ module.exports = Vector =
   #     1.4142135623730951
   cartesianDistance: (l, r) ->
 
-  	xd = l[0] - r[0]
-  	yd = l[1] - r[1]
+    xd = l[0] - r[0]
+    yd = l[1] - r[1]
 
-  	Math.sqrt xd * xd + yd * yd
+    Math.sqrt xd * xd + yd * yd
 
   # Get the minimum values from two vectors.
   #
@@ -60,10 +60,10 @@ module.exports = Vector =
   #     [-10, 0]
   min: (l, r) ->
 
-  	[
-  		Math.min l[0], r[0]
-  		Math.min l[1], r[1]
-  	]
+    [
+      Math.min l[0], r[0]
+      Math.min l[1], r[1]
+    ]
 
   # Get the maximum values from two vectors.
   #
@@ -71,10 +71,10 @@ module.exports = Vector =
   #     [0, 10]
   max: (l, r) ->
 
-  	[
-  		Math.max l[0], r[0]
-  		Math.max l[1], r[1]
-  	]
+    [
+      Math.max l[0], r[0]
+      Math.max l[1], r[1]
+    ]
 
   # Clamp a vector's axes using a min vector and a max vector.
   #
@@ -108,7 +108,7 @@ module.exports = Vector =
   #     false
   isZero: (vector) ->
 
-  	vector[0] is 0 and vector[1] is 0
+    vector[0] is 0 and vector[1] is 0
 
   # Round both axes of a vector.
   #
@@ -116,10 +116,10 @@ module.exports = Vector =
   #     [3, 5]
   round: (vector) ->
 
-  	[
-  		Math.round vector[0]
-  		Math.round vector[1]
-  	]
+    [
+      Math.round vector[0]
+      Math.round vector[1]
+    ]
 
   # Get the dot product of two vectors.
   #
@@ -129,16 +129,16 @@ module.exports = Vector =
 
   projected: (vector, direction, noNeg) ->
 
-  	projected = switch direction
-  		when 0, 2 then vector
-  		when 1, 3 then [vector[1], vector[0]]
+    projected = switch direction
+      when 0, 2 then vector
+      when 1, 3 then [vector[1], vector[0]]
 
-  	unless noNeg
-  		switch direction
-  			when 1 then projected[0] *= -1
-  			when 2, 3 then projected[1] *= -1
+    unless noNeg
+      switch direction
+        when 1 then projected[0] *= -1
+        when 2, 3 then projected[1] *= -1
 
-  	projected
+    projected
 
   # Get a hypotenuse unit vector. If an origin vector is passed in, the
   # hypotenuse is derived from the distance to the origin.
@@ -150,20 +150,20 @@ module.exports = Vector =
   #     [0.5812381937190965, 0.813733471206735]
   hypotenuse: (unitOrDestination, origin) ->
 
-  	distanceOrUnit = unitOrDestination
-  	distanceOrUnit = Vector.sub distanceOrUnit, origin if origin?
+    distanceOrUnit = unitOrDestination
+    distanceOrUnit = Vector.sub distanceOrUnit, origin if origin?
 
-  	return [0, 0] if 0 is dp = Vector.dot distanceOrUnit, distanceOrUnit
-  	hypotenuse = Vector.scale(
-  		distanceOrUnit
-  		1 / Math.sqrt dp
-  	)
+    return [0, 0] if 0 is dp = Vector.dot distanceOrUnit, distanceOrUnit
+    hypotenuse = Vector.scale(
+      distanceOrUnit
+      1 / Math.sqrt dp
+    )
 
-  	# Don't let NaN poison our equations.
-  	[
-  		if NaN is hypotenuse[0] then 0 else hypotenuse[0]
-  		if NaN is hypotenuse[1] then 0 else hypotenuse[1]
-  	]
+    # Don't let NaN poison our equations.
+    [
+      if NaN is hypotenuse[0] then 0 else hypotenuse[0]
+      if NaN is hypotenuse[1] then 0 else hypotenuse[1]
+    ]
 
   # Get the absolute values of the axes of a vector.
   #
@@ -171,10 +171,10 @@ module.exports = Vector =
   #     [23, 5.20]
   abs: (vector) ->
 
-  	[
-  		Math.abs vector[0]
-  		Math.abs vector[1]
-  	]
+    [
+      Math.abs vector[0]
+      Math.abs vector[1]
+    ]
 
   # Floor both axes of a vector.
   #
@@ -182,10 +182,10 @@ module.exports = Vector =
   #     [3, 4]
   floor: (vector) ->
 
-  	[
-  		Math.floor vector[0]
-  		Math.floor vector[1]
-  	]
+    [
+      Math.floor vector[0]
+      Math.floor vector[1]
+    ]
 
   # Ceiling both axes of a vector.
   #
@@ -193,10 +193,10 @@ module.exports = Vector =
   #     [3, 4]
   ceil: (vector) ->
 
-  	[
-  		Math.ceil vector[0]
-  		Math.ceil vector[1]
-  	]
+    [
+      Math.ceil vector[0]
+      Math.ceil vector[1]
+    ]
 
   # Get the area a vector.
   #
@@ -214,10 +214,10 @@ module.exports = Vector =
   #     avocado> Vector.isNull [1, 1]
   #     false
   isNull: (vector) ->
-  	return true unless vector?
-  	return true unless vector.length is 2
+    return true unless vector?
+    return true unless vector.length is 2
 
-  	vector[0] is 0 or vector[1] is 0
+    vector[0] is 0 or vector[1] is 0
 
   # Convert a vector to a 4-direction. A 4-direction is:
   #
@@ -233,17 +233,17 @@ module.exports = Vector =
   #     1
   toDirection4: (vector) ->
 
-  	vector = Vector.hypotenuse vector
+    vector = Vector.hypotenuse vector
 
-  	#  */
+    #  */
 
-  	sqrt_2_2 = Math.sqrt(2) / 2
+    sqrt_2_2 = Math.sqrt(2) / 2
 
-  	x = Math.abs(vector[0]) - sqrt_2_2
-  	if x > 0 and x < sqrt_2_2
-  		return if vector[0] > 0 then 1 else 3
+    x = Math.abs(vector[0]) - sqrt_2_2
+    if x > 0 and x < sqrt_2_2
+      return if vector[0] > 0 then 1 else 3
 
-  	return if vector[1] > 0 then 2 else 0
+    return if vector[1] > 0 then 2 else 0
 
   # Convert a vector to an 8-direction. An 8-direction is:
   #
@@ -263,28 +263,28 @@ module.exports = Vector =
   #     1
   toDirection8: (vector) ->
 
-  	vector = Vector.hypotenuse vector
+    vector = Vector.hypotenuse vector
 
-  	twoPi = Math.PI * 2
+    twoPi = Math.PI * 2
 
-  	# Orient radians
-  	rad = (twoPi + Math.atan2(vector[1], vector[0])) % twoPi
-  	rad = (rad + (Math.PI * .5)) % twoPi
+    # Orient radians
+    rad = (twoPi + Math.atan2(vector[1], vector[0])) % twoPi
+    rad = (rad + (Math.PI * .5)) % twoPi
 
-  	rad = Math.floor(rad * 100000) / 100000
+    rad = Math.floor(rad * 100000) / 100000
 
-  	ds = [0, 4, 1, 5, 2, 6, 3, 7]
-  	r = twoPi - Math.PI * 0.125
-  	for i in ds
+    ds = [0, 4, 1, 5, 2, 6, 3, 7]
+    r = twoPi - Math.PI * 0.125
+    for i in ds
 
-  		nr = (r + (Math.PI/4)) % twoPi
-  		nr = Math.floor(nr * 100000) / 100000
+      nr = (r + (Math.PI/4)) % twoPi
+      nr = Math.floor(nr * 100000) / 100000
 
-  		return i if rad >= r && rad < nr
+      return i if rad >= r && rad < nr
 
-  		r = nr
+      r = nr
 
-  	return 0
+    return 0
 
   # Convert a vector to a *directionCount*-direction.
   #
@@ -292,26 +292,26 @@ module.exports = Vector =
   #     2
   toDirection: (vector, directionCount) ->
 
-  	switch directionCount
+    switch directionCount
 
-  		when 1 then 0
-  		when 4 then Vector.toDirection4 vector
-  		when 8 then Vector.toDirection8 vector
-  		else
-  			throw new Error "Unsupported conversion of vector to #{directionCount}-direction."
+      when 1 then 0
+      when 4 then Vector.toDirection4 vector
+      when 8 then Vector.toDirection8 vector
+      else
+        throw new Error "Unsupported conversion of vector to #{directionCount}-direction."
 
   fromDirection: (direction) ->
 
-  	switch direction
+    switch direction
 
-  		when 0 then [0, -1]
-  		when 1 then [1, 0]
-  		when 2 then [0, 1]
-  		when 3 then [-1, 0]
-  		when 4 then @hypotenuse [1, -1]
-  		when 5 then @hypotenuse [1, 1]
-  		when 6 then @hypotenuse [-1, 1]
-  		when 7 then @hypotenuse [-1, -1]
+      when 0 then [0, -1]
+      when 1 then [1, 0]
+      when 2 then [0, 1]
+      when 3 then [-1, 0]
+      when 4 then @hypotenuse [1, -1]
+      when 5 then @hypotenuse [1, 1]
+      when 6 then @hypotenuse [-1, 1]
+      when 7 then @hypotenuse [-1, -1]
 
   # Convert a vector to an object.
   #
@@ -326,14 +326,14 @@ module.exports = Vector =
   #     [7, 9]
   mixin: (v) ->
 
-  	for own method, f of Vector
-  		continue if _.contains ['mixin'], method
+    for own method, f of Vector
+      continue if _.contains ['mixin'], method
 
-  		v[method] = _.bind f, v, v
+      v[method] = _.bind f, v, v
 
-  	v[method] = _.compose Vector.mixin, v[method] for method in [
-  		'scale', 'add', 'sub', 'div', 'copy', 'isZero', 'round', 'floor'
-  		'isNull', 'mul', 'equals'
-  	]
+    v[method] = _.compose Vector.mixin, v[method] for method in [
+      'scale', 'add', 'sub', 'div', 'copy', 'isZero', 'round', 'floor'
+      'isNull', 'mul', 'equals'
+    ]
 
-  	v
+    v

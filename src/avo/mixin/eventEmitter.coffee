@@ -2,6 +2,8 @@
 # manage the registration of listeners who listen for the emission of the
 # events.
 
+analytics = require 'avo/analytics'
+
 _ = require 'avo/vendor/underscore'
 FunctionExt = require 'avo/extension/function'
 Mixin = require './index'
@@ -11,24 +13,24 @@ module.exports = EventEmitter = class
   # Make space for the events and event emitters.
   constructor: ->
 
-  	@_events = {}
-  	@_namespaces = {}
+    @_events = {}
+    @_namespaces = {}
 
   # Helper function for **on** and **off**. Parse the incoming (possibly)
   # namespaced event name, and return an object.
   parseEventName = (name) ->
 
-  	# Get the namespace, if any.
-  	if -1 != index = name.indexOf '.'
+    # Get the namespace, if any.
+    if -1 != index = name.indexOf '.'
 
-  		namespace = name.substr(index + 1)
-  		name = name.substr(0, index)
+      namespace = name.substr(index + 1)
+      name = name.substr(0, index)
 
-  	else
-  		namespace = ''
+    else
+      namespace = ''
 
-  	namespace: namespace
-  	event: name
+    namespace: namespace
+    event: name
 
   # Add listeners to an object. *eventName* is a (possibly) namespaced event
   # to listen for. *f* is a function to be called when the event fires, and
@@ -36,33 +38,35 @@ module.exports = EventEmitter = class
   # defaults to the object upon which the event listener is registered.
   on: (eventNamesOrEventName, f, that = null) ->
 
-  	eventNames = if _.isArray eventNamesOrEventName
-  		eventNamesOrEventName
-  	else
-  		[eventNamesOrEventName]
+    eventNames = if _.isArray eventNamesOrEventName
+      eventNamesOrEventName
+    else
+      [eventNamesOrEventName]
 
 
-  	f.__once = false
-  	(f.__that ?= []).push that
+    f.__once = false
+    bound = f.bind that
+    bound.__that = that
+    (f.__bound ?= []).push bound
 
-  	for eventName in eventNames
-  		info = parseEventName eventName
+    for eventName in eventNames
+      info = parseEventName eventName
 
-  		f.__event = info.event
-  		(@_events[info.event] ?= []).push f
+      f.__event = info.event
+      (@_events[info.event] ?= []).push f
 
-  		f.__namespace = info.namespace
-  		((@_namespaces[info.namespace] ?= {})[info.event] ?= []).push f
+      f.__namespace = info.namespace
+      ((@_namespaces[info.namespace] ?= {})[info.event] ?= []).push f
 
-  	return
+    return
 
   once: (eventName, f, that = null) ->
-  	@on eventName, f, that
+    @on eventName, f, that
 
-  	info = parseEventName eventName
-  	@_events[info.event][@_events[info.event].length - 1].__once = true
+    info = parseEventName eventName
+    @_events[info.event][@_events[info.event].length - 1].__once = true
 
-  	return
+    return
 
   # Remove listeners from an object.
   #
@@ -86,80 +90,82 @@ module.exports = EventEmitter = class
   # objects, and they can be easily be accidentally removed with this
   # method. ***Use caution.***
   off: (eventName, f) ->
-  	info = parseEventName eventName
+    info = parseEventName eventName
 
-  	# If we're given the function, our job is easy.
-  	if 'function' is typeof f
-  		return if not @_events[info.event]?
+    # If we're given the function, our job is easy.
+    if 'function' is typeof f
+      return if not @_events[info.event]?
 
-  		if -1 isnt (index = @_events[info.event].indexOf f)
-  			@_events[info.event].splice index, 1
+      if -1 isnt (index = @_events[info.event].indexOf f)
+        @_events[info.event].splice index, 1
 
-  		if -1 isnt (index = @_namespaces[info.namespace][info.event].indexOf f)
-  			@_namespaces[info.namespace][info.event].splice index, 1
+      if -1 isnt (index = @_namespaces[info.namespace][info.event].indexOf f)
+        @_namespaces[info.namespace][info.event].splice index, 1
 
-  		return
+      return
 
-  	# No namespace? Remove every matching event.
-  	if '' is info.namespace
+    # No namespace? Remove every matching event.
+    if '' is info.namespace
 
-  		delete @_events[info.event]
-  		for namespace, events of @_namespaces
-  			delete events[info.event]
+      delete @_events[info.event]
+      for namespace, events of @_namespaces
+        delete events[info.event]
 
-  		return
+      return
 
-  	# Namespaced event? Remove it.
-  	if info.event
+    # Namespaced event? Remove it.
+    if info.event
+      return unless (events = @_namespaces[info.namespace])?
 
-  		return unless (events = @_namespaces[info.namespace])?
+      for f in events[info.event]
+        delete events[info.event]
+        if (index = @_events[info.event].indexOf f)?
+          @_events[info.event].splice index, 1
 
-  		for f in events[info.event]
-  			delete events[info.event]
-  			if (index = @_events.indexOf f)?
-  				@_events.splice index, 1
+      return
 
-  		return
+    # Only a namespace? Remove all events associated with it.
+    for event, fns of @_namespaces[info.namespace] ? {}
+      for f in fns
+        if (index = @_events[event].indexOf f)?
+          @_events[event].splice index, 1
+    delete @_namespaces[info.namespace]
 
-  	# Only a namespace? Remove all events associated with it.
-  	for namespace, events of @_namespaces
-  		for f in events[info.event] ? []
-  			delete events[info.event]
-  			if (index = @_events.indexOf f)?
-  				@_events.splice index, 1
-  	delete @_namespaces[info.namespace]
-
-  	return
+    return
 
   # Notify ALL the listeners!
   emit: (name) ->
-  	return if not @_events[name]?
+    candidates = (@_events[name] ? []).concat @_events['*'] ? []
+    return unless candidates
 
-  	for f in @_events[name]
-  		@off "#{name}.#{f.__namespace}", f if f.__once
+    # analytics.tally "eventEmitter:#{name}"
 
-  		for that in f.__that
+    for f in candidates
+      @off "#{name}.#{f.__namespace}", f if f.__once
 
-  			# Fast path...
-  			if that is null and arguments.length is 1
-  				f()
-  			else if arguments.length is 1
-  				f.call that
-  			else if arguments.length is 2
-  				f.call that, arguments[1]
-  			else if arguments.length is 3
-  				f.call that, arguments[1], arguments[2]
-  			else if arguments.length is 4
-  				f.call that, arguments[1], arguments[2], arguments[3]
-  			else if arguments.length is 5
-  				f.call that, arguments[1], arguments[2], arguments[3], arguments[4]
-  			else if arguments.length is 6
-  				f.call that, arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]
-  			else
-  				args = []
-  				args.push arguments[i] for i in [1...arguments.length]
-  				f.apply that, args
+      offset = if f.__event isnt '*' then 1 else 0
 
-  	return
+      for bound in f.__bound
+
+        # Fast path...
+        if arguments.length is offset
+          bound()
+        else if arguments.length is offset + 1
+          bound arguments[offset]
+        else if arguments.length is offset + 2
+          bound arguments[offset], arguments[offset + 1]
+        else if arguments.length is offset + 3
+          bound arguments[offset], arguments[offset + 1], arguments[offset + 2]
+        else if arguments.length is offset + 4
+          bound arguments[offset], arguments[offset + 1], arguments[offset + 2], arguments[offset + 3]
+        else if arguments.length is offset + 5
+          bound arguments[offset], arguments[offset + 1], arguments[offset + 2], arguments[offset + 3], arguments[offset + 4]
+        else
+          if offset is 0
+            bound.apply bound.__that, arguments
+          else
+            bound.apply bound.__that, (arg for arg, i in arguments when i > offset)
+
+    return
 
 EventEmitter.Mixin = (O) -> Mixin O, EventEmitter

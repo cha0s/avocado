@@ -6,19 +6,19 @@ FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 
-class Ticker
+module.exports = class Ticker
 
   mixins = [
-  	EventEmitter
-  	Property 'frequency', 0
+    EventEmitter
+    Property 'frequency', 0
   ]
 
   constructor: (frequency = 0) ->
 
-  	mixin.call this for mixin in mixins
+    mixin.call this for mixin in mixins
 
-  	@_remainder = 0
-  	@setFrequency frequency
+    @_remainder = 0
+    @setFrequency frequency
 
   FunctionExt.fastApply Mixin, [@::].concat mixins
 
@@ -26,42 +26,36 @@ class Ticker
 
   reset: -> @_remainder = 0
 
-  tick: ->
+  tick: (elapsed) ->
 
-  	return if (frequency = @frequency()) is 0
-  	elapsed = @elapsedSinceLast()
+    return if (frequency = @frequency()) is 0
 
-  	ticks = 0
+    ticks = 0
 
-  	@_remainder += elapsed
-  	if @_remainder >= frequency
-  		ticks = Math.floor @_remainder / frequency
-  		@_remainder -= ticks * frequency
+    @_remainder += elapsed
+    if @_remainder >= frequency
+      ticks = Math.floor @_remainder / frequency
+      @_remainder -= ticks * frequency
 
-  	@emit 'tick' for i in [0...ticks]
+    @emit 'tick', frequency for i in [0...ticks]
 
-  	return
+    return
 
-module.exports = class TickerOutOfBand extends Ticker
+module.exports.OutOfBand = class TickerOutOfBand extends Ticker
 
   constructor: ->
-  	super
+    super
 
-  	@_last = timing.elapsed()
+    @_last = Date.now()
 
   elapsedSinceLast: ->
 
-  	elapsed = (timing.elapsed() - @_last) * 1000
-  	@_last = timing.elapsed()
-  	elapsed
+    now = Date.now()
+    elapsed = now - @_last
+    @_last = now
+    elapsed
 
   reset: ->
-  	super
+    super
 
-  	@_last = timing.elapsed()
-
-module.exports.OutOfBand = module.exports
-
-module.exports.InBand = class TickerInBand extends Ticker
-
-  elapsedSinceLast: -> timing.tickElapsed() * 1000
+    @_last = Date.now()

@@ -1,0 +1,13 @@
+{
+  "name": "avocado-tests",
+  "version": "0.0.1",
+  "main": "index.html",
+  "window": {
+    "show": true,
+    "toolbar": false,
+    "width": 1280,
+    "height": 720,
+    "position": "center",
+    "title": "Avocado tests"
+  }
+}

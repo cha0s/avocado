@@ -14,224 +14,189 @@ Transition = require './transition'
 Modulator =
 
   Flat: ->
-  	(location) -> .5
+    (location) -> .5
 
   Linear: ->
-  	(location) -> 2 * if location < .5 then location else 1 - location
+    (location) -> 2 * if location < .5 then location else 1 - location
 
-  Random: ({variance}) ->
+  Random: ({variance} = {}) ->
 
-  	variance ?= .4
+    variance ?= .4
 
-  	(location) ->
-
-  		Math.max 0, Math.min 1, Math.random() * (variance + variance) - variance
+    (location) ->
+      Math.max 0, Math.min 1, Math.random() * (variance + variance) - variance
 
   Sine: ->
-  	(location) -> .5 * (1 + Math.sin location * Math.PI * 2)
+    (location) -> .5 * (1 + Math.sin location * Math.PI * 2)
 
 ModulatedProperty = class
 
   mixins = [
-  	EventEmitter
-  	Property 'frequency', 0
-  	Property 'location', 0
-  	Property 'magnitude', 0
-  	Transition.InBand
+    EventEmitter
+    Property 'frequency', 0
+    Property 'location', 0
+    Property 'magnitude', 0
+    Transition
   ]
 
   constructor: (
-  	@_object, @_key
-  	{frequency, location, magnitude, median, modulators}
+    @_object, @_key
+    {frequency, location, magnitude, median, modulators}
   ) ->
 
-  	@_median = median
+    modulators = [Modulator.Linear] unless modulators?
+    modulators = [modulators] unless _.isArray modulators
 
-  	mixin.call this for mixin in mixins
+    @_median = median
 
-  	@on 'magnitudeChanged', => @_magnitude2 = @magnitude() * 2
+    mixin.call this for mixin in mixins
 
-  	@setFrequency frequency
-  	@setLocation location ? 0
-  	@setMagnitude magnitude
+    @on 'magnitudeChanged', => @_magnitude2 = @magnitude() * 2
 
-  	@_min = @_median - magnitude if @_median?
+    @setFrequency frequency
+    @setLocation location ? 0
+    @setMagnitude magnitude
 
-  	modulatorFunction = (modulator) ->
+    @_min = @_median - magnitude if @_median?
 
-  		if _.isString modulator
+    modulatorFunction = (modulator) ->
 
-  			if Modulator[modulator]?
-  				Modulator[modulator]
-  			else
-  				console.warn "Invalid modulator: #{modulator}"
-  				Modulator.Flat
-  		else
+      if _.isString modulator
 
-  			if _.isFunction modulator
-  				modulator
-  			else
-  				console.warn "Invalid modulator: #{modulator}"
-  				Modulator.Flat
+        if Modulator[modulator]?
+          Modulator[modulator]
+        else
+          Modulator.Linear
+      else
 
-  	@_modulators = for modulator in modulators
+        if _.isFunction modulator
+          modulator
+        else
+          Modulator.Linear
 
-  		if _.isObject modulator
+    @_modulators = for modulator in modulators
 
-  			if modulator.f?
+      if _.isObject modulator
 
-  				modulatorFunction(modulator.f) modulator
+        if modulator.f?
 
-  			else
+          modulatorFunction(modulator.f) modulator
 
-  				[key] = Object.keys modulator
-  				modulatorFunction(key) modulator[key]
+        else
 
-  		else
+          [key] = Object.keys modulator
+          modulatorFunction(key) modulator[key]
 
-  			modulatorFunction(modulator)()
+      else
 
-  	@_setKey = String.setterName @_key
+        modulatorFunction(modulator)()
 
-  	@_transitions = []
+    @_setKey = String.setterName @_key
+
+    @_transitions = []
 
   FunctionExt.fastApply Mixin, [@::].concat mixins
 
   tick: (elapsed) ->
 
-  	transition.tick() for transition in @_transitions
+    transition.tick elapsed for transition in @_transitions
 
-  	frequency = @frequency()
-  	location = @location()
+    frequency = @frequency()
+    location = @location()
 
-  	location += elapsed
-  	if location > frequency
-  		location -= frequency
+    location += elapsed
+    if location > frequency
+      location -= frequency
 
-  	@setLocation location
+    @setLocation location
 
-  	min = if @_median?
-  		@_min
-  	else
-  		@_object[@_key]()
+    min = if @_median?
+      @_min
+    else
+      @_object[@_key]()
 
-  	value = _.reduce(
-  		@_modulators
-  		(l, r) -> l + r location / frequency
-  		0
-  	) / @_modulators.length
+    value = _.reduce(
+      @_modulators
+      (l, r) -> l + r location / frequency
+      0
+    ) / @_modulators.length
 
-  	@_object[@_setKey] min + value * @_magnitude2
+    @_object[@_setKey] min + value * @_magnitude2
 
   transition: ->
 
-  	transition = FunctionExt.fastApply(
-  		Transition.InBand::transition, arguments, this
-  	)
+    transition = FunctionExt.fastApply(
+      Transition::transition, arguments, this
+    )
 
-  	@_transitions.push transition
+    @_transitions.push transition
 
-  	transition.promise.then =>
+    transition.promise.then =>
 
-  		@_transitions.splice(
-  			@_transitions.indexOf transition
-  			1
-  		)
+      @_transitions.splice(
+        @_transitions.indexOf transition
+        1
+      )
 
-  	transition
+    transition
 
 LfoResult = class
 
   constructor: (object, properties, @_duration = 0) ->
 
-  	@_elapsed = 0
-  	@_isRunning = false
-  	@_object = {}
-  	@_properties = {}
+    @_elapsed = 0
+    @_isRunning = false
+    @_object = {}
+    @_properties = {}
 
-  	@start()
+    @start()
 
-  	@_duration /= 1000
+    @_deferred = Promise.defer()
+    @promise = @_deferred.promise
 
-  	@_deferred = Promise.defer()
-  	@promise = @_deferred.promise
+    for key, spec of properties
 
-  	for key, spec of properties
-  		@_properties[key] = new ModulatedProperty object, key, spec
+      spec.frequency ?= @_duration
+
+      @_properties[key] = new ModulatedProperty object, key, spec
 
   property: (key) -> @_properties[key]
 
   start: ->
 
-  	@_elapsed = 0
-  	@_isRunning = true
+    @_elapsed = 0
+    @_isRunning = true
 
   stop: -> @_isRunning = false
 
-  tick: ->
-  	return unless @_isRunning
+  tick: (elapsed) ->
+    return unless @_isRunning
 
-  	elapsed = @elapsedSinceLast()
+    finished = false
 
-  	finished = false
+    if @_duration > 0
 
-  	if @_duration > 0
+      if @_duration <= (@_elapsed += elapsed)
 
-  		if @_duration <= @_elapsed += elapsed
+        finished = true
 
-  			finished = true
+        elapsed = @_elapsed - @_duration
+        @_elapsed = @_duration
 
-  			elapsed = @_elapsed - @_duration
-  			@_elapsed = @_duration
+    property.tick elapsed for key, property of @_properties
 
-  	property.tick elapsed for key, property of @_properties
+    if @_duration > 0
 
-  	if @_duration > 0
+#      @_deferred.progress [@_elapsed, @_duration]
 
-#			@_deferred.progress [@_elapsed, @_duration]
+      if finished
+        @_deferred.resolve()
+        @stop()
 
-  		if finished
-  			@_deferred.resolve()
-  			@stop()
+    return
 
-  	return
-
-module.exports = Lfo = class
-
-  LfoResultOutOfBand = class extends LfoResult
-
-  	elapsedSinceLast: ->
-
-  		elapsed = timing.elapsed() - @_last
-  		@_last = timing.elapsed()
-  		elapsed
-
-  	start: (result) ->
-  		super
-
-  		@_last = timing.elapsed()
-  		@_interval = window.setInterval(
-  			=> @tick()
-  			10
-  		)
-
-  	stop: ->
-  		super
-
-  		window.clearInterval @_interval
+module.exports = class
 
   lfo: (properties, duration) ->
 
-  	new LfoResultOutOfBand @, properties, duration
-
-Lfo.OutOfBand = Lfo
-
-Lfo.InBand = class
-
-  LfoResultInBand = class extends LfoResult
-
-  	elapsedSinceLast: -> timing.tickElapsed()
-
-  lfo: (properties, duration) ->
-
-  	new LfoResultInBand @, properties, duration
+    new LfoResult @, properties, duration

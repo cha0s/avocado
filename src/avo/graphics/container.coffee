@@ -6,10 +6,11 @@ Renderable = require './renderable'
 module.exports = class Container extends Renderable
 
   constructor: ->
-  	super
+    super
 
-  	@_container = new PIXI.DisplayObjectContainer()
+    @_container = new PIXI.DisplayObjectContainer()
 
+  addChildAt: (child, index) -> @_container.addChildAt child.internal(), index
   addChild: (child) -> @_container.addChild child.internal()
 
   children: -> @_container.children
@@ -18,8 +19,8 @@ module.exports = class Container extends Renderable
 
   removeAllChildren: ->
 
-  	while @_container.children.length > 0
-  		@_container.removeChildAt @_container.children.length - 1
+    while @_container.children.length > 0
+      @_container.removeChildAt @_container.children.length - 1
 
   sortChildren: (fn) -> @_container.children.sort fn
 
