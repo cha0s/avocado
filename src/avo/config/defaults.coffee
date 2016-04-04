@@ -18,7 +18,7 @@ config.input =
 
 config.timing =
 
-  ticksPerSecond: 10
+  ticksPerSecond: 60
   rendersPerSecond: 60
 
 config.promises =
