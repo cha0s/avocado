@@ -291,6 +291,8 @@ module.exports = Entity = class Entity
 
   uri: -> @_uri
 
+  uuid: -> @_uuid
+
   # Load an entity by URI.
   @load: (uri, traitExtensions = []) ->
 
