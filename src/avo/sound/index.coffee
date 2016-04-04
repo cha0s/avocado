@@ -16,7 +16,7 @@ module.exports = class Sound
 
       _sound.bind 'error', -> reject sound.error
 
-      _sound.bind 'canplaythrough', ->
+      _sound.bindOnce 'canplaythrough', ->
 
         sound = new Sound()
 
