@@ -8,6 +8,7 @@ module.exports = class extends Trait
 
   stateDefaults: ->
 
+    immovable: false
     isMobile: true
     isMoving: false
     mobilityAnimationIndex: 'moving'
@@ -21,6 +22,7 @@ module.exports = class extends Trait
 
   properties: ->
 
+    immovable: {}
     isMobile: {}
     isMoving: {}
     mobilityAnimationIndex: {}
@@ -36,33 +38,14 @@ module.exports = class extends Trait
         Vector.toDirection vector, @entity.directionCount()
       ) unless isZero
 
-      @entity.setIsMoving @entity.isMobile() and not isZero
-
       return unless @entity.isMobile()
 
-      @entity.applyForce vector, @entity.movingSpeed()
+      @entity.applyMovement(
+        Vector.hypotenuse vector
+        @entity.movingSpeed()
+      )
 
       return
-
-      # if @_movementHandler?
-
-      #   @_movementHandler vector, @entity
-
-      # else
-
-      #   @entity.setPosition Vector.add(
-      #     @entity.position()
-      #     Vector.scale vector, timing.tickElapsed() * force
-      #   )
-
-
-      # if @entity.physicsApplyMovement?
-
-      #   @entity.physicsApplyMovement vector, @entity.movingSpeed()
-
-      # else
-
-      #   @entity.applyImpulse vector, @entity.movingSpeed()
 
     moveTo:
 

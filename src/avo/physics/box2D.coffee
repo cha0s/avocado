@@ -31,18 +31,6 @@ Entity = require 'avo/entity'
 
 AbstractPhysics = require './abstract'
 
-PixelToMeterScale = 64
-
-contactListener = new b2ContactListener
-
-contactListener.BeginContact = (contact) ->
-
-  le = ldata.entity if ldata = contact.GetFixtureA().GetUserData()
-  re = rdata.entity if rdata = contact.GetFixtureB().GetUserData()
-
-  le?.emit 'intersected', re
-  re?.emit 'intersected', le
-
 class Box2DBody extends AbstractPhysics.Body
 
   @_filterCategoryBit = 0
@@ -58,6 +46,8 @@ class Box2DBody extends AbstractPhysics.Body
     @_filterCategories[category]
 
   constructor: (@_physics, @_entity) ->
+
+    @_movement = [0, 0]
 
     bodyDef = new b2BodyDef()
     bodyDef.type = if @_entity.immovable()
@@ -78,10 +68,10 @@ class Box2DBody extends AbstractPhysics.Body
 
           circle = new b2CircleShape()
           circle.SetLocalPosition new b2Vec2(
-            shape.x() / PixelToMeterScale
-            -shape.y() / PixelToMeterScale
+            shape.x() / @_physics.unitRatio()
+            -shape.y() / @_physics.unitRatio()
           )
-          circle.SetRadius shape.radius() / PixelToMeterScale
+          circle.SetRadius shape.radius() / @_physics.unitRatio()
 
           fixtureDef.shape = circle
 
@@ -89,8 +79,8 @@ class Box2DBody extends AbstractPhysics.Body
 
           vertices = for vertice in shape.vertices().reverse()
             new b2Vec2(
-              vertice[0] / PixelToMeterScale
-              -vertice[1] / PixelToMeterScale
+              vertice[0] / @_physics.unitRatio()
+              -vertice[1] / @_physics.unitRatio()
             )
 
           polygon = new b2PolygonShape()
@@ -132,8 +122,8 @@ class Box2DBody extends AbstractPhysics.Body
 
     @_body.ApplyForce(
       new b2Vec2(
-        vector[0] * force / PixelToMeterScale
-        vector[1] * -force / PixelToMeterScale
+        vector[0] * force / @_physics.unitRatio()
+        vector[1] * -force / @_physics.unitRatio()
       )
       @_body.GetWorldCenter()
     )
@@ -142,11 +132,38 @@ class Box2DBody extends AbstractPhysics.Body
 
     @_body.ApplyImpulse(
       new b2Vec2(
-        vector[0] * force / PixelToMeterScale
-        vector[1] * -force / PixelToMeterScale
+        vector[0] * force / @_physics.unitRatio()
+        vector[1] * -force / @_physics.unitRatio()
       )
       @_body.GetWorldCenter()
     )
+
+  applyMovement: (vector, force) ->
+
+    @_movement[0] += vector[0] * force
+    @_movement[1] += vector[1] * force
+
+  forceMovement: (elapsed) ->
+
+    @_body.ApplyImpulse(
+      new b2Vec2(
+        @_movement[0] / @_physics.unitRatio()
+        -@_movement[1] / @_physics.unitRatio()
+      )
+      @_body.GetWorldCenter()
+    )
+
+  unforceMovement: (elapsed) ->
+
+    @_body.ApplyImpulse(
+      new b2Vec2(
+        -@_movement[0] / @_physics.unitRatio()
+        @_movement[1] / @_physics.unitRatio()
+      )
+      @_body.GetWorldCenter()
+    )
+
+    @_movement = [0, 0]
 
   internal: -> @_body
 
@@ -156,37 +173,38 @@ class Box2DBody extends AbstractPhysics.Body
 
     position = @_body.GetPosition()
     [
-      position.x * PixelToMeterScale
-      -position.y * PixelToMeterScale
+      position.x * @_physics.unitRatio()
+      -position.y * @_physics.unitRatio()
     ]
 
   setPosition: (position) ->
 
     @_body.SetPosition new b2Vec2(
-      position[0] / PixelToMeterScale
-      -position[1] / PixelToMeterScale
+      position[0] / @_physics.unitRatio()
+      -position[1] / @_physics.unitRatio()
     )
 
   setVelocity: (velocity) ->
 
     @_body.SetLinearVelocity new b2Vec2(
-      velocity[0] / PixelToMeterScale
-      -velocity[1] / PixelToMeterScale
+      velocity[0] / @_physics.unitRatio()
+      -velocity[1] / @_physics.unitRatio()
     )
 
   velocity: ->
 
     velocity = @_body.GetLinearVelocity()
     [
-      velocity.x * PixelToMeterScale
-      -velocity.y * PixelToMeterScale
+      velocity.x * @_physics.unitRatio()
+      -velocity.y * @_physics.unitRatio()
     ]
 
 module.exports = class Box2DPhysics extends AbstractPhysics
 
   constructor: ->
 
-    @_entities = []
+    @_entities = {}
+    @_entityContacts = {}
 
     @_world = new b2World(
       new b2Vec2 0, 0
@@ -195,12 +213,40 @@ module.exports = class Box2DPhysics extends AbstractPhysics
 
     @_frictionBody = @_world.CreateBody new b2BodyDef()
 
+    contactListener = new b2ContactListener
+
+    self = this
+    contactListener.BeginContact = (contact) ->
+
+      le = ldata.entity if ldata = contact.GetFixtureA().GetUserData()
+      re = rdata.entity if rdata = contact.GetFixtureB().GetUserData()
+
+      return unless le? and re?
+
+      (self._entityContacts[le.uuid()] ?= []).push re
+      (self._entityContacts[re.uuid()] ?= []).push le
+
+    contactListener.EndContact = (contact) ->
+
+      le = ldata.entity if ldata = contact.GetFixtureA().GetUserData()
+      re = rdata.entity if rdata = contact.GetFixtureB().GetUserData()
+
+      return unless le? and re?
+
+      if (la = self._entityContacts[le.uuid()])?.length
+        la.splice la.indexOf(re), 1
+        delete self._entityContacts[le.uuid()] if la.length is 0
+
+      if (ra = self._entityContacts[re.uuid()])?.length
+        ra.splice ra.indexOf(le), 1
+        delete self._entityContacts[re.uuid()] if ra.length is 0
+
     @_world.SetContactListener contactListener
 
   addEntity: (entity) ->
     super
 
-    @_entities.push entity
+    @_entities[entity.uuid()] = entity
     entity.setBody new Box2DBody this, entity
 
   addWall: (begin, end) ->
@@ -211,13 +257,13 @@ module.exports = class Box2DPhysics extends AbstractPhysics
     fixtureDef.filter.maskBits = -1
 
     b2Begin = new b2Vec2(
-      begin[0] / PixelToMeterScale
-      -begin[1] / PixelToMeterScale
+      begin[0] / @unitRatio()
+      -begin[1] / @unitRatio()
     )
 
     b2End = new b2Vec2(
-      end[0] / PixelToMeterScale
-      -end[1] / PixelToMeterScale
+      end[0] / @unitRatio()
+      -end[1] / @unitRatio()
     )
 
     fixtureDef.shape.SetAsEdge b2Begin, b2End
@@ -228,19 +274,29 @@ module.exports = class Box2DPhysics extends AbstractPhysics
 
   removeEntity: (entity) ->
 
-    return if -1 is (index = @_entities.indexOf entity)
+    if (otherEntities = @_entityContacts[entity.uuid()])?
+      delete @_entityContacts[entity.uuid()]
 
-    @_entities.splice index, 1
+      for otherEntity in otherEntities
+        if (otherOtherEntities = @_entityContacts[otherEntity.uuid()])?
+          i = otherOtherEntities.indexOf entity
+          otherOtherEntities.splice i, 1 if -1 isnt i
+          if 0 is otherOtherEntities.length
+            delete @_entityContacts[otherEntity.uuid()]
+
+    return unless @_entities[entity.uuid()]?
+    delete @_entities[entity.uuid()]
     @_world.DestroyBody entity.body().internal()
-
-  unitRatio: -> 1 / 64
 
   tick: (elapsed) ->
 
-    entity.beforePhysicsTick() for entity in @_entities
+    for uuid, entities of @_entityContacts
+      @_entities[uuid].emit 'intersected', entity for entity in entities
+
+    entity.beforePhysicsTick elapsed for uuid, entity of @_entities
 
     @_world.Step elapsed / 1000, 5, 2
 
-    entity.afterPhysicsTick() for entity in @_entities
+    entity.afterPhysicsTick elapsed for uuid, entity of @_entities
 
     return
