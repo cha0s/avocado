@@ -138,3 +138,7 @@ module.exports = config = new Config()
 config.Config = Config
 
 config.mergeIn require './defaults'
+
+# Merge from config file.
+config.mergeFromFile = (filename) ->
+  require('avo/fs').readJsonResource(filename).then (O) -> config.mergeIn O
