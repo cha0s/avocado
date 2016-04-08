@@ -17,14 +17,14 @@ Modulator =
     (location) -> .5
 
   Linear: ->
-    (location) -> 2 * if location < .5 then location else 1 - location
+    (location) -> location
 
   Random: ({variance} = {}) ->
 
     variance ?= .4
 
     (location) ->
-      Math.max 0, Math.min 1, Math.random() * (variance + variance) - variance
+      Math.abs((Math.random() * (variance + variance) - variance)) % 1
 
   Sine: ->
     (location) -> .5 * (1 + Math.sin location * Math.PI * 2)
