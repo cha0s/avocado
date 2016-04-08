@@ -24,16 +24,16 @@ module.exports = Existent = class extends Trait
   stateDefaults: ->
 
     name: 'Untitled'
-    isTicking: true
 
   properties: ->
 
     name: {}
-    isTicking: {}
 
   actions: ->
 
-    destroy: -> @entity.emit 'destroyed'
+    destroy: ->
+      @entity.setIsTicking false
+      @entity.emit 'destroyed'
 
     setVariable: (key, value) ->
 
