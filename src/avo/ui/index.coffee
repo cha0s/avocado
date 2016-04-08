@@ -1,7 +1,6 @@
 
 config = require 'avo/config'
 fs = require 'avo/fs'
-window_ = require 'avo/graphics/window'
 
 UiAbstract = require './abstract'
 Node = require './node'
@@ -20,7 +19,7 @@ ui.addCss = (href) ->
   head = window.document.getElementsByTagName('head')[0]
   head.appendChild link
 
-ui.loadNode = (uri) ->
+ui.loadNode = (uri, canvas) ->
 
   fs.readUi(uri).then (html) ->
 
@@ -39,16 +38,16 @@ ui.loadNode = (uri) ->
     node.addClass nodeClass
 
     # Add the node to the UI container.
-    uiContainer = window_.uiContainer()
+    uiContainer = canvas.uiContainer()
     uiContainer.appendChild node.element()
 
     node
 
-ui.load = (name) ->
+ui.load = (name, canvas) ->
 
   try
     Class = require "avo/ui/#{name}"
   catch error
     Class = UiAbstract
 
-  ui.loadNode("/#{name}.html").then (node) -> new Class node
+  ui.loadNode("/#{name}.html", canvas).then (node) -> new Class node

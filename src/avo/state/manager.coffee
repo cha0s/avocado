@@ -29,10 +29,83 @@ module.exports = class StateManager
     @path = ''
     @transition = null
 
-    self = this
+    @_canvas = null
+    @_dispatcherInterval = null
 
     @on 'transitionToState', (path, args = {}) ->
-      self.transition = path: path, args: args, phase: 0
+      @transition = path: path, args: args, phase: 0
+    , this
+
+  setCanvas: (@_canvas) ->
+
+  startAsync: (tps, rps)->
+    return if @_dispatcherInterval?
+
+    originalRendersPerSecond = rendersPerSecond = rps
+    originalTicksPerSecond = ticksPerSecond = tps
+
+    renderCps = new Cps()
+    renderTicker = new Ticker 1000 / rendersPerSecond
+    renderTicker.on 'tick', =>
+
+      try
+
+        @render @_canvas.renderer()
+        renderCps.tick()
+
+      catch error
+
+        @emit 'error', error
+
+    renderSamples = []
+    adjustmentTicker = new Ticker 1000
+    adjustmentTicker.on 'tick', ->
+
+      renderSamples = renderSamples.filter (e) -> !!e
+
+      actualRenderCps = renderSamples.reduce ((l, r) -> l + r), 0
+      actualRenderCps /= renderSamples.length
+      renderSamples = []
+
+      if actualRenderCps < rendersPerSecond * .75
+        renderTicker.setFrequency 1000 / (rendersPerSecond *= .75)
+
+      else
+        if rendersPerSecond * 1.25 <= originalRendersPerSecond
+          renderTicker.setFrequency 1000 / (rendersPerSecond *= 1.25)
+        else
+          renderTicker.setFrequency 1000 / originalRendersPerSecond
+
+    sampleTicker = new Ticker 125
+    sampleTicker.on 'tick', -> renderSamples.push renderCps.count()
+
+    previous = Date.now()
+
+    dispatcher = =>
+
+      now = Date.now()
+      elapsed = now - previous
+      previous = now
+
+      try
+
+        @tick elapsed
+
+      catch error
+
+        @emit 'error', error
+
+      adjustmentTicker.tick elapsed
+      renderTicker.tick elapsed
+      sampleTicker.tick elapsed
+
+    # Ideal tick ms, but not necessarily real.
+    @_dispatcherInterval = window.setInterval dispatcher, 1000 / tps
+
+  stopAsync: ->
+    return unless @_dispatcherInterval?
+    clearInterval @_dispatcherInterval
+    @_dispatcherInterval = null
 
   tick: (elapsed) ->
     self = this
@@ -75,8 +148,7 @@ module.exports = class StateManager
             StateClass = require path
             self.instance = self.cache[path] = new StateClass()
             self.instance.on '*', (name, args...) -> self.emit name, args...
-            # self.instance.on '*', self.emit, self
-            self.instance.initialize()
+            self.instance.initialize @_canvas
 
           -> transition.phase = 2
           (error) -> self.emit 'error', error

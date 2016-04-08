@@ -32,7 +32,7 @@ module.exports = class AbstractState
   #
   # If you need to do something asynchronously, return a promise. If you
   # don't return a promise, the engine will continue immediately.
-  initialize: ->
+  initialize: (canvas) ->
 
   # ##### enter
   # When the State is entered by the engine, enter is called. You can use

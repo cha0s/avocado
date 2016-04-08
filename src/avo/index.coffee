@@ -8,157 +8,68 @@ config = require 'avo/config'
 
 Promise = require 'avo/vendor/bluebird'
 
-window_ = require 'avo/graphics/window'
+AvoCanvas = require 'avo/graphics/canvas'
 
-fs = require 'avo/fs'
-
-Cps = require 'avo/timing/cps'
 StateManager = require 'avo/state/manager'
-Ticker = require 'avo/timing/ticker'
 
 require 'avo/monkey-patches'
 
-# Bootstrap node-webkit goodies.
-require('avo/node-webkit').bootstrap()
+exports.start = ->
 
-# #### Timing
-#
-# Timing within the engine is handled in fixed steps. If the engine
-# falls behind the requested ticks per second, multiple fixed steps
-# will occur every tick.
-#
-# * Keep track of cycles per second.
+  # Bootstrap node-webkit goodies.
+  require('avo/node-webkit').bootstrap()
 
-stateManager = new StateManager()
+  stateManager = new StateManager()
 
-tickCps = new Cps()
-renderCps = new Cps()
+  stateManager.setCanvas canvas = new AvoCanvas(
+    config.get 'graphics:resolution'
+    config.get 'graphics:renderer'
+  )
+  canvas.resize [window.innerWidth, window.innerHeight]
 
-renderCallback = ->
+  stateManager.startAsync(
+    config.get 'timing:ticksPerSecond'
+    config.get 'timing:rendersPerSecond'
+  )
 
-  try
+  windowPromise = new Promise (resolve) -> window.onload = resolve
 
-    stateManager.render window_.renderer()
-    renderCps.tick()
+  config.mergeFromFile('/config.json').then(->
 
-  catch error
+    Promise.all [
+      windowPromise, Promise.cast(
 
-    handleError error
+        try
 
-originalRendersPerSecond = rendersPerSecond = config.get 'timing:rendersPerSecond'
-renderTicker = new Ticker 1000 / rendersPerSecond
-renderTicker.on 'tick', renderCallback
+          bootstrap = require 'avo/bootstrap'
+          bootstrap.promise
 
-originalTicksPerSecond = ticksPerSecond = config.get 'timing:ticksPerSecond'
+        catch error
+          unless error.message is "Cannot find module 'avo/bootstrap'"
+            throw error
+      )
+    ]
 
-renderSamples = []
-tickSamples = []
-
-adjustmentTicker = new Ticker 1000
-adjustmentTicker.on 'tick', ->
-
-  renderSamples = renderSamples.filter (e) -> !!e
-
-  actualRenderCps = renderSamples.reduce ((l, r) -> l + r), 0
-  actualRenderCps /= renderSamples.length
-  renderSamples = []
-
-  if actualRenderCps < rendersPerSecond * .75
-    renderTicker.setFrequency 1000 / (rendersPerSecond *= .75)
-
-  else
-    if rendersPerSecond * 1.25 <= originalRendersPerSecond
-      renderTicker.setFrequency 1000 / (rendersPerSecond *= 1.25)
-    else
-      renderTicker.setFrequency 1000 / originalRendersPerSecond
-
-  actualTickCps = tickSamples.reduce ((l, r) -> l + r), 0
-  actualTickCps /= tickSamples.length
-  tickSamples = []
-
-sampleTicker = new Ticker 125
-sampleTicker.on 'tick', ->
-  renderSamples.push renderCps.count()
-  tickSamples.push tickCps.count()
-
-previous = Date.now()
-
-dispatcher = ->
-
-  now = Date.now()
-  elapsed = now - previous
-  previous = now
-
-  try
-
-    stateManager.tick elapsed
-    tickCps.tick()
-
-  catch error
-
-    handleError error
-
-  renderTicker.tick elapsed
-
-  sampleTicker.tick elapsed
-  adjustmentTicker.tick elapsed
-
-# Ideal tick ms, but not necessarily real.
-ticksPerSecondTarget = config.get 'timing:ticksPerSecond'
-dispatcherInterval = window.setInterval dispatcher, 1000 / ticksPerSecondTarget
-
-# Read from config file.
-fs.readJsonResource('/config.json').then(
-  (O) -> config.mergeIn O
-  ->
-).then(
-  window_.instantiate()
-).finally ->
-
-  bootstrapPromise = try
-
-    bootstrap = require 'avo/bootstrap'
-    bootstrap.promise
-
-  catch error
-
-    unless error.message is "Cannot find module 'avo/bootstrap'"
-      throw error
-
-    null
-
-  Promise.asap bootstrapPromise, ->
+  ).then ->
 
     # Enter the 'initial' state. This is implemented by your game.
     stateManager.emit 'transitionToState', 'avo/state/initial'
 
-handleError = (error) ->
-  console.log error.stack
+  handleError = (error) ->
+    console.log error.stack
 
-  if process?
+    stateManager.stopAsync()
 
-    halt()
+    return quit() unless process?
+
     console.info "Halted... waiting for source change"
 
-  else
+  window.onerror = (message, filename, lineNumber, _, error) ->
+    handleError error
+    return true
 
-    quit()
+  stateManager.on 'error', handleError
 
-window.onerror = (message, filename, lineNumber, _, error) ->
-  handleError error
-  true
+  quit = -> window_.close()
 
-stateManager.on 'error', handleError
-
-halt = ->
-
-  window.clearInterval dispatcherInterval
-
-quit = ->
-  halt()
-
-  console.log require('avo/analytics').reportData()
-
-  window_.close()
-
-stateManager.on 'quit', quit
+  stateManager.on 'quit', quit
