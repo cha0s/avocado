@@ -26,6 +26,7 @@ module.exports = Entity = class Entity
   constructor: ->
     mixin.call @ for mixin in mixins
 
+    @_isTicking = true
     @_originalTraits = {}
     @_tickers = []
     @_traits = {}
@@ -186,6 +187,8 @@ module.exports = Entity = class Entity
 
     results
 
+  isTicking: -> @_isTicking
+
   # Invoke a method with arguments if it exists on this entity.
   optional: (name, args...) ->
     return unless (fn = @[name])?
@@ -212,7 +215,10 @@ module.exports = Entity = class Entity
 
   _requireTrait: (type) -> require "avo/entity/traits/#{type}"
 
+  setIsTicking: (@_isTicking) ->
+
   tick: (elapsed) ->
+    return unless @_isTicking
 
     ticker.f elapsed for ticker in @_tickers
 
