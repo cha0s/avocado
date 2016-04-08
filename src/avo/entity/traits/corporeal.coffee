@@ -105,11 +105,11 @@ module.exports = Corporeal = class extends Trait
 
   signals: ->
 
-    # offsetChanged: -> @entity.emit 'updateZIndex'
+    offsetChanged: -> @entity.emit 'updateZIndex'
 
-    # positionChanged: -> @entity.emit 'updateZIndex'
+    positionChanged: -> @entity.emit 'updateZIndex'
 
-    # traitsChanged: -> @entity.emit 'updateZIndex'
+    traitsChanged: -> @entity.emit 'updateZIndex'
 
     updateZIndex: ->
 
