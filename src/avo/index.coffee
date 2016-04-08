@@ -32,6 +32,8 @@ exports.start = ->
     config.get 'timing:rendersPerSecond'
   )
 
+  window.onresize = -> canvas.resize [window.innerWidth, window.innerHeight]
+
   windowPromise = new Promise (resolve) -> window.onload = resolve
 
   config.mergeFromFile('/config.json').then(->
