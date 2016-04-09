@@ -9,17 +9,20 @@ module.exports = VectorMixin = (
   vector = 'vector'
   x = 'x'
   y = 'y'
+  meta = {}
 ) ->
 
   _setVector = String.setterName vector
   _setX = String.setterName x
   _setY = String.setterName y
 
+  _default = meta.default ? [0, 0]
+
   class
 
     mixins = [
-      XProperty = Property x, 0
-      YProperty = Property y, 0
+      XProperty = Property x, _default[0], meta[x] ? {}
+      YProperty = Property y, _default[1], meta[y] ? {}
     ]
 
     constructor: ->
