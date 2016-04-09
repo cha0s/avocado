@@ -72,6 +72,6 @@ exports.start = ->
 
   stateManager.on 'error', handleError
 
-  quit = -> window_.close()
+  quit = -> require('avo/graphics/window').close()
 
   stateManager.on 'quit', quit
