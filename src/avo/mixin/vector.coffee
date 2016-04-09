@@ -23,8 +23,7 @@ module.exports = VectorMixin = (
       YProperty = Property y, meta[y] ? {}
     ]
 
-    constructor: ->
-      mixin.call @ for mixin in mixins
+    constructor: -> mixin.call @ for mixin in mixins
 
     FunctionExt.fastApply Mixin, [@::].concat mixins
 
