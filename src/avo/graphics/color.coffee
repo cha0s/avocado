@@ -6,10 +6,10 @@ Property = require 'avo/mixin/property'
 class Color
 
   mixins = [
-    Property 'red', 0
-    Property 'green', 0
-    Property 'blue', 0
-    Property 'alpha', 1
+    Property 'red', default: 0
+    Property 'green', default: 0
+    Property 'blue', default: 0
+    Property 'alpha', default: 1
   ]
 
   constructor: (r = 255, g = 0, b = 255, a = 1) ->

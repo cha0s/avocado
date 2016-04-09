@@ -14,14 +14,15 @@ module.exports = Room = class Room
 
   @defaultLayerCount: 5
 
-#  Physics = require "Physics/#{Config.Physics.Engine}"
-
   mixins = [
     EventEmitter
-    Property 'name', ''
-#    Property 'physics', new Physics()
-    SizeProperty = VectorMixin 'size', 'width', 'height'
-    TilesetProperty = Property 'tileset', null
+    Property 'name', default: ''
+    SizeProperty = VectorMixin(
+      'size', 'width', 'height'
+      width: default: 0
+      height: default: 0
+    )
+    TilesetProperty = Property 'tileset', default: null
   ]
 
   constructor: ->
@@ -29,32 +30,15 @@ module.exports = Room = class Room
     mixin.call @ for mixin in mixins
 
     @_collision = []
-    # @_entitiesDestroyed = []
     @_entityDefinitions = []
     @_layers = for i in [0...Room.defaultLayerCount]
       new Room.TileLayer()
-
-    # @on 'sizeChanged', => @_recomputeTotalSize()
-    # @on 'tilesetChanged', => @_recomputeTotalSize()
 
   FunctionExt.fastApply Mixin, [@::].concat mixins
 
   fromObject: (O) ->
 
     @_entityDefinitions = O.entityDefinitions ? []
-
-    # entityPromises = if (O.entities ?= []).length > 0
-
-    #   promises = for entityO in O.entities
-    #     Entity.load entityO.uri, entityO.traits ? []
-
-    #   Promise.all(promises).then (entities) =>
-    #     @_entities = []
-    #     @addEntity entity for entity in entities
-
-    #   promises
-    # else
-    #   []
 
     layerPromises = if (O.layers ?= []).length > 0
 
@@ -100,21 +84,6 @@ module.exports = Room = class Room
 
     Promise.all promises
 
-  # _recomputeTotalSize: ->
-
-#    @physics().setWalls @sizeInPx()
-#    @physics().addFloor()
-
-  # removeEntity: (entity) ->
-
-  #   return if -1 is index = @_entities.indexOf entity
-
-  #   @_entities.splice index, 1
-
-  #   entity.off 'isDestroyedChanged.Room'
-
-  #   @emit 'entityRemoved', entity
-
   setSize: (size) ->
 
     SizeProperty::setSize.call @, size
@@ -134,23 +103,9 @@ module.exports = Room = class Room
       @tileset()?.tileSize() ? [0, 0]
     )
 
-  # tick: ->
-
-  #   if @_entitiesDestroyed.length > 0
-  #     @removeEntity entity for entity in @_entitiesDestroyed
-  #     @_entitiesDestroyed = []
-
-#    @physics().tick()
-
   tileIndexFromPosition: (position, layerIndex = 0) ->
 
     @_layers[layerIndex].tileIndexFromPosition position
-
-#  toImage: (tileset) ->
-#
-#    image = new Image @sizeInPx()
-#    layer.render [0, 0], image for layer in @_layers
-#    image
 
   toJSON: ->
 

@@ -13,13 +13,21 @@ Primitives = require 'avo/graphics/primitives'
 module.exports = class Shape
 
   mixins = [
-    VectorMixin 'origin', 'originX', 'originY'
-    VectorMixin 'parentOrigin', 'parentOriginX', 'parentOriginY'
-    Property 'parentRotation', 0
-    Property 'parentScale', 1
-    Property 'rotation', 0
-    Property 'scale', 1
-    Property 'type', 'index'
+    VectorMixin(
+      'origin', 'originX', 'originY'
+      originX: default: 0
+      originY: default: 0
+    )
+    VectorMixin(
+      'parentOrigin', 'parentOriginX', 'parentOriginY'
+      parentOriginX: default: 0
+      parentOriginY: default: 0
+    )
+    Property 'parentRotation', default: 0
+    Property 'parentScale', default: 1
+    Property 'rotation', default: 0
+    Property 'scale', default: 1
+    Property 'type', default: 'index'
     EventEmitter
   ]
 

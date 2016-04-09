@@ -15,8 +15,12 @@ module.exports = class LayerView
 
   mixins = [
     EventEmitter
-    PositionProperty = VectorMixin 'position'
-    LayerProperty = Property 'layer', null
+    PositionProperty = VectorMixin(
+      'position', 'x', 'y'
+      x: default: 0
+      y: default: 0
+    )
+    LayerProperty = Property 'layer', default: null
   ]
 
   constructor: (@_layer) ->

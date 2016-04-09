@@ -11,8 +11,16 @@ ShapePolygon = require './polygon'
 module.exports = class ShapeRectangle extends ShapePolygon
 
   mixins = [
-    VectorMixin 'position', 'x', 'y'
-    VectorMixin 'size', 'width', 'height'
+    VectorMixin(
+      'position', 'x', 'y'
+      x: default: 0
+      y: default: 0
+    )
+    VectorMixin(
+      'size', 'width', 'height'
+      width: default: 0
+      height: default: 0
+    )
   ]
 
   constructor: ->

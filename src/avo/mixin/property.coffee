@@ -1,18 +1,21 @@
 
 FunctionExt = require 'avo/extension/function'
+ObjectExt = require 'avo/extension/object'
 String = require 'avo/extension/string'
 
-module.exports = Property = (key, defaultValue, meta = {}) ->
+module.exports = Property = (key, meta = {}) ->
 
   meta.set ?= (value) -> @["_#{key}"] = value
   meta.get ?= -> @["_#{key}"]
   meta.eq ?= (l, r) -> l is r
 
+  _default = ObjectExt.deepCopy meta.default ? null
+
   class
 
     constructor: ->
 
-      FunctionExt.fastApply meta.set, [defaultValue], this if defaultValue?
+      FunctionExt.fastApply meta.set, [_default], this if _default?
 
     @::[key] = meta.get
 

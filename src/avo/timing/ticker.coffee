@@ -10,7 +10,7 @@ module.exports = class Ticker
 
   mixins = [
     EventEmitter
-    Property 'frequency', 0
+    Property 'frequency', default: 0
   ]
 
   constructor: (frequency = 0) ->

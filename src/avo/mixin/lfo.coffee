@@ -33,9 +33,9 @@ ModulatedProperty = class
 
   mixins = [
     EventEmitter
-    Property 'frequency', 0
-    Property 'location', 0
-    Property 'magnitude', 0
+    Property 'frequency', default: 0
+    Property 'location', default: 0
+    Property 'magnitude', default: 0
     Transition
   ]
 

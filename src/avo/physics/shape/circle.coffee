@@ -16,8 +16,12 @@ Shape = require './index'
 module.exports = class ShapeCircle extends Shape
 
   mixins = [
-    VectorMixin 'position', 'x', 'y'
-    Property 'radius', 0
+    VectorMixin(
+      'position', 'x', 'y'
+      x: default: 0
+      y: default: 0
+    )
+    Property 'radius', default: 0
   ]
 
   constructor: ->

@@ -1,5 +1,4 @@
 
-
 EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
@@ -16,11 +15,19 @@ Primitives = require 'avo/graphics/primitives'
 module.exports = class ShapeList
 
   mixins = [
-    VectorMixin 'position', 'x', 'y'
-    VectorMixin 'origin', 'originX', 'originY'
-    Property 'rotation', 0
-    Property 'scale', 1
     EventEmitter
+    VectorMixin(
+      'origin', 'originX', 'originY'
+      originX: default: 0
+      originY: default: 0
+    )
+    VectorMixin(
+      'position', 'x', 'y'
+      x: default: 0
+      y: default: 0
+    )
+    Property 'rotation', default: 0
+    Property 'scale', default: 1
   ]
 
   constructor: ->

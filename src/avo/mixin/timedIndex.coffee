@@ -16,9 +16,9 @@ module.exports = TimedIndex = (
 
     mixins = [
       EventEmitter
-      IndexProperty = Property 'index', 0
-      Property _indexCount, 0
-      Property _indexRate, 100
+      IndexProperty = Property 'index', default: 0
+      Property _indexCount, default: 0
+      Property _indexRate, default: 100
     ]
 
     constructor: ->

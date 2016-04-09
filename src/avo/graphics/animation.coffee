@@ -30,13 +30,17 @@ module.exports = Animation = class Animation
 
   mixins = [
     EventEmitter
-    DirectionProperty = Property 'direction', 0
-    Property 'directionCount', 1
-    Property 'frameSize', [0, 0]
-    ImageProperty = Property 'image', null
-    VectorMixin 'position'
+    DirectionProperty = Property 'direction', default: 0
+    Property 'directionCount', default: 1
+    Property 'frameSize', default: [0, 0]
+    ImageProperty = Property 'image', default: null
+    VectorMixin(
+      'position', 'x', 'y'
+      x: default: 0
+      y: default: 0
+    )
     TimedIndex 'frame'
-    Property 'uri', ''
+    Property 'uri', default: ''
   ]
 
   constructor: ->

@@ -12,8 +12,8 @@ Renderable = require './renderable'
 module.exports = class Text extends Renderable
 
   mixins = [
-    Property 'fontFamily', 'sans-serif'
-    Property 'fontSize', 12
+    Property 'fontFamily', default: 'sans-serif'
+    Property 'fontSize', default: 12
   ]
 
   constructor: (text) ->

@@ -16,13 +16,11 @@ module.exports = VectorMixin = (
   _setX = String.setterName x
   _setY = String.setterName y
 
-  _default = meta.default ? [0, 0]
-
   class
 
     mixins = [
-      XProperty = Property x, _default[0], meta[x] ? {}
-      YProperty = Property y, _default[1], meta[y] ? {}
+      XProperty = Property x, meta[x] ? {}
+      YProperty = Property y, meta[y] ? {}
     ]
 
     constructor: ->

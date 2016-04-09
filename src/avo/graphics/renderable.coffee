@@ -6,7 +6,6 @@ color = require 'avo/graphics/color'
 EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
 Lfo = require 'avo/mixin/lfo'
-Property = require 'avo/mixin/property'
 Transition = require 'avo/mixin/transition'
 Vector = require 'avo/extension/vector'
 VectorMixin = require 'avo/mixin/vector'
@@ -19,7 +18,6 @@ module.exports = class Renderable
     Transition
     VectorMixin(
       'scale', 'scaleX', 'scaleY'
-      default: [undefined, undefined]
       scaleX:
         get: -> @internal().scale.x
         set: (x) -> @internal().scale.x = x
