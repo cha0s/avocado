@@ -17,37 +17,17 @@ module.exports = class Renderable
     EventEmitter
     Lfo
     Transition
-    # VectorMixin 'scale', 'scaleX', 'scaleY'
-    Property(
-      'scaleX', undefined
-      get: -> @internal().scale.x
-      set: (x) -> @internal().scale.x = x
-    )
-    Property(
-      'scaleY', undefined
-      get: -> @internal().scale.y
-      set: (y) -> @internal().scale.y = y
-    )
-    Property(
-      'scale', undefined
-      eq: (l, r) -> Vector.equals l, r
-      get: -> [@scaleX(), @scaleY()]
-      set: (scale) ->
-        @setScaleX scale[0]
-        @setScaleY scale[1]
+    VectorMixin(
+      'scale', 'scaleX', 'scaleY'
+      default: [undefined, undefined]
+      scaleX:
+        get: -> @internal().scale.x
+        set: (x) -> @internal().scale.x = x
+      scaleY:
+        get: -> @internal().scale.y
+        set: (y) -> @internal().scale.y = y
     )
   ]
-
-  # scale: ->
-  #   internal = @internal()
-
-  #   [internal.scale.x, internal.scale.y]
-
-  # setScale: (scale) ->
-  #   internal = @internal()
-
-  #   internal.scale.x = scale[0]
-  #   internal.scale.y = scale[1]
 
   constructor: ->
     mixin.call this for mixin in mixins
@@ -104,22 +84,6 @@ module.exports = class Renderable
 
     internal.pivot.x = origin[0]
     internal.pivot.y = origin[1]
-
-  # scaleX: -> @internal().scale.x
-  # setScaleX: (x) -> @internal().scale.x = x
-  # scaleY: -> @internal().scale.y
-  # setScaleY: (y) -> @internal().scale.y = y
-
-  # scale: ->
-  #   internal = @internal()
-
-  #   [internal.scale.x, internal.scale.y]
-
-  # setScale: (scale) ->
-  #   internal = @internal()
-
-  #   internal.scale.x = scale[0]
-  #   internal.scale.y = scale[1]
 
   setX: (x) -> @internal().position.x = x
 
