@@ -14,6 +14,7 @@ module.exports = RectangleMixin = (
   height = 'height'
   position = 'position'
   size = 'size'
+  meta = {}
 ) ->
 
   _setRectangle = String.setterName rectangle
@@ -23,12 +24,11 @@ module.exports = RectangleMixin = (
   class
 
     mixins = [
-      PositionProperty = VectorMixin position, x, y
-      SizeProperty = VectorMixin size, width, height
+      PositionProperty = VectorMixin position, x, y, meta[position]
+      SizeProperty = VectorMixin size, width, height, meta[size]
     ]
 
-    constructor: ->
-      mixin.call @ for mixin in mixins
+    constructor: -> mixin.call @ for mixin in mixins
 
     FunctionExt.fastApply Mixin, [@::].concat mixins
 
