@@ -6,7 +6,6 @@ window_ = require 'avo/graphics/window'
 
 fs = require 'avo/fs'
 
-Cps = require 'avo/timing/cps'
 FunctionExt = require 'avo/extension/function'
 Ticker = require 'avo/timing/ticker'
 
@@ -41,43 +40,16 @@ module.exports = class StateManager
   startAsync: (tps, rps)->
     return if @_dispatcherInterval?
 
-    originalRendersPerSecond = rendersPerSecond = rps
-    originalTicksPerSecond = ticksPerSecond = tps
-
-    renderCps = new Cps()
-    renderTicker = new Ticker 1000 / rendersPerSecond
+    renderTicker = new Ticker 1000 / rps
     renderTicker.on 'tick', =>
 
       try
 
         @render @_canvas.renderer()
-        renderCps.tick()
 
       catch error
 
         @emit 'error', error
-
-    renderSamples = []
-    adjustmentTicker = new Ticker 1000
-    adjustmentTicker.on 'tick', ->
-
-      renderSamples = renderSamples.filter (e) -> !!e
-
-      actualRenderCps = renderSamples.reduce ((l, r) -> l + r), 0
-      actualRenderCps /= renderSamples.length
-      renderSamples = []
-
-      if actualRenderCps < rendersPerSecond * .75
-        renderTicker.setFrequency 1000 / (rendersPerSecond *= .75)
-
-      else
-        if rendersPerSecond * 1.25 <= originalRendersPerSecond
-          renderTicker.setFrequency 1000 / (rendersPerSecond *= 1.25)
-        else
-          renderTicker.setFrequency 1000 / originalRendersPerSecond
-
-    sampleTicker = new Ticker 125
-    sampleTicker.on 'tick', -> renderSamples.push renderCps.count()
 
     previous = Date.now()
 
@@ -95,16 +67,14 @@ module.exports = class StateManager
 
         @emit 'error', error
 
-      adjustmentTicker.tick elapsed
       renderTicker.tick elapsed
-      sampleTicker.tick elapsed
 
     # Ideal tick ms, but not necessarily real.
     @_dispatcherInterval = window.setInterval dispatcher, 1000 / tps
 
   stopAsync: ->
     return unless @_dispatcherInterval?
-    clearInterval @_dispatcherInterval
+    window.clearInterval @_dispatcherInterval
     @_dispatcherInterval = null
 
   tick: (elapsed) ->
