@@ -7,7 +7,15 @@ Node = require './node'
 
 ui = module.exports
 
-ui.addCss = (href) ->
+ui.addCssText = (text) ->
+
+  css = document.createElement 'style'
+  css.type = 'text/css'
+  css.innerHTML = text
+
+  window.document.getElementsByTagName('head')[0].appendChild css
+
+ui.addCssRemote = (href) ->
 
   link = window.document.createElement 'link'
   link.id = href.replace /[^0-9a-zA-Z_]/g, '-'
@@ -16,14 +24,13 @@ ui.addCss = (href) ->
   link.href = href
   link.media = 'all'
 
-  head = window.document.getElementsByTagName('head')[0]
-  head.appendChild link
+  window.document.getElementsByTagName('head')[0].appendChild link
 
 ui.loadNode = (uri, canvas) ->
 
   fs.readUi(uri).then (html) ->
 
-    ui.addCss "#{config.get 'fs:uiPath'}#{uri.replace /.html$/, '.css'}"
+    ui.addCssRemote "#{config.get 'fs:uiPath'}#{uri.replace /.html$/, '.css'}"
 
     node = new Node html
 
