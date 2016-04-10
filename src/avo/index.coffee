@@ -4,12 +4,11 @@
 # Execution context. The "main loop" of the Avocado engine.
 #
 
-config = require 'avo/config'
-
+ErrorStackParser = require 'avo/vendor/error-stack-parser'
 Promise = require 'avo/vendor/bluebird'
 
 AvoCanvas = require 'avo/graphics/canvas'
-
+config = require 'avo/config'
 StateManager = require 'avo/state/manager'
 
 require 'avo/monkey-patches'
@@ -58,7 +57,16 @@ exports.start = ->
     stateManager.emit 'transitionToState', 'avo/state/initial'
 
   handleError = (error) ->
-    console.log error.stack
+    [type, message] = error.toString().split ':'
+
+    errorNode = require('avo/ui/error').createNode canvas
+
+    errorNode.find('.error-type').text type
+    errorNode.find('.error-message').text message
+    errorNode.find('.backtrace').append(
+      require('avo/vendor/jquery')('<li />').text frame.source
+    ) for frame in ErrorStackParser.parse error
+    errorNode.show()
 
     stateManager.stopAsync()
 
