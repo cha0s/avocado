@@ -60,16 +60,8 @@ module.exports = class extends Trait
 
         checkMovementEnd = =>
 
-          entityPosition = @entity.position()
-          for i in [0, 1] when hypotenuse[i] isnt 0
-
-            if hypotenuse[i] < 0
-              if entityPosition[i] < destination[i]
-                entityPosition[i] = destination[i]
-
-            if hypotenuse[i] > 0
-              if entityPosition[i] > destination[i]
-                entityPosition[i] = destination[i]
+          overshot = Vector.overshot @entity.position(), hypotenuse, destination
+          entityPosition[i] = destination[i] if overshot[i] for i in [0, 1]
 
           diff = Vector.abs Vector.sub destination, entityPosition
           if diff[0] <= 1 and diff[1] <= 1

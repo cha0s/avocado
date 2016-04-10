@@ -219,6 +219,20 @@ module.exports = Vector =
 
     vector[0] is 0 or vector[1] is 0
 
+  overshot: (position, hypotenuse, destination) ->
+    overshot = [false, false]
+
+    for i in [0, 1] when hypotenuse[i] isnt 0
+      if hypotenuse[i] < 0
+        if position[i] < destination[i]
+          overshot[i] = true
+
+      if hypotenuse[i] > 0
+        if position[i] > destination[i]
+          overshot[i] = true
+
+    return overshot
+
   # Convert a vector to a 4-direction. A 4-direction is:
   #
   # * 0: Up
