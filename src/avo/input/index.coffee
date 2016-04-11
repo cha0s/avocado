@@ -1,16 +1,21 @@
 
-EventEmitter = require 'avo/mixin/eventEmitter'
 FunctionExt = require 'avo/extension/function'
+Vector = require 'avo/extension/vector'
+
+EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
 
-mixins = [
-  EventEmitter
-]
+module.exports = class Input
 
-input = module.exports
+  mixins = [
+    EventEmitter
+  ]
 
-FunctionExt.fastApply Mixin, [input].concat mixins
+  constructor: -> mixin.call this for mixin in mixins
 
-mixin.call input for mixin in mixins
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
-require "./#{sub}" for sub in ['gamepad', 'key', 'mouse', 'movement']
+  attachListeners: (config) ->
+    for type of config
+      if config[type]
+        require("./#{type}").attachListeners this, config[type]

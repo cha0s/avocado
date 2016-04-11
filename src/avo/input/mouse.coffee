@@ -1,95 +1,65 @@
 
-$ = require 'avo/vendor/jquery'
 _ = require 'avo/vendor/underscore'
-config = require 'avo/config'
-input = require './index'
 Vector = require 'avo/extension/vector'
 
-input.Mouse =
+exports.attachListeners = (input, config) ->
 
-  ButtonLeft: 1
-  ButtonMiddle: 2
-  ButtonRight: 3
-  WheelUp: 4
-  WheelDown: 5
+  lastPosition = null
 
-mousePositionScale = [1, 1]
+  mouseMovesPerSecond = config.mouseMovesPerSecond ? 50
 
-input.setMousePositionScale = (scale) -> mousePositionScale = scale
+  emitMouseMove = _.throttle(
 
-calculateMousePositionOnElement = (event, element) ->
+    (event) ->
 
-  rect = element.getBoundingClientRect()
+      position = [event.clientX, event.clientY]
 
-  Vector.round Vector.mul(
-    Vector.sub(
-      [event.clientX, event.clientY]
-      [rect.left, rect.top]
-    )
-    mousePositionScale
+      message = position: position
+      message.delta = Vector.sub position, lastPosition if lastPosition?
+
+      lastPosition = position
+
+      input.emit 'mouseMove', message, event
+
+    1000 / mouseMovesPerSecond
   )
 
-lastMousePosition = null
+  window.addEventListener 'mousemove', (event) ->
+    event ?= window.event
 
-emitMouseMove = _.throttle(
+    emitMouseMove event
 
-  (event, element) ->
-
-    position = calculateMousePositionOnElement event, element
-
-    message =
-      position: position
-
-    if lastMousePosition?
-      message.delta = Vector.sub position, lastMousePosition
-
-    lastMousePosition = position
-
-    input.emit 'mouseMove', message
-
-  1000 / config.get 'input:mouseMovePerSecond'
-)
-
-input.attachMouseListenersTo = (element) ->
-
-  element.addEventListener 'mousemove', (event) ->
-
-    emitMouseMove event, element
-
-  $(element).on 'mouseenter', -> input.emit 'mouseEnter'
-  $(element).on 'mouseleave', -> input.emit 'mouseLeave'
-
-  element.addEventListener 'mousedown', (event) ->
-
-    position = calculateMousePositionOnElement event, element
+  window.addEventListener 'mousedown', (event) ->
+    event ?= window.event
 
     input.emit(
       'mouseDown'
-      position: position
-      button: mouseButtonMap event.button
+      position: [event.clientX, event.clientY]
+      button: event.button
+      event
     )
 
-  element.addEventListener 'mouseup', (event) ->
-
-    position = calculateMousePositionOnElement event, element
+  window.addEventListener 'mouseup', (event) ->
+    event ?= window.event
 
     input.emit(
       'mouseUp'
-      position: position
-      button: mouseButtonMap event.button
+      position: [event.clientX, event.clientY]
+      button: event.button
+      event
     )
 
-  element.addEventListener 'mousewheel', (event) ->
+  window.addEventListener 'mousewheel', (event) ->
+    event ?= window.event
 
     input.emit(
       'mouseWheel'
       delta: if event.wheelDelta > 0 then 1 else -1
+      event: event
     )
 
-mouseButtonMap = (button) ->
+  input.MouseButton =
 
-  switch button
-
-    when 0 then input.Mouse.ButtonLeft
-    when 1 then input.Mouse.ButtonMiddle
-    when 2 then input.Mouse.ButtonRight
+    Left: 1
+    Middle: 2
+    Right: 3

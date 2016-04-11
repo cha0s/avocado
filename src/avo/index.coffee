@@ -7,8 +7,12 @@
 ErrorStackParser = require 'avo/vendor/error-stack-parser'
 Promise = require 'avo/vendor/bluebird'
 
-AvoCanvas = require 'avo/graphics/canvas'
 config = require 'avo/config'
+
+AvoCanvas = require 'avo/graphics/canvas'
+
+Input = require 'avo/input'
+
 StateManager = require 'avo/state/manager'
 
 require 'avo/monkey-patches'
@@ -25,8 +29,14 @@ exports.start = ->
     config.get 'graphics:renderer'
   )
   window.document.body.appendChild canvas.element()
-
   canvas.resize [window.innerWidth, window.innerHeight]
+
+  stateManager.setInput input = new Input()
+  input.attachListeners(
+    key: true
+    mouse: true
+    gamepad: true
+  )
 
   stateManager.startAsync(
     config.get 'timing:ticksPerSecond'

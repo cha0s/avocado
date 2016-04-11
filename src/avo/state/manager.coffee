@@ -29,6 +29,7 @@ module.exports = class StateManager
     @transition = null
 
     @_canvas = null
+    @_input = null
     @_dispatcherInterval = null
 
     @on 'transitionToState', (path, args = {}) ->
@@ -36,6 +37,8 @@ module.exports = class StateManager
     , this
 
   setCanvas: (@_canvas) ->
+
+  setInput: (@_input) ->
 
   startAsync: (tps, rps)->
     return if @_dispatcherInterval?
@@ -118,7 +121,10 @@ module.exports = class StateManager
             StateClass = require path
             self.instance = self.cache[path] = new StateClass()
             self.instance.on '*', (name, args...) -> self.emit name, args...
-            self.instance.initialize @_canvas
+            self.instance.initialize(
+              canvas: @_canvas
+              input: @_input
+            )
 
           -> transition.phase = 2
           (error) -> self.emit 'error', error

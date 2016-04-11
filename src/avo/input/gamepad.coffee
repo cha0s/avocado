@@ -1,38 +1,24 @@
 
-input = require './index'
+# input = require './index'
+Vector = require 'avo/extension/vector'
 
-# Reused code from http://www.html5rocks.com/en/tutorials/doodles/gamepad/gamepad-tester/gamepad.js
+# Reused/refactored code from
+# http://www.html5rocks.com/en/tutorials/doodles/gamepad/gamepad-tester/gamepad.js
 
-gamepads = []
-previousStates = []
-prevRawGamepadTypes = []
-ticking = false
+exports.attachListeners = (input, config) ->
 
-# Check for gamepad support.
-if !(window.navigator?) or !!window.navigator.getGamepads or !!window.navigator.webkitGetGamepads or !!window.navigator.webkitGamepads
+  return unless window.navigator?
 
-   # React to the gamepad being connected.
-  onGamepadConnect = (event) ->
+  canHaveGamepads = false
+  for method in ['getGamepads', 'webkitGetGamepads', 'webkitGamepads']
+    canHaveGamepads = canHaveGamepads or window.navigator[method]?
 
-    # Add the new gamepad on the list of gamepads to look after.
-    gamepads.push event.gamepad
-    previousStates.push gamepadState event.gamepad
+  return unless canHaveGamepads
 
-    # Start the polling loop to monitor button changes.
-    startPolling()
-
-  # React to the gamepad being disconnected.
-  onGamepadDisconnect = (event) ->
-
-    # Remove the gamepad from the list of gamepads to monitor.
-    for i of gamepads
-      if gamepads[i].index is event.gamepad.index
-        gamepads.splice i, 1
-        gamepadState.splace i, 1
-        break
-
-    # If no gamepads are left, stop the polling loop.
-    stopPolling() if gamepads.length is 0
+  gamepads = []
+  previousStates = []
+  prevRawGamepadTypes = []
+  ticking = false
 
   gamepadState = (gamepad) ->
 
@@ -178,8 +164,29 @@ if !(window.navigator?) or !!window.navigator.getGamepads or !!window.navigator.
   # has been connected.
   if window.ongamepadconnected?
 
-    window.addEventListener 'gamepadconnected', onGamepadConnect false
-    window.addEventListener 'gamepaddisconnected', onGamepadDisconnect, false
+    # React to the gamepad being connected.
+    window.addEventListener 'gamepadconnected', (event) ->
+
+      # Add the new gamepad on the list of gamepads to look after.
+      gamepads.push event.gamepad
+      previousStates.push gamepadState event.gamepad
+
+      # Start the polling loop to monitor button changes.
+      startPolling()
+
+
+    # React to the gamepad being disconnected.
+    window.addEventListener 'gamepaddisconnected', (event) ->
+
+      # Remove the gamepad from the list of gamepads to monitor.
+      for i of gamepads
+        if gamepads[i].index is event.gamepad.index
+          gamepads.splice i, 1
+          gamepadState.splace i, 1
+          break
+
+      # If no gamepads are left, stop the polling loop.
+      stopPolling() if gamepads.length is 0
 
   else
 
