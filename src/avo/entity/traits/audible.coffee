@@ -35,8 +35,9 @@ module.exports = class Audible extends Trait
 
   actions: ->
 
-    playRandomSoundInBank: (bank) ->
+    playOutsideSound: (uri) -> Sound.load(uri).then (sound) -> sound.play()
 
+    playRandomSoundInBank: (bank) ->
       return unless (bank = @state.soundBanks[bank])?
 
       randomSound = ArrayExt.randomElement bank
