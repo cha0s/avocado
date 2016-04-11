@@ -19,7 +19,7 @@ module.exports = class AvoCanvas
     EventEmitter
   ]
 
-  @element: (uuid) -> canvases[uuid]
+  @lookup: (uuid) -> canvases[uuid]
 
   constructor: (resolution, renderer) ->
     mixin.call this for mixin in mixins
@@ -32,7 +32,6 @@ module.exports = class AvoCanvas
     @_container.style.position = 'absolute'
     @_container.style.overflow = 'hidden'
     @_container.appendChild @_renderer.element()
-    window.document.body.appendChild @_container
 
     # TODO multi
     # input.attachMouseListenersTo @_container
@@ -48,6 +47,8 @@ module.exports = class AvoCanvas
 
     @_renderer.element().dataset.uuid = @_uuid = uuid.v4()
     canvases[@_uuid] = this
+
+  element: -> @_container
 
   scale: -> Vector.div @_renderer.size(), @_calculatedSize
 

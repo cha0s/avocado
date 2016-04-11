@@ -24,6 +24,8 @@ exports.start = ->
     config.get 'graphics:resolution'
     config.get 'graphics:renderer'
   )
+  window.document.body.appendChild canvas.element()
+
   canvas.resize [window.innerWidth, window.innerHeight]
 
   stateManager.startAsync(
