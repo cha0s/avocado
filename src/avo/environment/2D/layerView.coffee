@@ -23,7 +23,7 @@ module.exports = class LayerView
     LayerProperty = Property 'layer', default: null
   ]
 
-  constructor: (@_layer) ->
+  constructor: (@_renderer) ->
     mixin.call @ for mixin in mixins
 
     @_container = new SpriteContainer()
@@ -46,9 +46,9 @@ module.exports = class LayerView
     return unless (tileset = @_layer.tileset())?
     return unless tileset.image()?
 
-    texture = new PIXI.RenderTexture rectangle[2], rectangle[3]
+    texture = new PIXI.RenderTexture @_renderer.renderer(), rectangle[2], rectangle[3]
 
-    container = new PIXI.DisplayObjectContainer()
+    container = new PIXI.Container()
     sprite = new Sprite @_layer.tileset().image()
     container.addChild sprite.internal()
 
