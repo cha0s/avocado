@@ -1,5 +1,4 @@
 
-# input = require './index'
 Vector = require 'avo/extension/vector'
 
 # Reused/refactored code from

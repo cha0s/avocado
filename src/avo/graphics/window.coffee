@@ -1,29 +1,14 @@
 
 config = require 'avo/config'
 
-exports.close = ->
+window_ = null
 
-  if 'node-webkit' is config.get 'platform'
+exports.setInstance = (w) -> window_ = w
 
-    {Window} = global.window.nwDispatcher.requireNwGui()
-    window_ = Window.get()
+exports.close = -> window_?.close()
 
-    window_.close()
+exports.hide = -> window_?.hide()
 
-exports.hide = ->
+exports.reload = -> window_?.reloadDev()
 
-  if 'node-webkit' is config.get 'platform'
-
-    {Window} = global.window.nwDispatcher.requireNwGui()
-    window_ = Window.get()
-
-    window_.hide()
-
-exports.show = ->
-
-  if 'node-webkit' is config.get 'platform'
-
-    {Window} = global.window.nwDispatcher.requireNwGui()
-    window_ = Window.get()
-
-    window_.show()
+exports.show = -> window_?.show()

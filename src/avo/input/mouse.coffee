@@ -8,21 +8,18 @@ exports.attachListeners = (input, config) ->
 
   mouseMovesPerSecond = config.mouseMovesPerSecond ? 50
 
-  emitMouseMove = _.throttle(
+  emitMouseMove = (event) ->
+    position = [event.clientX, event.clientY]
 
-    (event) ->
+    message = position: position
+    message.delta = Vector.sub position, lastPosition if lastPosition?
 
-      position = [event.clientX, event.clientY]
+    lastPosition = position
 
-      message = position: position
-      message.delta = Vector.sub position, lastPosition if lastPosition?
+    input.emit 'mouseMove', message, event
 
-      lastPosition = position
-
-      input.emit 'mouseMove', message, event
-
-    1000 / mouseMovesPerSecond
-  )
+  if mouseMovesPerSecond > 0
+    emitMouseMove = _.throttle emitMouseMove, mouseMovesPerSecond
 
   window.addEventListener 'mousemove', (event) ->
     event ?= window.event

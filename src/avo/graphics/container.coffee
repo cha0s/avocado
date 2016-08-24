@@ -8,7 +8,7 @@ module.exports = class Container extends Renderable
   constructor: ->
     super
 
-    @_container = new PIXI.DisplayObjectContainer()
+    @_container = new PIXI.Container()
 
   addChildAt: (child, index) -> @_container.addChildAt child.internal(), index
   addChild: (child) -> @_container.addChild child.internal()

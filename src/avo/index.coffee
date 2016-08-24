@@ -4,6 +4,9 @@
 # Execution context. The "main loop" of the Avocado engine.
 #
 
+# Bootstrap node-webkit goodies.
+require('avo/node-webkit').bootstrap()
+
 ErrorStackParser = require 'avo/vendor/error-stack-parser'
 Promise = require 'avo/vendor/bluebird'
 
@@ -19,12 +22,7 @@ require 'avo/monkey-patches'
 
 exports.start = ->
 
-  # Bootstrap node-webkit goodies.
-  require('avo/node-webkit').bootstrap()
-
-  stateManager = new StateManager()
-
-  stateManager.setCanvas canvas = new AvoCanvas(
+  (stateManager = new StateManager()).setCanvas canvas = new AvoCanvas(
     config.get 'graphics:resolution'
     config.get 'graphics:renderer'
   )
@@ -37,6 +35,8 @@ exports.start = ->
     mouse: true
     gamepad: true
   )
+
+  canvas.translateInput input
 
   stateManager.startAsync(
     config.get 'timing:ticksPerSecond'
@@ -63,10 +63,12 @@ exports.start = ->
       )
     ]
 
-  ).then ->
+  ).then(->
 
     # Enter the 'initial' state. This is implemented by your game.
     stateManager.emit 'transitionToState', 'avo/state/initial'
+
+  ).catch handleError
 
   handleError = (error) ->
     [type, message] = error.toString().split ':'
@@ -92,6 +94,8 @@ exports.start = ->
 
   stateManager.on 'error', handleError
 
-  quit = -> require('avo/graphics/window').close()
+  quit = ->
+    stateManager.stopAsync()
+    require('avo/graphics/window').close()
 
   stateManager.on 'quit', quit

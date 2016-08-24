@@ -27,6 +27,6 @@ module.exports = class Sprite extends Renderable
 
   setSourceRectangle: (rectangle) ->
 
-    @_image._texture.setFrame Rectangle.toObject rectangle
+    @_image._texture.frame = Rectangle.toObject rectangle
 
   internal: -> @_sprite

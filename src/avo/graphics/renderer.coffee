@@ -20,6 +20,8 @@ module.exports = class Renderer
 
   render: (item) -> @_renderer.render item.internal()
 
+  renderer: -> @_renderer
+
   height: -> @_renderer.view.height
   width: -> @_renderer.view.width
   size: -> [@_renderer.view.width, @_renderer.view.height]
