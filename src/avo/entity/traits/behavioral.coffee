@@ -30,6 +30,7 @@ module.exports = Behavioral = class extends Trait
 
     @_staticParallelActions.parallel @entity.context(), @_staticParallelState
 
+    # TODO: this can probably stack overflow with an immediate result...
     Promise.asap(
       @_staticParallelState.promise()
       =>
