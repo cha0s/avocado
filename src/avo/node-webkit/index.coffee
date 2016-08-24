@@ -45,9 +45,7 @@ exports.bootstrap = ->
 
     gaze.on 'all', (event, filepath) -> gaze.close()
 
-    {Window} = global.window.nwDispatcher.requireNwGui()
-    window_ = Window.get()
-    window_.on 'loaded', -> window_.show()
+    require('avo/graphics/window').show()
 
-    gaze.on 'end', -> window_.reloadDev()
+    gaze.on 'end', -> require('avo/graphics/window').reload()
 
