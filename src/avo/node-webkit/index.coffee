@@ -9,9 +9,9 @@ exports.bootstrap = ->
 
     # I am the opposite of a fan of how node-webkit hands all logging to
     # webkit.
-    for type in ['error', 'info', 'log']
+    for type in ['error', 'info', 'log', 'warn']
 
-      do (type) -> console[type] = ->
+      do (type) -> window.console[type] = console[type] = ->
 
         socket = process[if type is 'error' then 'stderr' else 'stdout']
         socket.write '[ERROR] ' if type is 'error'

@@ -3,6 +3,8 @@ PIXI = require 'avo/vendor/pixi'
 
 FunctionExt = require 'avo/extension/function'
 
+TextStyle = require 'avo/graphics/textStyle'
+
 Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 
@@ -21,13 +23,24 @@ module.exports = class Text extends Renderable
 
     mixin.call this for mixin in mixins
 
+    @_style = new TextStyle(
+      fontFamily: @fontFamily()
+      fontSize: @fontSize()
+    )
+
     @_text = new PIXI.Text text
 
-    do changeFont = =>
-      @_text.style.font = "#{@fontSize()}px #{@fontFamily()}"
-      @_text.dirty = true
+    # TODO Do we still need dirty here?
 
-    @on ['fontFamilyChanged', 'fontSizeChanged'], changeFont
+    @on 'fontFamilyChanged', ->
+      @_style.setFontFamily @fontFamily()
+      @_text.dirty = true
+    , this
+
+    @on 'fontSizeChanged', ->
+      @_style.setFontSize @fontSize()
+      @_text.dirty = true
+    , this
 
   FunctionExt.fastApply Mixin, [@::].concat mixins
 
@@ -61,7 +74,7 @@ module.exports = class Text extends Renderable
 
   textSize: ->
 
-    node = Font.textNode @_text.text, @_text.style.font
+    node = Font.textNode @_text.text, @_style
     window.document.body.appendChild node
     size = [node.clientWidth, node.clientHeight]
     window.document.body.removeChild node

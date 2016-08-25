@@ -46,11 +46,9 @@ module.exports = class LayerView
     return unless (tileset = @_layer.tileset())?
     return unless tileset.image()?
 
-    texture = new PIXI.RenderTexture @_renderer.renderer(), rectangle[2], rectangle[3]
+    texture = new PIXI.RenderTexture.create rectangle[2], rectangle[3]
 
-    container = new PIXI.Container()
     sprite = new Sprite @_layer.tileset().image()
-    container.addChild sprite.internal()
 
     tileSize = @_layer.tileset_.tileSize()
 
@@ -80,7 +78,7 @@ module.exports = class LayerView
           sprite.setPosition offset
           sprite.setSourceRectangle tileBox
 
-          texture.render container
+          @_renderer.renderer().render sprite.internal(), texture
 
         offset[0] += tileSize[0]
         start[0] += 1

@@ -48,11 +48,11 @@ module.exports = class Renderable
     VectorMixin(
       'position', 'x', 'y'
       x:
-        get: -> @internal().position.x
-        set: (x) -> @internal().position.x = x
+        get: -> @internal().x
+        set: (x) -> @internal().x = x
       y:
-        get: -> @internal().position.y
-        set: (y) -> @internal().position.y = y
+        get: -> @internal().y
+        set: (y) -> @internal().y = y
     )
 
     VectorMixin(
