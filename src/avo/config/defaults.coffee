@@ -10,7 +10,7 @@ config.fs =
 config.graphics =
 
   resolution: [1280, 720]
-  renderer: 'auto'
+  renderer: 'canvas'
 
 config.input =
 
