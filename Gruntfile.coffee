@@ -8,7 +8,7 @@ module.exports = (grunt) ->
     coffee:
       avocado:
         files: [
-          cwd: 'src/'
+          cwd: 'src'
           src: [
             '**/*.coffee'
             '!**/*.spec.coffee'
@@ -21,7 +21,7 @@ module.exports = (grunt) ->
     copy:
       avocado:
         files: [
-          cwd: 'src/'
+          cwd: 'src'
           src: [
             '**/*.js'
             '!**/*.spec.js'
