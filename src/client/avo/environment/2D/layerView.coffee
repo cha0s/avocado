@@ -106,6 +106,8 @@ module.exports = class LayerView
       chunkSize
     )
 
+    @_spriteContainer.removeAllChildren()
+
     for y in [0...chunkArea[1]]
       for x in [0...chunkArea[0]]
 
