@@ -8,13 +8,13 @@ module.exports = class Renderer
     @_renderer = switch type
 
       when 'auto'
-        PIXI.autoDetectRenderer size[0], size[1]
+        PIXI.autoDetectRenderer size[0], size[1], transparent: true
 
       when 'canvas'
         new PIXI.CanvasRenderer size[0], size[1], transparent: true
 
       when 'webgl'
-        new PIXI.WebGLRenderer size[0], size[1]
+        new PIXI.WebGLRenderer size[0], size[1], transparent: true
 
   element: -> @_renderer.view
 
