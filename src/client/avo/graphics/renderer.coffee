@@ -18,7 +18,7 @@ module.exports = class Renderer
 
   element: -> @_renderer.view
 
-  render: (item) -> @_renderer.render item.internal()
+  render: (item, target) -> @_renderer.render item.internal(), target
 
   renderer: -> @_renderer
 
