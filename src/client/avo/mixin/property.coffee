@@ -13,9 +13,7 @@ module.exports = Property = (key, meta = {}) ->
 
   class
 
-    constructor: ->
-
-      FunctionExt.fastApply meta.set, [_default], this if _default?
+    constructor: -> FunctionExt.fastApply meta.set, [_default], this
 
     @::[key] = meta.get
 
