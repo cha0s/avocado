@@ -1,15 +1,16 @@
 
-EventEmitter = require 'avo/mixin/eventEmitter'
 FunctionExt = require 'avo/extension/function'
-Lfo = require 'avo/mixin/lfo'
 MathExt = require 'avo/extension/math'
-Mixin = require 'avo/mixin'
-Property = require 'avo/mixin/property'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
-VectorMixin = require 'avo/mixin/vector'
 
 Container = require 'avo/graphics/container'
+
+EventEmitter = require 'avo/mixin/eventEmitter'
+Lfo = require 'avo/mixin/lfo'
+Mixin = require 'avo/mixin'
+Property = require 'avo/mixin/property'
+VectorMixin = require 'avo/mixin/vector'
 
 module.exports = class Camera
 
