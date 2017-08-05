@@ -73,6 +73,8 @@ module.exports = Room = class Room
 
   layer: (index) -> @_layers[index]
 
+  layers: -> @_layers
+
   layerCount: -> @_layers.length
 
   loadEntities: ->

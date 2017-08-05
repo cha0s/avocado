@@ -9,11 +9,18 @@ module.exports = Property = (key, meta = {}) ->
   meta.get ?= -> @["_#{key}"]
   meta.eq ?= (l, r) -> l is r
 
-  _default = ObjectExt.deepCopy meta.default ? null
+  if meta.default is null
+    _default = null
+  else if not meta.default?
+    _default = undefined
+  else
+    _default = ObjectExt.deepCopy meta.default
 
   class
 
-    constructor: -> FunctionExt.fastApply meta.set, [_default], this
+    constructor: ->
+      unless _default is undefined
+        FunctionExt.fastApply meta.set, [_default], this
 
     @::[key] = meta.get
 
@@ -22,6 +29,6 @@ module.exports = Property = (key, meta = {}) ->
 
       FunctionExt.fastApply meta.set, arguments, this
       unless FunctionExt.fastApply meta.eq, [oldValue, value], this
-        @emit? "#{key}Changed", oldValue
+        @emit? "#{key}Changed", oldValue, value
 
       return

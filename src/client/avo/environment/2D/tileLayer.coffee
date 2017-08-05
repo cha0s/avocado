@@ -172,13 +172,13 @@ module.exports = TileLayer = class
 
     matrix
 
-  renderTile: (destination, tilePosition, renderPosition) ->
+  # renderTile: (destination, tilePosition, renderPosition) ->
 
-    @tileset_.render(
-      renderPosition
-      destination
-      index
-    ) if index = @tileIndex tilePosition
+  #   @tileset_.render(
+  #     renderPosition
+  #     destination
+  #     index
+  #   ) if index = @tileIndex tilePosition
 
   sizeInPx: ->
 
@@ -187,50 +187,50 @@ module.exports = TileLayer = class
       @tileset_?.tileSize() ? [0, 0]
     )
 
-  render: (
-    position
-    destination
-    clip = [0, 0, 0, 0]
-    mode = Graphics.GraphicsService.BlendMode_Blend
-  ) ->
+  # render: (
+  #   position
+  #   destination
+  #   clip = [0, 0, 0, 0]
+  #   mode = Graphics.GraphicsService.BlendMode_Blend
+  # ) ->
 
-    return unless @tileIndices_?
+  #   return unless @tileIndices_?
 
-    tileSize = @tileset_.tileSize()
+  #   tileSize = @tileset_.tileSize()
 
-    if Vector.isZero Rectangle.size clip
+  #   if Vector.isZero Rectangle.size clip
 
-      clip[2] = destination.width()
-      clip[3] = destination.height()
+  #     clip[2] = destination.width()
+  #     clip[3] = destination.height()
 
-    offset = Vector.add position, Vector.scale(
-      Vector.mod clip, tileSize
-      -1
-    )
+  #   offset = Vector.add position, Vector.scale(
+  #     Vector.mod clip, tileSize
+  #     -1
+  #   )
 
-    start = Vector.floor Vector.div clip, tileSize
+  #   start = Vector.floor Vector.div clip, tileSize
 
-    area = Vector.floor Vector.div(
-      Rectangle.size clip
-      tileSize
-    )
+  #   area = Vector.floor Vector.div(
+  #     Rectangle.size clip
+  #     tileSize
+  #   )
 
-    for i in [0..1]
-      area[i] += 2
+  #   for i in [0..1]
+  #     area[i] += 2
 
-    for y in [0...area[1]]
+  #   for y in [0...area[1]]
 
-      for x in [0...area[0]]
+  #     for x in [0...area[0]]
 
-        @renderTile destination, start, offset
+  #       @renderTile destination, start, offset
 
-        offset[0] += tileSize[0]
-        start[0] += 1
+  #       offset[0] += tileSize[0]
+  #       start[0] += 1
 
-      offset[0] -= tileSize[0] * area[0]
-      offset[1] += tileSize[1]
+  #     offset[0] -= tileSize[0] * area[0]
+  #     offset[1] += tileSize[1]
 
-      start[0] -= area[0]
-      start[1] += 1
+  #     start[0] -= area[0]
+  #     start[1] += 1
 
 TileLayer.Tileset = require './tileset'

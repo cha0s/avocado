@@ -33,14 +33,14 @@ module.exports = VectorMixin = (
       XProperty::[_setX].call this, _vector[0]
       YProperty::[_setY].call this, _vector[1]
       unless Vector.equals oldVector, _vector
-        @emit? "#{vector}Changed", oldVector
+        @emit? "#{vector}Changed", oldVector, _vector
 
     @::[_setX] = (_x) ->
       oldX = @[x]()
       @[_setVector] [_x, @[y]()]
-      @emit? "#{x}Changed", oldX if oldX isnt _x
+      @emit? "#{x}Changed", oldX, _x if oldX isnt _x
 
     @::[_setY] = (_y) ->
       oldY = @[y]()
       @[_setVector] [@[x](), _y]
-      @emit? "#{y}Changed", oldY if oldY isnt _y
+      @emit? "#{y}Changed", oldY, _y if oldY isnt _y

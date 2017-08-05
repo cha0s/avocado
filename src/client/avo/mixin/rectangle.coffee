@@ -37,14 +37,17 @@ module.exports = RectangleMixin = (
       oldRectangle = @[rectangle]()
       PositionProperty::[_setPosition].call this, Rectangle.position _rectangle
       SizeProperty::[_setSize].call this, Rectangle.size _rectangle
-      @emit? "#{rectangle}Changed" unless Rectangle.equals oldRectangle, _rectangle
+      unless Rectangle.equals oldRectangle, _rectangle
+        @emit? "#{rectangle}Changed", oldRectangle, _rectangle
 
     @::[_setPosition] = (_position) ->
       oldPosition = @[position]()
       @[_setRectangle] Rectangle.compose _position, @[size]()
-      @emit? "#{position}Changed" unless Vector.equals oldPosition, _position
+      unless Vector.equals oldPosition, _position
+        @emit? "#{position}Changed", oldPosition, _position
 
     @::[_setSize] = (_size) ->
       oldSize = @[size]()
       @[_setRectangle] Rectangle.compose @[position](), _size
-      @emit? "#{size}Changed" unless Vector.equals oldSize, _size
+      unless Vector.equals oldSize, _size
+        @emit? "#{size}Changed", oldSize, _size

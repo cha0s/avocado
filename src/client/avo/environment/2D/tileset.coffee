@@ -1,130 +1,91 @@
 
-#Graphics = require 'avocado/Graphics'
+Promise = require 'vendor/bluebird'
 
 fs = require 'avo/fs'
-AvoImage = require 'avo/graphics/image'
-Sprite = require 'avo/graphics/sprite'
-Promise = require 'vendor/bluebird'
+
+FunctionExt = require 'avo/extension/function'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
 
-module.exports = Tileset = class
+AvoImage = require 'avo/graphics/image'
+Sprite = require 'avo/graphics/sprite'
 
-  @load: (uri) ->
-    fs.readJsonResource(uri).then (O) ->
-      O.uri = uri
-      tileset = new Tileset()
-      tileset.fromObject O
+EventEmitter = require 'avo/mixin/eventEmitter'
+Lfo = require 'avo/mixin/lfo'
+Mixin = require 'avo/mixin'
+Property = require 'avo/mixin/property'
+VectorMixin = require 'avo/mixin/vector'
+
+module.exports = class Tileset
+
+  mixins = [
+    EventEmitter
+
+    ImageProperty = Property 'image', default: null
+
+    Property 'name', default: ''
+
+    VectorMixin(
+      'tileSize', 'tileWidth', 'tileHeight'
+      tileWidth: default: 0, tileHeight: default: 0
+    )
+  ]
+
+  @load: (uri) -> fs.readJsonResource(uri).then (O) ->
+    O.uri = uri
+    (new Tileset()).fromObject O
 
   constructor: ->
+    mixin.call this for mixin in mixins
 
-    @image_ = null
-    @tileSize_ = [0, 0]
-    @tileBoxCache_ = []
-    @tiles_ = [0, 0]
-    @name_ = ''
-    @description_ = ''
+    @_tileBoxCache = []
+    @_uri = null
+
+    @on 'imageChanged', @onImageChanged.bind this
+    @on 'tileSizeChanged', @onTileSizeChanged.bind this
+
+  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   fromObject: (O) ->
 
-    @["#{i}_"] = O[i] for i of O
+    @setName O.name ? ''
+    @setTileSize O.tileSize ? [0, 0]
 
     imagePromise = if O.image?
       Promise.resolve O.image
     else
       AvoImage.load O.imageUri ? O.uri.replace '.tileset.json', '.png'
 
-    imagePromise.then (@image_) =>
-
-      @setImage @image_
-      this
+    imagePromise.then(@setImage.bind this).then => this
 
   toJSON: ->
 
-    tileSize: Vector.copy @tileSize_
-    name: @name_
-    description: @description_
+    tileSize: Vector.copy @tileSize()
+    name: @name()
 
-  copy: ->
-    tileset = new Tileset()
-    tileset.fromObject @toJSON()
-    tileset
+  isValid: ->
+    return false unless @image()?
+    return not Vector.isNull @image().size()
 
-  description: -> @description_
-  setDescription: (@description_) ->
+  onImageChanged: -> @_resetTileBoxCache()
 
-  name: -> if @name_ is '' then @uri_ else @name_
-  setName: (@name_) ->
+  onTileSizeChanged: -> @_resetTileBoxCache()
 
-  tileSize: -> @tileSize_
+  sizeInTiles: -> Vector.div @image().size(), @tileSize()
 
-  tileWidth: -> @tileSize_[0]
-  tileHeight: -> @tileSize_[1]
+  tileBox: (index) -> @_tileBoxCache[index]
 
-  setImage: (@image_) -> @setTileSize @tileSize_
-
-  setTileSize: (w, h) ->
-
-    @tileSize_ = if h? then [w, h] else w
-
-    return unless @image_?
-
-    @tiles_ = Vector.div @image_.size(), @tileSize_
-
-    # Warm up the tile box cache.
-    @tileBoxCache_ = []
-    for i in [0...Vector.area @tiles_]
-      @tileBox i
-
-    return
-
-  setTileWidth: (width) -> @setTileSize width, @tileSize_[1]
-  setTileHeight: (height) -> @setTileSize @tileSize_[0], height
-
-  tiles: -> @tiles_
-
-  render: (
-    location
-    destination
-    index
-    mode
-    tileClip = [0, 0, @tileSize_[0], @tileSize_[1]]
-  ) ->
-
-    return unless @image_?
-
-    tileBox = @tileBox index
-    tileBox = Rectangle.intersection(
-      tileBox
-      Rectangle.translated tileClip, Rectangle.position tileBox
-    )
-
-    sprite = new Sprite @image_
-    sprite.setPosition Vector.add location, Rectangle.position tileClip
-    sprite.setSourceRectangle tileBox
-
-    destination.render sprite
-    # sprite.renderTo destination
-
-  image: -> @image_
+  tileCount: -> Vector.area @sizeInTiles()
 
   uri: -> @uri_
 
-  isValid: ->
-    return false unless @image_?
+  _resetTileBoxCache: ->
+    return unless @isValid()
 
-    not Vector.isNull @image_.size()
+    tiles = Vector.div @image().size(), tileSize = @tileSize()
 
-  tileBox: (index) ->
-
-    @tileBoxCache_[index] = Rectangle.compose(
-      Vector.mul(
-        [index % @tiles_[0], Math.floor index / @tiles_[0]]
-        @tileSize_
-      )
-      @tileSize_
-    ) unless @tileBoxCache_[index]?
-
-    @tileBoxCache_[index]
-
-  tileCount: -> Vector.area @tiles_
+    @_tileBoxCache = []
+    @_tileBoxCache[i] = Rectangle.compose(
+      Vector.mul [i % tiles[0], Math.floor i / tiles[0]], tileSize
+      tileSize
+    ) for i in [0...Vector.area tiles]
