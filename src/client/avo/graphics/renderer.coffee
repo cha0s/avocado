@@ -22,6 +22,8 @@ module.exports = class Renderer
 
   renderer: -> @_renderer
 
+  resize: (size) -> @_renderer.resize size[0], size[1]
+
   height: -> @_renderer.view.height
   width: -> @_renderer.view.width
   size: -> [@_renderer.view.width, @_renderer.view.height]

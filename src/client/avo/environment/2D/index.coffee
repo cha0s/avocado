@@ -1,51 +1,65 @@
 
-fs = require 'avo/fs'
 Promise = require 'vendor/bluebird'
 
-module.exports = Environment = class
+fs = require 'avo/fs'
 
-  @load: (uri) ->
+EventEmitter = require 'avo/mixin/eventEmitter'
+Property = require 'avo/mixin/property'
+Mixin = require 'avo/mixin'
 
-    fs.readJsonResource(uri).then (O) ->
-      O.uri = uri
+Room = require './room'
 
-      environment = new Environment()
-      environment.fromObject O
+module.exports = class Environment
+
+  Mixin.toClass this, mixins = [
+    EventEmitter
+
+    Property 'description', default: ''
+    Property 'label', default: 'New environment'
+    Property 'uri', default: null
+  ]
+
+  @load: (uri) -> fs.readJsonResource(uri).then (O) ->
+    O.uri = uri
+    (new Environment()).fromObject O
 
   constructor: ->
+    mixin.call this for mixin in mixins
 
-    @rooms_ = []
-    @name_ = ''
-    @description_ = ''
+    @_rooms = []
 
   fromObject: (O) ->
 
-    @["#{i}_"] = O[i] for i of O
+    @setLabel O.label if O.label?
+    @setDescription O.description if O.description?
+    @setUri O.uri if O.uri?
 
-    @rooms_ = []
+    @_rooms = []
+
     roomPromises = for roomO in O.rooms
-      room = new Environment.Room()
-      @addRoom room
-      room.fromObject roomO
+      (new Room()).fromObject(roomO).then @addRoom.bind this
 
-    Promise.all(roomPromises).then => this
+    Promise.all(roomPromises).then ((self) -> -> self) this
 
-  addRoom: (room) -> @rooms_.push room
-  room: (index) -> @rooms_[index]
-  roomCount: -> @rooms_.length
+  addRoom: (room) ->
 
-  name: -> if @name_ is '' then @uri_ else @name_
-  setName: (@name_) ->
+    @_rooms.push room
+    @emit 'roomAdded', room
 
-  description: -> @description_
-  setDescription: (@description_) ->
+  removeRoom: (room) ->
+    return if -1 is index = @_rooms.indexOf room
 
-  uri: -> @uri_
-  setUri: (@uri_) ->
+    @_rooms.splice index, 1
+    @emit 'roomRemoved', room
+
+  room: (index) -> @_rooms[index]
+
+  roomCount: -> @_rooms.length
+
+  rooms: -> @_rooms
 
   toJSON: ->
 
-    name: @name_
-    rooms: @rooms_
-
-Environment.Room = require './room'
+    description: @description()
+    label: @label()
+    rooms: @_rooms

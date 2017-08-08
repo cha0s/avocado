@@ -17,10 +17,7 @@ module.exports = class Container extends Renderable
 
   removeChild: (child) -> @_container.removeChild child.internal()
 
-  removeAllChildren: ->
-
-    while @_container.children.length > 0
-      @_container.removeChildAt @_container.children.length - 1
+  removeAllChildren: -> @_container.removeChildren()
 
   sortChildren: (fn) -> @_container.children.sort fn
 

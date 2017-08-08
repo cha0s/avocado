@@ -21,13 +21,15 @@ module.exports = class LayerView
   Mixin.toClass this, mixins = [
     EventEmitter
 
-    PositionProperty = VectorMixin(
+    VectorMixin(
       'position', 'x', 'y'
       x: default: 0
       y: default: 0
     )
 
-    LayerProperty = Property 'layer', default: null
+    Property 'layer', default: null
+
+    Property 'tileset', default: null
   ]
 
   constructor: (@chunkSize = [512, 512]) ->
@@ -37,7 +39,7 @@ module.exports = class LayerView
 
     @_renderer = new Renderer [0, 0], 'canvas'
     @_container = new Container()
-    @_spriteContainer = new SpriteContainer()
+    @_spriteContainer = new Container()
 
     @_container.addChild @_spriteContainer
 
@@ -50,22 +52,24 @@ module.exports = class LayerView
     chunkPosition = Vector.floor Vector.div position, @chunkSize
     [x, y] = chunkPosition
 
-    # ###### TODO: Something is wrong here...
-    position = Vector.add position, [-0.5, -0.5]
-
     @_chunkMap[y] ?= {}
-    if @_chunkMap[y][x]?
-      @_spriteContainer.removeChild @_chunkMap[y][x]
+    @_spriteContainer.removeChild @_chunkMap[y][x] if @_chunkMap[y][x]?
 
-    sprite = new Sprite()
-    sprite._sprite = new PIXI.Sprite chunk
-    @_spriteContainer.addChild @_chunkMap[y][x] = sprite
+    # ###### TODO: Ugly.
+    sprite = new Sprite _texture: chunk
     sprite.setPosition position
+    @_spriteContainer.addChild @_chunkMap[y][x] = sprite
 
-  onLayerChanged: -> @renderChunks()
+  onLayerChanged: (old, current) ->
+
+    old?.off '.LayerView'
+
+    current?.on 'tileIndexChanged.LayerView', @onLayerTileIndexChanged.bind this
+
+    @renderChunks()
 
   onLayerTileIndexChanged: (position, tileIndex) ->
-    return unless (tileset = @_layer.tileset())?
+    return unless (tileset = @tileset())?
 
     position = Vector.mul position, tileset.tileSize()
     chunkPosition = Vector.floor Vector.div position, @chunkSize
@@ -89,14 +93,22 @@ module.exports = class LayerView
 
   onPositionChanged: -> @_container.setPosition Vector.scale @position(), -1
 
+  removeAllChunks: ->
+
+    @_chunkMap = {}
+    @_spriteContainer.removeAllChildren()
+
   renderTo: (rectangle, target, offset = [0, 0]) ->
-    return unless @_layer.tileIndices_?
-    return unless (tileset = @_layer.tileset())?
+
+    return unless layer = @layer()
+    return if layer.isEmpty()
+
+    return unless tileset = @tileset()
     return unless tileset.image()?
 
-    sprite = new Sprite @_layer.tileset().image()
+    sprite = new Sprite tileset.image()
 
-    tileSize = @_layer.tileset_.tileSize()
+    tileSize = tileset.tileSize()
 
     offset = Vector.add offset, Vector.scale(
       Vector.mod rectangle, tileSize
@@ -117,7 +129,7 @@ module.exports = class LayerView
 
       for x in [0...area[0]]
 
-        if index = @_layer.tileIndex start
+        if index = layer.tileIndexAt start
 
           tileBox = tileset.tileBox index
 
@@ -148,13 +160,11 @@ module.exports = class LayerView
   renderChunks: ->
 
     chunkArea = Vector.ceil Vector.div(
-      @_layer.sizeInPx()
+      @sizeInPx()
       @chunkSize
     )
 
-    @_spriteContainer.removeAllChildren()
-
-    @_chunkMap = {}
+    @removeAllChunks()
 
     for y in [0...chunkArea[1]]
       @_chunkMap[y] ?= {}
@@ -171,3 +181,9 @@ module.exports = class LayerView
 
     return
 
+  sizeInPx: ->
+
+    return [0, 0] unless tileset = @tileset()
+    return [0, 0] unless layer = @layer()
+
+    return Vector.mul layer.size(), tileset.tileSize()

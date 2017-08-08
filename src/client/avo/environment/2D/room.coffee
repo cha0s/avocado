@@ -16,7 +16,8 @@ module.exports = Room = class Room
 
   mixins = [
     EventEmitter
-    Property 'name', default: ''
+
+    Property 'label', default: ''
     SizeProperty = VectorMixin(
       'size', 'width', 'height'
       width: default: 0
@@ -51,7 +52,7 @@ module.exports = Room = class Room
     else
       []
 
-    @setName O.name
+    @setLabel O.label ? 'New room'
 
     tilesetPromise = if O.tilesetUri?
       Room.Tileset.load O.tilesetUri
@@ -111,7 +112,7 @@ module.exports = Room = class Room
 
   toJSON: ->
 
-    name: @name()
+    label: @label()
     size: @size()
     layers: _.map @_layers, (layer) -> layer.toJSON()
     collision: @_collision

@@ -48,6 +48,8 @@ module.exports = class Tileset
 
   fromObject: (O) ->
 
+    @_uri = O.uri
+
     @setName O.name ? ''
     @setTileSize O.tileSize ? [0, 0]
 
@@ -77,7 +79,7 @@ module.exports = class Tileset
 
   tileCount: -> Vector.area @sizeInTiles()
 
-  uri: -> @uri_
+  uri: -> @_uri
 
   _resetTileBoxCache: ->
     return unless @isValid()
