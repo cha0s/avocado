@@ -1,19 +1,14 @@
 
-FunctionExt = require 'avo/extension/function'
 Vector = require 'avo/extension/vector'
 
 EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
 
-module.exports = class Input
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-  ]
+  EventEmitter
 
-  constructor: -> mixin.call this for mixin in mixins
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
+], class Input
 
   attachListeners: (config) ->
     for type of config

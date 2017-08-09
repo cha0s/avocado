@@ -3,21 +3,39 @@
 #Graphics = require 'avo/graphics'
 
 _ = require 'vendor/underscore'
-EventEmitter = require 'avo/mixin/eventEmitter'
-fs = require 'avo/fs'
-FunctionExt = require 'avo/extension/function'
-Image = require 'avo/graphics/image'
-Mixin = require 'avo/mixin'
 Promise = require 'vendor/bluebird'
-Property = require 'avo/mixin/property'
+
 Rectangle = require 'avo/extension/rectangle'
-Sprite = require 'avo/graphics/sprite'
 String = require 'avo/extension/string'
-TimedIndex = require 'avo/mixin/timedIndex'
 Vector = require 'avo/extension/vector'
+
+fs = require 'avo/fs'
+
+EventEmitter = require 'avo/mixin/eventEmitter'
+Mixin = require 'avo/mixin'
+Property = require 'avo/mixin/property'
+TimedIndex = require 'avo/mixin/timedIndex'
 VectorMixin = require 'avo/mixin/vector'
 
-module.exports = Animation = class Animation
+Image = require 'avo/graphics/image'
+Sprite = require 'avo/graphics/sprite'
+
+module.exports = Mixin.toClass [
+
+  EventEmitter
+  DirectionProperty = Property 'direction', default: 0
+  Property 'directionCount', default: 1
+  Property 'frameSize', default: [0, 0]
+  ImageProperty = Property 'image', default: null
+  VectorMixin(
+    'position', 'x', 'y'
+    x: default: 0
+    y: default: 0
+  )
+  TimedIndex 'frame'
+  Property 'uri', default: ''
+
+], class Animation
 
   @load: (uri) ->
 
@@ -28,24 +46,7 @@ module.exports = Animation = class Animation
       O.uri = uri
       (new Animation()).fromObject O
 
-  mixins = [
-    EventEmitter
-    DirectionProperty = Property 'direction', default: 0
-    Property 'directionCount', default: 1
-    Property 'frameSize', default: [0, 0]
-    ImageProperty = Property 'image', default: null
-    VectorMixin(
-      'position', 'x', 'y'
-      x: default: 0
-      y: default: 0
-    )
-    TimedIndex 'frame'
-    Property 'uri', default: ''
-  ]
-
   constructor: ->
-
-    mixin.call @ for mixin in mixins
 
     @_interval = null
     @_sprite = null
@@ -67,8 +68,6 @@ module.exports = Animation = class Animation
       ]
       => @_sprite.setSourceRectangle @sourceRectangle()
     )
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   fromObject: (O) ->
 

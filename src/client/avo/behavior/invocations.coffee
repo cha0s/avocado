@@ -1,10 +1,6 @@
 
 Promise = require 'vendor/bluebird'
 
-EventEmitter = require 'avo/mixin/eventEmitter'
-FunctionExt = require 'avo/extension/function'
-Mixin = require 'avo/mixin'
-
 Collection = require './collection'
 Invocation = require './invocation'
 

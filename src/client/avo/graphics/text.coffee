@@ -1,8 +1,6 @@
 
 PIXI = require 'vendor/pixi'
 
-FunctionExt = require 'avo/extension/function'
-
 TextStyle = require 'avo/graphics/textStyle'
 
 Mixin = require 'avo/mixin'
@@ -11,17 +9,15 @@ Property = require 'avo/mixin/property'
 Font = require './font'
 Renderable = require './renderable'
 
-module.exports = class Text extends Renderable
+module.exports = Mixin.toClass [
 
-  mixins = [
-    Property 'fontFamily', default: 'sans-serif'
-    Property 'fontSize', default: 12
-  ]
+  Property 'fontFamily', default: 'sans-serif'
+  Property 'fontSize', default: 12
+
+], class Text extends Renderable
 
   constructor: (text) ->
     super
-
-    mixin.call this for mixin in mixins
 
     @_style = new TextStyle(
       fontFamily: @fontFamily()
@@ -41,8 +37,6 @@ module.exports = class Text extends Renderable
       @_style.setFontSize @fontSize()
       @_text.dirty = true
     , this
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   setColor: (color) ->
 

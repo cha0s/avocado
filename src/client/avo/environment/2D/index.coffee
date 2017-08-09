@@ -9,22 +9,21 @@ Mixin = require 'avo/mixin'
 
 Room = require './room'
 
-module.exports = class Environment
+module.exports = Mixin.toClass [
 
-  Mixin.toClass this, mixins = [
-    EventEmitter
+  EventEmitter
 
-    Property 'description', default: ''
-    Property 'label', default: 'New environment'
-    Property 'uri', default: null
-  ]
+  Property 'description', default: ''
+  Property 'label', default: 'New environment'
+  Property 'uri', default: null
+
+], class Environment
 
   @load: (uri) -> fs.readJsonResource(uri).then (O) ->
     O.uri = uri
     (new Environment()).fromObject O
 
   constructor: ->
-    mixin.call this for mixin in mixins
 
     @_rooms = []
 

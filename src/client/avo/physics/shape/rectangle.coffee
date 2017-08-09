@@ -2,31 +2,29 @@
 Mixin = require 'avo/mixin'
 VectorMixin = require 'avo/mixin/vector'
 
-FunctionExt = require 'avo/extension/function'
 Vector = require 'avo/extension/vector'
 
 Shape = require './index'
 ShapePolygon = require './polygon'
 
-module.exports = class ShapeRectangle extends ShapePolygon
+module.exports = Mixin.toClass [
 
-  mixins = [
-    VectorMixin(
-      'position', 'x', 'y'
-      x: default: 0
-      y: default: 0
-    )
-    VectorMixin(
-      'size', 'width', 'height'
-      width: default: 0
-      height: default: 0
-    )
-  ]
+  VectorMixin(
+    'position', 'x', 'y'
+    x: default: 0
+    y: default: 0
+  )
+
+  VectorMixin(
+    'size', 'width', 'height'
+    width: default: 0
+    height: default: 0
+  )
+
+], class ShapeRectangle extends ShapePolygon
 
   constructor: ->
     super
-
-    mixin.call this for mixin in mixins
 
     @setType 'rectangle'
 
@@ -43,8 +41,6 @@ module.exports = class ShapeRectangle extends ShapePolygon
         Vector.add position, [size[0] - 1, size[1] - 1]
         Vector.add position, [0, size[1] - 1]
       ]
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   fromObject: (O) ->
     Shape::fromObject.call this, O

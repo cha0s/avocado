@@ -2,22 +2,21 @@
 Promise = require 'vendor/bluebird'
 
 EventEmitter = require 'avo/mixin/eventEmitter'
-FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 
 ConnectionManager = require './connection-manager'
 
 instance = null
 
-module.exports = class Network
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-    ConnectionManager
-  ]
+  EventEmitter
+
+  ConnectionManager
+
+], class Network
 
   constructor: ->
-    mixin.call this for mixin in mixins
 
     self = this
 
@@ -26,8 +25,6 @@ module.exports = class Network
       self.addConnection socket
 
       socket.on 'disconnect', -> self.removeConnection socket.id
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   listen: (options) ->
 

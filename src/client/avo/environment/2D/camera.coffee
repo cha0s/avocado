@@ -1,5 +1,4 @@
 
-FunctionExt = require 'avo/extension/function'
 MathExt = require 'avo/extension/math'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
@@ -12,33 +11,32 @@ Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 VectorMixin = require 'avo/mixin/vector'
 
-module.exports = class Camera
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-    Lfo
+  EventEmitter
+  Lfo
 
-    Property 'easing', default: 7
+  Property 'easing', default: 7
 
-    AreaProperty = VectorMixin(
-      'area', 'areaX', 'areaY'
-      areaX: default: 0
-      areaY: default: 0
-    )
+  AreaProperty = VectorMixin(
+    'area', 'areaX', 'areaY'
+    areaX: default: 0
+    areaY: default: 0
+  )
 
-    VectorMixin(
-      'offset', 'offsetX', 'offsetY'
-      offsetX: default: 0
-      offsetY: default: 0
-    )
+  VectorMixin(
+    'offset', 'offsetX', 'offsetY'
+    offsetX: default: 0
+    offsetY: default: 0
+  )
 
-    VectorMixin 'position'
+  VectorMixin 'position'
 
-    VectorMixin 'size', 'width', 'height'
-  ]
+  VectorMixin 'size', 'width', 'height'
+
+], class Camera
 
   constructor: ->
-    mixin.call this for mixin in mixins
 
     @_container = new Container()
 
@@ -52,8 +50,6 @@ module.exports = class Camera
     @_container.on 'scaleChanged', @_updateProjection, this
     @_container.on 'positionChanged', => @emit 'containerPositionChanged'
     @on ['offsetChanged', 'positionChanged'], @_updateProjection, this
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   addChild: (child) -> @_container.addChild child
 

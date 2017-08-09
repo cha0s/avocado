@@ -16,16 +16,12 @@ module.exports = VectorMixin = (
   _setX = String.setterName x
   _setY = String.setterName y
 
-  class
+  Mixin.toClass [
 
-    mixins = [
-      XProperty = Property x, meta[x] ? {}
-      YProperty = Property y, meta[y] ? {}
-    ]
+    XProperty = Property x, meta[x] ? {}
+    YProperty = Property y, meta[y] ? {}
 
-    constructor: -> mixin.call @ for mixin in mixins
-
-    FunctionExt.fastApply Mixin, [@::].concat mixins
+  ], class VectorMixin
 
     @::[vector] = -> [@[x](), @[y]()]
     @::[_setVector] = (_vector) ->

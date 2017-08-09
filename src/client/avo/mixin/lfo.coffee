@@ -1,14 +1,15 @@
 
-timing = require 'avo/timing'
-
 _ = require 'vendor/underscore'
-EventEmitter = require './eventEmitter'
+Promise = require 'vendor/bluebird'
+
 FunctionExt = require 'avo/extension/function'
+String = require 'avo/extension/string'
+
+Ticker = require 'avo/timing/ticker'
+
+EventEmitter = require './eventEmitter'
 Mixin = require './index'
 Property = require './property'
-Promise = require 'vendor/bluebird'
-String = require 'avo/extension/string'
-Ticker = require 'avo/timing/ticker'
 Transition = require './transition'
 
 Modulator =
@@ -29,15 +30,15 @@ Modulator =
   Sine: ->
     (location) -> .5 * (1 + Math.sin location * Math.PI * 2)
 
-ModulatedProperty = class
+ModulatedProperty = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-    Property 'frequency', default: 0
-    Property 'location', default: 0
-    Property 'magnitude', default: 0
-    Transition
-  ]
+  EventEmitter
+  Property 'frequency', default: 0
+  Property 'location', default: 0
+  Property 'magnitude', default: 0
+  Transition
+
+], class ModulatedProperty
 
   constructor: (
     @_object, @_key
@@ -48,8 +49,6 @@ ModulatedProperty = class
     modulators = [modulators] unless _.isArray modulators
 
     @_median = median
-
-    mixin.call this for mixin in mixins
 
     @on 'magnitudeChanged', => @_magnitude2 = @magnitude() * 2
 
@@ -95,8 +94,6 @@ ModulatedProperty = class
 
     @_transitions = []
 
-  FunctionExt.fastApply Mixin, [@::].concat mixins
-
   tick: (elapsed) ->
 
     transition.tick elapsed for transition in @_transitions
@@ -140,7 +137,7 @@ ModulatedProperty = class
 
     transition
 
-LfoResult = class
+class LfoResult
 
   constructor: (object, properties, @_duration = 0) ->
 
@@ -195,7 +192,7 @@ LfoResult = class
 
     return
 
-module.exports = class
+module.exports = class Lfo
 
   lfo: (properties, duration) ->
 

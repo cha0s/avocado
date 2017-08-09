@@ -2,27 +2,22 @@
 Promise = require 'vendor/bluebird'
 
 EventEmitter = require 'avo/mixin/eventEmitter'
-FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 
 Invocation = require './invocation'
 Invocations = require './invocations'
 
-module.exports = class Actions extends Invocations
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-  ]
+  EventEmitter
+
+], class Actions extends Invocations
 
   constructor: ->
     super
 
-    mixin.call this for mixin in mixins
-
     @_index = 0
     @_state = null
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   index: -> @_index
 
@@ -38,7 +33,7 @@ module.exports = class Actions extends Invocations
       @_invocations[@_index++].invoke context, @_state = new Invocation.State()
 
       if Promise.is @_state.promise()
-        @_state.promise().then => @_prologue()
+        @_state.promise().then @_prologue.bind this
         @_state.promise().catch (error) -> throw error
         break
 

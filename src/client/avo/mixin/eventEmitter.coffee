@@ -5,10 +5,8 @@
 # analytics = require 'avo/analytics'
 
 _ = require 'vendor/underscore'
-FunctionExt = require 'avo/extension/function'
-Mixin = require './index'
 
-module.exports = EventEmitter = class
+module.exports = class EventEmitter
 
   # Make space for the events and event emitters.
   constructor: ->
@@ -167,5 +165,3 @@ module.exports = EventEmitter = class
             bound.apply bound.__that, (arg for arg, i in arguments when i > offset)
 
     return
-
-EventEmitter.Mixin = (O) -> Mixin O, EventEmitter

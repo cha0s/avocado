@@ -4,10 +4,10 @@ Mixin = require 'avo/mixin'
 BehaviorItem = require './behaviorItem'
 Invocation = require './invocation'
 
-module.exports = class Value extends BehaviorItem
+module.exports = Mixin.toClass [
 
-  constructor: -> Invocation.call this
+  Invocation
+
+], class Value extends BehaviorItem
 
   get: (context) -> @invoke context
-
-Mixin Value::, Invocation

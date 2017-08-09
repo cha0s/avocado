@@ -1,29 +1,27 @@
 
-EventEmitter = require './eventEmitter'
-FunctionExt = require 'avo/extension/function'
-Mixin = require './index'
-Property = require './property'
 Ticker = require 'avo/timing/ticker'
 
-module.exports = TimedIndex = (
+EventEmitter = require './eventEmitter'
+Mixin = require './index'
+Property = require './property'
+
+module.exports = (
   indexName = 'index'
 ) ->
 
   _indexCount = "#{indexName}Count"
   _indexRate = "#{indexName}Rate"
 
-  class
+  Mixin.toClass [
 
-    mixins = [
-      EventEmitter
-      IndexProperty = Property 'index', default: 0
-      Property _indexCount, default: 0
-      Property _indexRate, default: 100
-    ]
+    EventEmitter
+    IndexProperty = Property 'index', default: 0
+    Property _indexCount, default: 0
+    Property _indexRate, default: 100
+
+  ], class TimedIndex
 
     constructor: ->
-
-      mixin.call this for mixin in mixins
 
       @_ticking = false
 
@@ -32,8 +30,6 @@ module.exports = TimedIndex = (
       @_ticker.on 'tick', @_tick, @
 
       @on 'indexRateChanged', (indexRate) -> @_ticker.setFrequency indexRate
-
-    FunctionExt.fastApply Mixin, [@::].concat mixins
 
     _tick: ->
 

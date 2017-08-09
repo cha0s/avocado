@@ -4,40 +4,40 @@ Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 VectorMixin = require 'avo/mixin/vector'
 
-FunctionExt = require 'avo/extension/function'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
 
 # Primitives = require 'avo/graphics/primitives'
 
-module.exports = class Shape
+module.exports = Mixin.toClass [
 
-  mixins = [
-    VectorMixin(
-      'origin', 'originX', 'originY'
-      originX: default: 0
-      originY: default: 0
-    )
-    VectorMixin(
-      'parentOrigin', 'parentOriginX', 'parentOriginY'
-      parentOriginX: default: 0
-      parentOriginY: default: 0
-    )
-    Property 'parentRotation', default: 0
-    Property 'parentScale', default: 1
-    Property 'rotation', default: 0
-    Property 'scale', default: 1
-    Property 'type', default: 'index'
-    EventEmitter
-  ]
+  EventEmitter
+
+  Property 'parentRotation', default: 0
+  Property 'parentScale', default: 1
+  Property 'rotation', default: 0
+  Property 'scale', default: 1
+  Property 'type', default: 'index'
+
+  VectorMixin(
+    'origin', 'originX', 'originY'
+    originX: default: 0
+    originY: default: 0
+  )
+
+  VectorMixin(
+    'parentOrigin', 'parentOriginX', 'parentOriginY'
+    parentOriginX: default: 0
+    parentOriginY: default: 0
+  )
+
+], class Shape
 
   constructor: ->
 
     mixin.call this for mixin in mixins
 
     # @_primitives = new Primitives()
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   aabb: (position) -> [0, 0, 0, 0]
 

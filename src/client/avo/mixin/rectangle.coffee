@@ -1,12 +1,12 @@
 
-FunctionExt = require 'avo/extension/function'
-Mixin = require './index'
 Rectangle = require 'avo/extension/rectangle'
 String = require 'avo/extension/string'
 Vector = require 'avo/extension/vector'
+
+Mixin = require './index'
 VectorMixin = require './vector'
 
-module.exports = RectangleMixin = (
+module.exports = (
   rectangle = 'rectangle'
   x = 'x'
   y = 'y'
@@ -21,16 +21,12 @@ module.exports = RectangleMixin = (
   _setPosition = String.setterName position
   _setSize = String.setterName size
 
-  class
+  Mixin.toClass [
 
-    mixins = [
-      PositionProperty = VectorMixin position, x, y, meta[position]
-      SizeProperty = VectorMixin size, width, height, meta[size]
-    ]
+    PositionProperty = VectorMixin position, x, y, meta[position]
+    SizeProperty = VectorMixin size, width, height, meta[size]
 
-    constructor: -> mixin.call @ for mixin in mixins
-
-    FunctionExt.fastApply Mixin, [@::].concat mixins
+  ], class RectangleMixin
 
     @::[rectangle] = -> Rectangle.compose @[position](), @[size]()
     @::[_setRectangle] = (_rectangle) ->

@@ -3,7 +3,6 @@ Promise = require 'vendor/bluebird'
 
 fs = require 'avo/fs'
 
-FunctionExt = require 'avo/extension/function'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
 
@@ -16,35 +15,32 @@ Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 VectorMixin = require 'avo/mixin/vector'
 
-module.exports = class Tileset
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
+  EventEmitter
 
-    ImageProperty = Property 'image', default: null
+  ImageProperty = Property 'image', default: null
 
-    Property 'name', default: ''
+  Property 'name', default: ''
 
-    VectorMixin(
-      'tileSize', 'tileWidth', 'tileHeight'
-      tileWidth: default: 0, tileHeight: default: 0
-    )
-  ]
+  VectorMixin(
+    'tileSize', 'tileWidth', 'tileHeight'
+    tileWidth: default: 0, tileHeight: default: 0
+  )
+
+], class Tileset
 
   @load: (uri) -> fs.readJsonResource(uri).then (O) ->
     O.uri = uri
-    (new Tileset()).fromObject O
+    (new module.exports()).fromObject O
 
   constructor: ->
-    mixin.call this for mixin in mixins
 
     @_tileBoxCache = []
     @_uri = null
 
     @on 'imageChanged', @onImageChanged.bind this
     @on 'tileSizeChanged', @onTileSizeChanged.bind this
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   fromObject: (O) ->
 

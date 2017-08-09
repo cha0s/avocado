@@ -21,20 +21,18 @@
 
 Promise = require 'vendor/bluebird'
 
-FunctionExt = require 'avo/extension/function'
 String = require 'avo/extension/string'
 
 EventEmitter = require '../eventEmitter'
 Mixin = require '../index'
 
-TransitionResult = class TransitionResult
+TransitionResult = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-  ]
+  EventEmitter
+
+], class TransitionResult
 
   constructor: (@_object, @_props, duration, easing) ->
-    mixin.call this for mixin in mixins
 
     # Speed might not get passed. If it doesn't, default to 100
     # milliseconds.
@@ -69,8 +67,6 @@ TransitionResult = class TransitionResult
     @_elapsed = 0
 
     @_isEmittingProgress = false
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   isEmittingProgress: -> @_isEmittingProgress
 

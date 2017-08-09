@@ -1,33 +1,30 @@
 
 
-Mixin = require 'avo/mixin'
-Property = require 'avo/mixin/property'
-VectorMixin = require 'avo/mixin/vector'
-
-FunctionExt = require 'avo/extension/function'
 Vector = require 'avo/extension/vector'
 Vertice = require 'avo/extension/vertice'
 
 color = require 'avo/graphics/color'
 # Primitives = require 'avo/graphics/primitives'
 
+Mixin = require 'avo/mixin'
+Property = require 'avo/mixin/property'
+VectorMixin = require 'avo/mixin/vector'
+
 Shape = require './index'
 
-module.exports = class ShapeCircle extends Shape
+module.exports = Mixin.toClass [
 
-  mixins = [
-    VectorMixin(
-      'position', 'x', 'y'
-      x: default: 0
-      y: default: 0
-    )
-    Property 'radius', default: 0
-  ]
+  VectorMixin(
+    'position', 'x', 'y'
+    x: default: 0
+    y: default: 0
+  )
+  Property 'radius', default: 0
+
+], class ShapeCircle extends Shape
 
   constructor: ->
     super
-
-    mixin.call this for mixin in mixins
 
     @setType 'circle'
 
@@ -62,8 +59,6 @@ module.exports = class ShapeCircle extends Shape
       # )
 
       @emit 'aabbChanged'
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   aabb: (direction) ->
 

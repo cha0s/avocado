@@ -1,19 +1,19 @@
 
 FunctionExt = require 'avo/extension/function'
+
 Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 
-class Color
+Color = Mixin.toClass [
 
-  mixins = [
-    Property 'red', default: 0
-    Property 'green', default: 0
-    Property 'blue', default: 0
-    Property 'alpha', default: 1
-  ]
+  Property 'red', default: 0
+  Property 'green', default: 0
+  Property 'blue', default: 0
+  Property 'alpha', default: 1
+
+], class Color
 
   constructor: (r = 255, g = 0, b = 255, a = 1) ->
-    mixin.call @ for mixin in mixins
 
     @setRed r
     @setGreen g
@@ -23,8 +23,6 @@ class Color
   toCss: -> "rgba(#{@red()}, #{@green()}, #{@blue()}, #{@alpha()})"
 
   toInteger: -> (@red() << 16) | (@green() << 8) | @blue()
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
 color = module.exports = (r, g, b, a) -> new Color r, g, b, a
 

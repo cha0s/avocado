@@ -1,17 +1,11 @@
 
 EventEmitter = require 'avo/mixin/eventEmitter'
-FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 
-module.exports = class Socket
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-  ]
+  EventEmitter
 
-  constructor: -> mixin.call this for mixin in mixins
+], class Socket
 
   send: (message) ->
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
-

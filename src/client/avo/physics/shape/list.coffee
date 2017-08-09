@@ -4,31 +4,31 @@ Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 VectorMixin = require 'avo/mixin/vector'
 
-FunctionExt = require 'avo/extension/function'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
 
-module.exports = class ShapeList
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-    VectorMixin(
-      'origin', 'originX', 'originY'
-      originX: default: 0
-      originY: default: 0
-    )
-    VectorMixin(
-      'position', 'x', 'y'
-      x: default: 0
-      y: default: 0
-    )
-    Property 'rotation', default: 0
-    Property 'scale', default: 1
-  ]
+  EventEmitter
+
+  VectorMixin(
+    'origin', 'originX', 'originY'
+    originX: default: 0
+    originY: default: 0
+  )
+
+  VectorMixin(
+    'position', 'x', 'y'
+    x: default: 0
+    y: default: 0
+  )
+
+  Property 'rotation', default: 0
+  Property 'scale', default: 1
+
+], class ShapeList
 
   constructor: ->
-
-    mixin.call this for mixin in mixins
 
     @_shapes = []
 
@@ -50,8 +50,6 @@ module.exports = class ShapeList
     @on 'scaleChanged', =>
       for shape in @_shapes
         shape.setParentScale @scale()
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   fromObject: (O) ->
 

@@ -11,16 +11,15 @@ EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
 VectorMixin = require 'avo/mixin/vector'
 
-module.exports = TileLayer = class
+module.exports = Mixin.toClass [
 
-  Mixin.toClass this, mixins = [
-    EventEmitter
+  EventEmitter
 
-    SizeProperty = VectorMixin 'size', 'width', 'height'
-  ]
+  SizeProperty = VectorMixin 'size', 'width', 'height'
+
+], class TileLayer
 
   constructor: (size = [0, 0]) ->
-    mixin.call this for mixin in mixins
 
     # The tile index data.
     area = Vector.area size

@@ -19,7 +19,7 @@ describe 'EventEmitter', ->
   beforeEach ->
 
     O = {}
-    Mixin O, EventEmitter
+    Mixin.raw O, [EventEmitter]
     EventEmitter.call O
 
   it "can listen to signals on event name", ->

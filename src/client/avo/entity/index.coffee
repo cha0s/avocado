@@ -2,11 +2,10 @@
 # Specifies objects in the game engine. Entities are essentially just
 # compositions of (subclassed) [`Trait`](./Traits/Trait.html) objects.
 
-Promise = require 'vendor/bluebird'
 _ = require 'vendor/underscore'
+Promise = require 'vendor/bluebird'
 uuid = require 'vendor/uuid'
 
-FunctionExt = require 'avo/extension/function'
 String = require 'avo/extension/string'
 
 fs = require 'avo/fs'
@@ -14,17 +13,15 @@ fs = require 'avo/fs'
 Mixin = require 'avo/mixin'
 EventEmitter = require 'avo/mixin/eventEmitter'
 
-module.exports = Entity = class Entity
+# #### Mixins
+module.exports = Mixin.toClass [
 
-  # #### Mixins
-  #
   # * [`EventEmitter`](../Mixin/EventEmitter.html) for trait signals.
-  mixins = [
-    EventEmitter
-  ]
+  EventEmitter
+
+], class Entity
 
   constructor: ->
-    mixin.call @ for mixin in mixins
 
     @_isTicking = true
     @_originalTraits = {}
@@ -37,8 +34,6 @@ module.exports = Entity = class Entity
     # Existent::initialize() returns an immediate value (not a
     # promise).
     @extendTraits [type: 'existent']
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   _addTrait: (traitInfo) ->
 

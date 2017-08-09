@@ -1,7 +1,6 @@
 
 PIXI = require 'vendor/pixi'
 
-FunctionExt = require 'avo/extension/function'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
 
@@ -16,24 +15,23 @@ Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 VectorMixin = require 'avo/mixin/vector'
 
-module.exports = class LayerView
+module.exports = Mixin.toClass [
 
-  Mixin.toClass this, mixins = [
-    EventEmitter
+  EventEmitter
 
-    VectorMixin(
-      'position', 'x', 'y'
-      x: default: 0
-      y: default: 0
-    )
+  VectorMixin(
+    'position', 'x', 'y'
+    x: default: 0
+    y: default: 0
+  )
 
-    Property 'layer', default: null
+  Property 'layer', default: null
 
-    Property 'tileset', default: null
-  ]
+  Property 'tileset', default: null
+
+], class LayerView
 
   constructor: (@chunkSize = [512, 512]) ->
-    mixin.call this for mixin in mixins
 
     @_chunkMap = {}
 

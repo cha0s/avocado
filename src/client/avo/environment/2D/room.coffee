@@ -1,41 +1,42 @@
 
 _ = require 'vendor/underscore'
-Entity = require 'avo/entity'
-EventEmitter = require 'avo/mixin/eventEmitter'
-FunctionExt = require 'avo/extension/function'
-Mixin = require 'avo/mixin'
-Property = require 'avo/mixin/property'
 Promise = require 'vendor/bluebird'
+
+Entity = require 'avo/entity'
+
+FunctionExt = require 'avo/extension/function'
 Rectangle = require 'avo/extension/rectangle'
 Vector = require 'avo/extension/vector'
+
+EventEmitter = require 'avo/mixin/eventEmitter'
+Mixin = require 'avo/mixin'
+Property = require 'avo/mixin/property'
 VectorMixin = require 'avo/mixin/vector'
 
-module.exports = Room = class Room
+module.exports = Mixin.toClass [
+
+  EventEmitter
+
+  Property 'label', default: ''
+
+  SizeProperty = VectorMixin(
+    'size', 'width', 'height'
+    width: default: 0
+    height: default: 0
+  )
+
+  TilesetProperty = Property 'tileset', default: null
+
+], class Room
 
   @defaultLayerCount: 5
 
-  mixins = [
-    EventEmitter
-
-    Property 'label', default: ''
-    SizeProperty = VectorMixin(
-      'size', 'width', 'height'
-      width: default: 0
-      height: default: 0
-    )
-    TilesetProperty = Property 'tileset', default: null
-  ]
-
   constructor: ->
-
-    mixin.call @ for mixin in mixins
 
     @_collision = []
     @_entityDefinitions = []
     @_layers = for i in [0...Room.defaultLayerCount]
       new Room.TileLayer()
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
 
   fromObject: (O) ->
 

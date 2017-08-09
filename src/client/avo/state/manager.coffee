@@ -1,27 +1,24 @@
 
 Promise = require 'vendor/bluebird'
 
-AbstractState = require 'avo/state/abstractState'
-window_ = require 'avo/graphics/window'
-
 fs = require 'avo/fs'
 
-FunctionExt = require 'avo/extension/function'
-Ticker = require 'avo/timing/ticker'
+window_ = require 'avo/graphics/window'
 
 Mixin = require 'avo/mixin'
 EventEmitter = require 'avo/mixin/eventEmitter'
 
-module.exports = class StateManager
+Ticker = require 'avo/timing/ticker'
 
-  mixins = [
-    EventEmitter
-  ]
+AbstractState = require './abstractState'
 
-  FunctionExt.fastApply Mixin, [@::].concat mixins
+module.exports = Mixin.toClass [
+
+  EventEmitter
+
+], class StateManager
 
   constructor: ->
-    mixin.call @ for mixin in mixins
 
     @cache = {}
     @instance = null

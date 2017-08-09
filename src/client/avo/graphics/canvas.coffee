@@ -1,7 +1,6 @@
 
 uuid = require 'vendor/uuid'
 
-FunctionExt = require 'avo/extension/function'
 Vector = require 'avo/extension/vector'
 
 Renderer = require 'avo/graphics/renderer'
@@ -11,30 +10,30 @@ Mixin = require 'avo/mixin'
 Property = require 'avo/mixin/property'
 
 input = require 'avo/input'
+
 Node = require 'avo/ui/node'
 
 canvases = {}
 
-module.exports = class AvoCanvas
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
+  EventEmitter
 
-    Property(
-      'verticalAlign'
-      default: 'middle'
-      set: (verticalAlign) ->
-        if -1 is ['top', 'middle', 'bottom'].indexOf verticalAlign
-          throw new Error "#{verticalAlign} is an invalid vertical alignment!"
+  Property(
+    'verticalAlign'
+    default: 'middle'
+    set: (verticalAlign) ->
+      if -1 is ['top', 'middle', 'bottom'].indexOf verticalAlign
+        throw new Error "#{verticalAlign} is an invalid vertical alignment!"
 
-        @_verticalAlign = verticalAlign
-    )
-  ]
+      @_verticalAlign = verticalAlign
+  )
+
+], class AvoCanvas
 
   @lookup: (uuid) -> canvases[uuid]
 
   constructor: (resolution, renderer) ->
-    mixin.call this for mixin in mixins
 
     @_renderer = new Renderer resolution, renderer
 
@@ -150,6 +149,3 @@ module.exports = class AvoCanvas
     ]
 
     delete canvases[@_uuid]
-
-  FunctionExt.fastApply Mixin, [@::].concat mixins
-

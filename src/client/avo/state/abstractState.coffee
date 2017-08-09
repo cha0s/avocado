@@ -7,23 +7,15 @@
 # States will never be destroyed during the lifecycle of the engine. Remember
 # this, as it means that **no child objects will be garbage collected unless
 # you delete them explicitly!**
-Promise = require 'vendor/bluebird'
 
 EventEmitter = require 'avo/mixin/eventEmitter'
-FunctionExt = require 'avo/extension/function'
 Mixin = require 'avo/mixin'
 
-module.exports = class AbstractState
+module.exports = Mixin.toClass [
 
-  mixins = [
-    EventEmitter
-  ]
+  EventEmitter
 
-  FunctionExt.fastApply Mixin, [@::].concat mixins
-
-  # ##### constructor
-  # Make sure to call this from your subclass.
-  constructor: -> mixin.call @ for mixin in mixins
+], class AbstractState
 
   # ##### initialize
   # When the state is first loaded, initialize is called. This is used to
