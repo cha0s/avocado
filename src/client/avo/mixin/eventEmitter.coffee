@@ -6,7 +6,24 @@
 
 _ = require 'vendor/underscore'
 
+listenerStorage = if 'undefined' is typeof WeakMap
+  undefined
+else
+  new WeakMap()
+
 module.exports = class EventEmitter
+
+  @listenerStorage: (listener) ->
+
+    if listenerStorage?
+
+      listenerStorage.set listener, {} unless listenerStorage.has listener
+      return listenerStorage.get listener
+
+    else
+
+      listener.__eventEmitter = {} unless listener.__eventEmitter?
+      return listener.__eventEmitter
 
   # Make space for the events and event emitters.
   constructor: ->
@@ -41,19 +58,21 @@ module.exports = class EventEmitter
     else
       [eventNamesOrEventName]
 
+    storage = EventEmitter.listenerStorage f
 
-    f.__once = false
+    storage.once = false
     bound = f.bind that
-    bound.__that = that
-    (f.__bound ?= []).push bound
+    storage.that = that
+    (storage.bound ?= []).push bound
 
+    # ###### TODO: storage won't be correct for multi-event... fix it
     for eventName in eventNames
       info = parseEventName eventName
 
-      f.__event = info.event
+      storage.event = info.event
       (@_events[info.event] ?= []).push f
 
-      f.__namespace = info.namespace
+      storage.namespace = info.namespace
       ((@_namespaces[info.namespace] ?= {})[info.event] ?= []).push f
 
     return
@@ -61,8 +80,8 @@ module.exports = class EventEmitter
   once: (eventName, f, that = null) ->
     @on eventName, f, that
 
-    info = parseEventName eventName
-    @_events[info.event][@_events[info.event].length - 1].__once = true
+    storage = EventEmitter.listenerStorage f
+    storage.once = true
 
     return
 
@@ -139,11 +158,14 @@ module.exports = class EventEmitter
     # analytics.tally "eventEmitter:#{name}"
 
     for f in candidates
-      @off "#{name}.#{f.__namespace}", f if f.__once
 
-      offset = if f.__event isnt '*' then 1 else 0
+      storage = EventEmitter.listenerStorage f
 
-      for bound in f.__bound
+      @off "#{name}.#{storage.namespace}", f if storage.once
+
+      offset = if storage.event isnt '*' then 1 else 0
+
+      for bound in storage.bound
 
         # Fast path...
         if arguments.length is offset
@@ -160,8 +182,8 @@ module.exports = class EventEmitter
           bound arguments[offset], arguments[offset + 1], arguments[offset + 2], arguments[offset + 3], arguments[offset + 4]
         else
           if offset is 0
-            bound.apply bound.__that, arguments
+            bound.apply storage.that, arguments
           else
-            bound.apply bound.__that, (arg for arg, i in arguments when i > offset)
+            bound.apply storage.that, (arg for arg, i in arguments when i > offset)
 
     return
