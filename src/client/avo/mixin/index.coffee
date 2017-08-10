@@ -3,9 +3,8 @@ FunctionExt = require 'avo/extension/function'
 
 exports.raw = (O, mixins) ->
 
-  for mixin in mixins
-    for own key of mixin.prototype
-      O[key] ?= mixin::[key]
+  O[key] ?= mixin::[key] for own key of mixin.prototype for mixin in mixins
+  return
 
 exports.toClass = (mixins, Class_) ->
 
