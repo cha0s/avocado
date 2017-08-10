@@ -2,7 +2,7 @@
 Promise = require 'vendor/bluebird'
 
 Behavior = require 'avo/behavior'
-Actions = require './actions'
+Actions = require 'avo/behavior/actions'
 
 describe 'Behavior', ->
 

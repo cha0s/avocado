@@ -1,5 +1,5 @@
 
-EventEmitter = require './eventEmitter'
+EventEmitter = require 'avo/mixin/eventEmitter'
 Mixin = require 'avo/mixin'
 
 describe 'EventEmitter', ->

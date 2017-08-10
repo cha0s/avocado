@@ -1,7 +1,7 @@
 
 AvoImage = require 'avo/graphics/image'
 Promise = require 'vendor/bluebird'
-Tileset = require './tileset'
+Tileset = require 'avo/environment/2D/tileset'
 
 describe 'Tileset', ->
 
@@ -20,7 +20,7 @@ describe 'Tileset', ->
     ).then ->
 
       expect(tileset.tileCount()).toBe 256
-      expect(tileset.tiles()).toEqual [16, 16]
+      expect(tileset.sizeInTiles()).toEqual [16, 16]
       expect(tileset.tileBox 18).toEqual [32, 16, 16, 16]
 
       done()

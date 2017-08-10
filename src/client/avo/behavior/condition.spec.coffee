@@ -1,6 +1,6 @@
 
 Behavior = require 'avo/behavior'
-Condition = require './condition'
+Condition = require 'avo/behavior/condition'
 
 describe 'Behavior', ->
 

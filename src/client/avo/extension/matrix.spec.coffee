@@ -1,5 +1,5 @@
 
-Matrix = require './matrix'
+Matrix = require 'avo/extension/matrix'
 
 describe 'Matrix', ->
 

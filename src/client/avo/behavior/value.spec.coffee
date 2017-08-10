@@ -1,5 +1,5 @@
 
-Value = require './value'
+Value = require 'avo/behavior/value'
 
 describe 'Behavior', ->
 

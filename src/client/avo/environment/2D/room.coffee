@@ -98,7 +98,7 @@ module.exports = Mixin.toClass [
 
     TilesetProperty::setTileset.call @, tileset
 
-    layer.setTileset tileset for layer in @_layers
+    # layer.setTileset tileset for layer in @_layers
 
   sizeInPx: ->
 

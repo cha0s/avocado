@@ -1,5 +1,5 @@
 
-Array = require './array'
+Array = require 'avo/extension/array'
 
 describe 'Array', ->
 

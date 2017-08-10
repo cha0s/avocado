@@ -1,5 +1,5 @@
 
-Rectangle = require './rectangle'
+Rectangle = require 'avo/extension/rectangle'
 
 describe 'Rectangle', ->
 

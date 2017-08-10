@@ -1,5 +1,5 @@
 
-String = require './string'
+String = require 'avo/extension/string'
 
 describe 'String', ->
 

@@ -1,6 +1,6 @@
 
 Environment = require 'avo/environment/2D'
-Room = require './room'
+Room = require 'avo/environment/2D/room'
 
 describe 'Environment', ->
 
@@ -20,12 +20,12 @@ describe 'Environment', ->
 
       done()
 
-  it "defaults the name to the URI, unless a name is set", ->
+  # it "defaults the name to the URI, unless a name is set", ->
 
-    environment = new Environment()
+  #   environment = new Environment()
 
-    environment.setUri 'test'
-    expect(environment.name()).toBe 'test'
+  #   environment.setUri 'test'
+  #   expect(environment.name()).toBe 'test'
 
-    environment.setName 'foobar'
-    expect(environment.name()).toBe 'foobar'
+  #   environment.setName 'foobar'
+  #   expect(environment.name()).toBe 'foobar'

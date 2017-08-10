@@ -1,5 +1,5 @@
 
-Vector = require './vector'
+Vector = require 'avo/extension/vector'
 
 describe 'Vector', ->
 

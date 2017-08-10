@@ -2,7 +2,7 @@
 Promise = require 'vendor/bluebird'
 
 Behavior = require 'avo/behavior'
-Invocation = require './invocation'
+Invocation = require 'avo/behavior/invocation'
 
 describe 'Behavior', ->
 
