@@ -1,4 +1,13 @@
 
-module.exports = class ObjectExt
+AvoWeakMap = require 'vendor/weak-map'
 
-  @deepCopy: (O) -> JSON.parse JSON.stringify O
+exports.deepCopy = (O) -> JSON.parse JSON.stringify O
+
+exports.internal = ->
+
+  map = new AvoWeakMap()
+
+  (O) ->
+
+    map.set O, {} unless map.has O
+    return map.get O

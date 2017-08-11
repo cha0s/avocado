@@ -3,10 +3,12 @@ FunctionExt = require 'avo/extension/function'
 ObjectExt = require 'avo/extension/object'
 String = require 'avo/extension/string'
 
+internal = ObjectExt.internal()
+
 module.exports = (key, meta = {}) ->
 
-  meta.set ?= (value) -> @["_#{key}"] = value
-  meta.get ?= -> @["_#{key}"]
+  meta.set ?= (value) -> internal(@)["_#{key}"] = value
+  meta.get ?= -> internal(@)["_#{key}"]
   meta.eq ?= (l, r) -> l is r
 
   if meta.default is null
