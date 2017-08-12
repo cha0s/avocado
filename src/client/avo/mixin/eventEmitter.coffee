@@ -4,32 +4,15 @@
 
 # analytics = require 'avo/analytics'
 
-_ = require 'vendor/underscore'
+ObjectExt = require 'avo/extension/object'
 
-listenerStorage = if 'undefined' is typeof WeakMap
-  undefined
-else
-  new WeakMap()
+internal = ObjectExt.internal class EventEmitterInternal
 
-module.exports = class EventEmitter
+  class EventEmitterListener
 
-  @listenerStorage: (listener) ->
+    constructor: (@f, @that, @eventName, @namespace, @once) ->
 
-    if listenerStorage?
-
-      listenerStorage.set listener, {} unless listenerStorage.has listener
-      return listenerStorage.get listener
-
-    else
-
-      listener.__eventEmitter = {} unless listener.__eventEmitter?
-      return listener.__eventEmitter
-
-  # Make space for the events and event emitters.
-  constructor: ->
-
-    @_events = {}
-    @_namespaces = {}
+      @bound = @f.bind @that
 
   # Helper function for **on** and **off**. Parse the incoming (possibly)
   # namespaced event name, and return an object.
@@ -42,48 +25,121 @@ module.exports = class EventEmitter
       name = name.substr(0, index)
 
     else
+
       namespace = ''
 
     namespace: namespace
-    event: name
+    eventName: name
+
+  removeFunction = (listeners, f) ->
+
+    toRemove = []
+
+    for listener, index in listeners
+
+      continue unless f is listener.f
+      toRemove.push listener
+
+    for listener in toRemove
+
+      index = listeners.indexOf listener
+      listeners.splice index, 1
+
+    return
+
+  constructor: (@mixed) ->
+
+    @events = {}
+    @namespaces = {}
+
+  candidatesFor: (eventName) ->
+
+    (@events[eventName] ? []).concat @events['*'] ? []
+
+  off: (eventNames, f) ->
+
+    eventNames = [eventNames] unless Array.isArray eventNames
+    @offSingleEvent eventName, f for eventName in eventNames
+
+    return
+
+  offSingleEvent: (eventName, f) ->
+
+    {eventName, namespace} = parseEventName eventName
+
+    # If we're given the function, our job is easy.
+    if 'function' is typeof f
+
+      return if not @events[eventName]?
+
+      removeFunction @events[eventName], f
+      removeFunction @namespaces[namespace][eventName], f
+
+      return
+
+    # No namespace? Remove every matching event.
+    if '' is namespace
+
+      delete @events[eventName]
+      delete events[eventName] for namespace, events of @namespaces
+
+      return
+
+    # Namespaced event? Remove it.
+    if eventName
+
+      return unless (events = @namespaces[namespace])?
+
+      for listener in events[eventName]
+
+        continue if -1 is index = @events[eventName].indexOf listener
+        @events[eventName].splice index, 1
+
+      delete events[eventName]
+
+      return
+
+    # Only a namespace? Remove all events associated with it.
+    for eventName, listeners of @namespaces[namespace] ? {}
+
+      for listener in listeners
+
+        continue if -1 is index = @events[eventName].indexOf listener
+        @events[eventName].splice index, 1
+
+    delete @namespaces[namespace]
+
+    return
+
+  on: (eventNames, f, that, once) ->
+
+    eventNames = [eventNames] unless Array.isArray eventNames
+
+    for eventName in eventNames
+
+      @onSingleEvent eventName, f, that, once
+
+    return
+
+  onSingleEvent: (eventName, f, that, once) ->
+
+    {eventName, namespace} = parseEventName eventName
+    listener = new EventEmitterListener(
+      f, that, eventName, namespace, once
+    )
+
+    (@events[eventName] ?= []).push listener
+    ((@namespaces[namespace] ?= {})[eventName] ?= []).push listener
+
+module.exports = class EventEmitter
 
   # Add listeners to an object. *eventName* is a (possibly) namespaced event
   # to listen for. *f* is a function to be called when the event fires, and
   # *that*, if specified, is the 'this' variable in the callback. 'this'
   # defaults to the object upon which the event listener is registered.
-  on: (eventNamesOrEventName, f, that = null) ->
+  on: (eventNames, f, that = null) -> internal(@).on eventNames, f, that, false
 
-    eventNames = if _.isArray eventNamesOrEventName
-      eventNamesOrEventName
-    else
-      [eventNamesOrEventName]
-
-    storage = EventEmitter.listenerStorage f
-
-    storage.once = false
-    bound = f.bind that
-    storage.that = that
-    (storage.bound ?= []).push bound
-
-    # ###### TODO: storage won't be correct for multi-event... fix it
-    for eventName in eventNames
-      info = parseEventName eventName
-
-      storage.event = info.event
-      (@_events[info.event] ?= []).push f
-
-      storage.namespace = info.namespace
-      ((@_namespaces[info.namespace] ?= {})[info.event] ?= []).push f
-
-    return
-
-  once: (eventName, f, that = null) ->
-    @on eventName, f, that
-
-    storage = EventEmitter.listenerStorage f
-    storage.once = true
-
-    return
+  once: (eventNames, f, that = null) -> internal(@).on eventNames, f, that, true
 
   # Remove listeners from an object.
   #
@@ -106,84 +162,43 @@ module.exports = class EventEmitter
   # undesirable, as Avocado registers event listeners against some built-in
   # objects, and they can be easily be accidentally removed with this
   # method. ***Use caution.***
-  off: (eventName, f) ->
-    info = parseEventName eventName
-
-    # If we're given the function, our job is easy.
-    if 'function' is typeof f
-      return if not @_events[info.event]?
-
-      if -1 isnt (index = @_events[info.event].indexOf f)
-        @_events[info.event].splice index, 1
-
-      if -1 isnt (index = @_namespaces[info.namespace][info.event].indexOf f)
-        @_namespaces[info.namespace][info.event].splice index, 1
-
-      return
-
-    # No namespace? Remove every matching event.
-    if '' is info.namespace
-
-      delete @_events[info.event]
-      for namespace, events of @_namespaces
-        delete events[info.event]
-
-      return
-
-    # Namespaced event? Remove it.
-    if info.event
-      return unless (events = @_namespaces[info.namespace])?
-
-      for f in events[info.event]
-        delete events[info.event]
-        if (index = @_events[info.event].indexOf f)?
-          @_events[info.event].splice index, 1
-
-      return
-
-    # Only a namespace? Remove all events associated with it.
-    for event, fns of @_namespaces[info.namespace] ? {}
-      for f in fns
-        if (index = @_events[event].indexOf f)?
-          @_events[event].splice index, 1
-    delete @_namespaces[info.namespace]
-
-    return
+  off: (eventNames, f) -> internal(@).off eventNames, f
 
   # Notify ALL the listeners!
-  emit: (name) ->
-    candidates = (@_events[name] ? []).concat @_events['*'] ? []
-    return unless candidates
+  emit: (eventName) ->
+
+    candidates = internal(@).candidatesFor eventName
+    return unless candidates.length > 0
 
     # analytics.tally "eventEmitter:#{name}"
 
-    for f in candidates
+    for candidate in candidates
 
-      storage = EventEmitter.listenerStorage f
+      @off "#{
+        candidate.eventName
+      }.#{
+        candidate.namespace
+      }", candidate.f if candidate.once
 
-      @off "#{name}.#{storage.namespace}", f if storage.once
+      offset = if eventName isnt '*' then 1 else 0
 
-      offset = if storage.event isnt '*' then 1 else 0
-
-      for bound in storage.bound
-
-        # Fast path...
-        if arguments.length is offset
-          bound()
-        else if arguments.length is offset + 1
-          bound arguments[offset]
-        else if arguments.length is offset + 2
-          bound arguments[offset], arguments[offset + 1]
-        else if arguments.length is offset + 3
-          bound arguments[offset], arguments[offset + 1], arguments[offset + 2]
-        else if arguments.length is offset + 4
-          bound arguments[offset], arguments[offset + 1], arguments[offset + 2], arguments[offset + 3]
-        else if arguments.length is offset + 5
-          bound arguments[offset], arguments[offset + 1], arguments[offset + 2], arguments[offset + 3], arguments[offset + 4]
+      # Fast path...
+      if arguments.length is offset
+        candidate.bound()
+      else if arguments.length is offset + 1
+        candidate.bound arguments[offset]
+      else if arguments.length is offset + 2
+        candidate.bound arguments[offset], arguments[offset + 1]
+      else if arguments.length is offset + 3
+        candidate.bound arguments[offset], arguments[offset + 1], arguments[offset + 2]
+      else if arguments.length is offset + 4
+        candidate.bound arguments[offset], arguments[offset + 1], arguments[offset + 2], arguments[offset + 3]
+      else if arguments.length is offset + 5
+        candidate.bound arguments[offset], arguments[offset + 1], arguments[offset + 2], arguments[offset + 3], arguments[offset + 4]
+      else
+        if offset is 0
+          candidate.bound.apply candidate.that, arguments
         else
-          if offset is 0
-            bound.apply storage.that, arguments
-          else
-            bound.apply storage.that, (arg for arg, i in arguments when i > offset)
+          candidate.bound.apply candidate.that, (arg for arg, i in arguments when i > offset)
 
     return
